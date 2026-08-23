@@ -61,6 +61,8 @@ export interface ToolMeta {
   status: ToolStatus;
   /** Tailwind-friendly accent key used for the icon tile + glow. */
   accent: "violet" | "cyan" | "fuchsia" | "emerald" | "amber";
+  /** false for tools that run without the FFmpeg engine (defaults true). */
+  requiresEngine?: boolean;
 }
 
 export interface RuntimeProgress {

@@ -15,12 +15,17 @@ import { GifMaker } from "@/components/tools/gif-maker";
 import { AudioEditor } from "@/components/tools/audio-editor";
 import { BassBooster } from "@/components/tools/bass-booster";
 import { EqualizerTool } from "@/components/tools/equalizer-tool";
+import { ImageToPdf } from "@/components/tools/image-to-pdf";
+import { LockPdf } from "@/components/tools/lock-pdf";
 import { MediaConverter } from "@/components/tools/media-converter";
 import { ReverseAudio } from "@/components/tools/reverse-audio";
 import { RingtoneMaker } from "@/components/tools/ringtone-maker";
+import { ScanToPdf } from "@/components/tools/scan-to-pdf";
 import { SlowedReverb } from "@/components/tools/slowed-reverb";
 import { Spatial8D } from "@/components/tools/spatial-8d";
 import { StereoPanner } from "@/components/tools/stereo-panner";
+import { TextToPdf } from "@/components/tools/text-to-pdf";
+import { PaletteExtractor } from "@/components/tools/palette-extractor";
 import { ToolShell } from "@/components/tools/tool-shell";
 import { VideoCompressor } from "@/components/tools/video-compressor";
 import { VideoMute } from "@/components/tools/video-mute";
@@ -42,6 +47,11 @@ const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "stereo-panner": StereoPanner,
   "volume-changer": VolumeChanger,
   "ringtone-maker": RingtoneMaker,
+  "image-to-pdf": ImageToPdf,
+  "text-to-pdf": TextToPdf,
+  "lock-pdf": LockPdf,
+  "scan-to-pdf": ScanToPdf,
+  "palette-extractor": PaletteExtractor,
 };
 
 function ToolView({ toolId }: { toolId: string }) {

@@ -6,7 +6,7 @@
  */
 
 import { motion } from "framer-motion";
-import { Download, FileAudio, FileImage, FileVideo, Sparkles } from "lucide-react";
+import { Download, FileAudio, FileImage, FileText, FileVideo, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import { formatBytes } from "@/lib/format";
 import type { JobOutput } from "@/hooks/use-media-job";
@@ -29,6 +29,7 @@ const TONE: Record<NonNullable<OutputCardProps["badgeTone"]>, string> = {
 export function OutputCard({ output, extra, badge, badgeTone = "pulse" }: OutputCardProps) {
   const isVideo = output.mime.startsWith("video/");
   const isAudio = output.mime.startsWith("audio/");
+  const isPdf = output.mime === "application/pdf";
   const isImage = output.mime.startsWith("image/");
 
   return (
@@ -44,6 +45,8 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse" }: Output
             <FileVideo className="size-5 text-pulse" strokeWidth={1.75} />
           ) : isAudio ? (
             <FileAudio className="size-5 text-pulse" strokeWidth={1.75} />
+          ) : isPdf ? (
+            <FileText className="size-5 text-pulse" strokeWidth={1.75} />
           ) : (
             <FileImage className="size-5 text-pulse" strokeWidth={1.75} />
           )}

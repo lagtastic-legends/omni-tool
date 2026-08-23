@@ -200,8 +200,9 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "documents",
     icon: FileImage,
     phase: 4,
-    status: "locked",
+    status: "online",
     accent: "amber",
+    requiresEngine: false,
   },
   {
     id: "text-to-pdf",
@@ -210,8 +211,9 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "documents",
     icon: FileText,
     phase: 4,
-    status: "locked",
+    status: "online",
     accent: "violet",
+    requiresEngine: false,
   },
   {
     id: "lock-pdf",
@@ -220,8 +222,9 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "documents",
     icon: LockKeyhole,
     phase: 4,
-    status: "locked",
+    status: "online",
     accent: "cyan",
+    requiresEngine: false,
   },
   {
     id: "scan-to-pdf",
@@ -230,8 +233,9 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "documents",
     icon: ScanLine,
     phase: 4,
-    status: "locked",
+    status: "online",
     accent: "fuchsia",
+    requiresEngine: false,
   },
   {
     id: "palette-extractor",
@@ -240,8 +244,9 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "imaging",
     icon: Palette,
     phase: 4,
-    status: "locked",
+    status: "online",
     accent: "emerald",
+    requiresEngine: false,
   },
 
   /* ---------------- PHASE 5 — Vault, Recorder & Dashboard ----------- */

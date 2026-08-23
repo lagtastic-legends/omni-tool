@@ -35,6 +35,8 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
 
   const accent = ACCENT_STYLES[tool.accent];
   const Icon = tool.icon;
+  /* Document/imaging tools run without the wasm engine. */
+  const requiresEngine = tool.requiresEngine !== false;
 
   return (
     <div className="space-y-6">
@@ -69,7 +71,7 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
       </div>
 
       {/* engine gate ------------------------------------------------------ */}
-      {state !== "ready" ? (
+      {requiresEngine && state !== "ready" ? (
         <div className="panel-hud scanlines flex flex-col items-center gap-4 rounded-2xl p-10 text-center">
           {state === "loading" ? (
             <>

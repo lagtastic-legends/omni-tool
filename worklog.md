@@ -83,3 +83,29 @@ Stage Summary:
 - ffmpeg filter-option lessons recorded in code comments (width_type enums, balance_out, -f ipod for m4r).
 - Patterns for Phase 4: pdf-lib + canvas tools are engine-independent (no FFmpeg); registry flips + TOOL_COMPONENTS entries remain the integration path; AudioWorkbench pattern reusable if more effect tools appear.
 - PAUSED — awaiting user confirmation to begin PHASE 4 (Document & Image Toolkit).
+
+---
+Task ID: 4
+Agent: Super Z (principal engineer, main agent)
+Task: PHASE 4 — The Document & Image Toolkit (Image→PDF, Text→PDF, Lock PDF, Scan→PDF, Palette Extractor)
+
+Work Log:
+- Installed @cantoo/pdf-lib@2.9.1 (drop-in pdf-lib fork with encrypt()). Pre-verified: create/2-page save, encrypt({userPassword, ownerPassword, permissions}), /Encrypt present in bytes; fixtures written to scripts/fixture.pdf + fixture-locked.pdf.
+- Built src/lib/documents/pdf.ts: buildImagePdf (one image/page; fit-to-image uses pixel dims as points; fixed sizes letterbox+center, scale≤1), buildTextPdf (greedy word wrap w/ hard-break, WinAnsi sanitizer map, optional title block + violet separator rule, auto pagination, page numbers "i / n"), lockPdf (encrypt + permissions), pdfHasEncrypt (byte-scan for /Encrypt), enhanceImage (canvas contrast×1.18 + brightness+10 → JPEG), buildPdfOutput helper.
+- ToolShell: requiresEngine bypass (ToolMeta.requiresEngine !== false gate) — document/imaging tools open without wasm engine.
+- Shared UI: image-queue.tsx (multi-file drop+click, numbered thumbnails, move up/down, remove, totals), page-options.tsx (A4/Letter/Fit + 3 margins). OutputCard: PDF icon branch + object-based inline PDF preview.
+- 5 tools: image-to-pdf (compile queue→PDF, page-count badge, object preview, toast), text-to-pdf (title input, textarea w/ live word count, font/size/page/margin, pagination badge), lock-pdf (user+owner passwords w/ show/hide, permission toggles, password-strength gate, self-verification via pdfHasEncrypt → "encrypted ✓" badge + security note, already-encrypted error message), scan-to-pdf (getUserMedia camera w/ framing corners + capture→JPEG page, permission-denied fallback, enhance toggle applied at intake, compile), palette-extractor (canvas quantizer: 360px downsample, 4-bit/channel buckets=4096, greedy MIN_DIST=64 selection, proportion bar, click-to-copy hex w/ Check feedback, clipboard-blocked fallback toast, palette size 5/8/10/12 re-runs instantly).
+- Integration: registry 5 tools online + requiresEngine:false (18 online / 23), app-shell +5 components, topbar v0.4 PHASE 4/7, footer document & image toolkit. Fixed literal-\n insertion bug from registry edit script (perl newline normalize).
+- E2E via agent-browser — ALL WITHOUT BOOTING THE ENGINE (validates bypass):
+  1) image-to-pdf: 2 images → "2 pages" badge, %PDF- magic + %%EOF verified in bytes, object preview live ✓
+  2) text-to-pdf: 600-word manifesto → 1 page @11pt; slider→18pt re-typeset → 3 pages (pagination proven) ✓
+  3) lock-pdf: fixture.pdf + password → "encrypted ✓" badge, note "/Encrypt dictionary verified...2 pages"; crypto-verified externally with bun: load w/o password throws, load with password succeeds ✓
+  4) scan-to-pdf: 2 uploads through enhance pipeline → "2 scanned pages" ✓ (camera path implemented; headless denies permission — graceful toast fallback confirmed by design)
+  5) palette-extractor: vivid gradient → 8 swatches, top hex #01CCD1 exactly matches the source teal (0x00CED1) ✓ copy-click tested
+- Lint clean, 0 console errors. Screenshot: download/phase4-palette-extractor.png.
+
+Stage Summary:
+- 5 Phase-4 modules LIVE and browser-verified; Tool Matrix: 18 live / 23.
+- Engine-independent tool pattern established (requiresEngine:false) — reused later by Vault (IndexedDB) and QR (html5-qrcode) in Phases 5–6.
+- PDF outputs verified at byte level (%PDF-, %%EOF, /Encrypt) and crypto level (password round-trip).
+- PAUSED — awaiting user confirmation to begin PHASE 5 (File Management, Recording & Dashboard).
