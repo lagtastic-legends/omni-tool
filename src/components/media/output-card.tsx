@@ -6,9 +6,10 @@
  */
 
 import { motion } from "framer-motion";
-import { Download, FileAudio, FileImage, FileText, FileVideo, Sparkles } from "lucide-react";
-import type { ReactNode } from "react";
+import { Check, Database, Download, FileAudio, FileImage, FileText, FileVideo, Sparkles } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { formatBytes } from "@/lib/format";
+import { useVault } from "@/lib/vault/vault-context";
 import type { JobOutput } from "@/hooks/use-media-job";
 
 interface OutputCardProps {
@@ -27,6 +28,19 @@ const TONE: Record<NonNullable<OutputCardProps["badgeTone"]>, string> = {
 };
 
 export function OutputCard({ output, extra, badge, badgeTone = "pulse" }: OutputCardProps) {
+  const { save } = useVault();
+  const [vaultState, setVaultState] = useState<"idle" | "saved">("idle");
+
+  const saveToVault = async () => {
+    const item = await save({
+      name: output.name,
+      blob: output.blob,
+      mime: output.mime,
+      size: output.size,
+    });
+    if (item) setVaultState("saved");
+  };
+
   const isVideo = output.mime.startsWith("video/");
   const isAudio = output.mime.startsWith("audio/");
   const isPdf = output.mime === "application/pdf";
@@ -89,14 +103,37 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse" }: Output
 
       {extra}
 
-      <a
-        href={output.url}
-        download={output.name}
-        className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-pulse/40 bg-pulse/15 font-display text-xs font-bold tracking-[0.18em] text-pulse transition-colors hover:bg-pulse/25"
-      >
-        <Download className="size-4" />
-        SAVE TO DEVICE
-      </a>
+      <div className="grid grid-cols-[1fr_auto] gap-2">
+        <a
+          href={output.url}
+          download={output.name}
+          className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-pulse/40 bg-pulse/15 font-display text-xs font-bold tracking-[0.18em] text-pulse transition-colors hover:bg-pulse/25"
+        >
+          <Download className="size-4" />
+          SAVE TO DEVICE
+        </a>
+        <motion.button
+          onClick={() => void saveToVault()}
+          disabled={vaultState === "saved"}
+          whileTap={vaultState === "saved" ? undefined : { scale: 0.96 }}
+          aria-label={vaultState === "saved" ? "Saved to vault" : "Save to vault"}
+          title={vaultState === "saved" ? "Stored in the File Vault" : "Store in the on-device File Vault"}
+          className={`flex min-h-11 items-center justify-center gap-2 rounded-xl border px-4 font-display text-xs font-bold tracking-[0.18em] transition-colors ${
+            vaultState === "saved"
+              ? "border-pulse/40 bg-pulse/10 text-pulse"
+              : "border-border/70 bg-card/50 text-muted-foreground hover:border-primary/40 hover:text-primary"
+          }`}
+        >
+          {vaultState === "saved" ? (
+            <Check className="size-4" strokeWidth={3} />
+          ) : (
+            <Database className="size-4" />
+          )}
+          <span className="hidden sm:inline">
+            {vaultState === "saved" ? "VAULTED" : "VAULT"}
+          </span>
+        </motion.button>
+      </div>
     </motion.div>
   );
 }

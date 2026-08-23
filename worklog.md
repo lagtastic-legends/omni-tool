@@ -109,3 +109,30 @@ Stage Summary:
 - Engine-independent tool pattern established (requiresEngine:false) — reused later by Vault (IndexedDB) and QR (html5-qrcode) in Phases 5–6.
 - PDF outputs verified at byte level (%PDF-, %%EOF, /Encrypt) and crypto level (password round-trip).
 - PAUSED — awaiting user confirmation to begin PHASE 5 (File Management, Recording & Dashboard).
+
+---
+Task ID: 5
+Agent: Super Z (principal engineer, main agent)
+Task: PHASE 5 — File Management, Recording & Dashboard (File Vault, Studio Recorder, Dashboard Hub finalization)
+
+Work Log:
+- Built src/lib/vault/vault-db.ts: IndexedDB layer (DB "omni-vault" v1, store "files" w/ createdAt index), CRUD (vaultList/Put/Delete/Clear), vaultKindForMime, vaultEstimate (navigator.storage.estimate), vaultRequestPersistence (best-effort durable storage).
+- Built src/lib/vault/vault-context.tsx: VaultProvider (items, totals, estimate, save/remove/clearAll/refresh) + useVault hook. Mounted in page.tsx inside FFmpegEngineProvider.
+- OutputCard: SAVE TO VAULT action added via context (zero per-tool wiring — every tool in the suite gained persistence in one edit): idle→saved state machine, Database/Check icons, VAULT/VAULTED labels, failure toast on quota errors.
+- Built Vault module (components/vault/vault-view.tsx): telemetry panel (stored files, vault size, origin storage quota bar w/ live %), search input, kind filter chips w/ counts, sort cycle (newest/oldest/largest/smallest), lazy blob preview per kind (video/audio/img/PDF object/binary note), download (lazy URL materialization), delete w/ toast, clear-all behind AlertDialog confirm, empty + loading states.
+- Built Studio Recorder (tools/studio-recorder.tsx): 3 modes (mic/webcam/screen) with mode tabs that lock during capture; acquireStream (getUserMedia w/ echoCancellation+noiseSuppression for mic, 720p cam, getDisplayMedia 30fps for screen); mime probing (vp9/vp8+opus, opus, mp4 fallback); MediaRecorder w/ 400ms timeslices, pause/resume w/ paused-time-accurate elapsed timer, REC badge pulse + PAUSED badge, live AudioContext analyser level meter (28 bars, rAF, cleaned up on teardown), screen-share track 'ended' auto-finalize, discard behind AlertDialog, teardown of all tracks/ctx/rAF on unmount; output lands in OutputCard (→ vaultable).
+- Dashboard finalized (dashboard-view.tsx): 4-chip live stats row (live modules X/23, vaulted files+bytes, engine state, last boot time), "Fresh from the Vault" recent strip (4 latest, navigates to vault), hero copy updated for capture+vault.
+- Integration: registry vault + studio-recorder online w/ requiresEngine:false (20/23 live, 7 engine-free), app-shell +2 components, topbar v0.5 PHASE 5/7, footer. Registry flip script saved as scripts/flip-registry-5.mjs (avoids earlier literal-\n bug class).
+- E2E via agent-browser:
+  1) stats row live on fresh load: "20/23 · empty · idle · —" ✓
+  2) image-to-pdf (engine cold) → compile 1-page PDF → "Save to vault" → VAULTED state ✓
+  3) RELOAD → vault persists: stats "1 · 34 KB", dashboard strip "Open vault — latest file omni-images.pdf" ✓
+  4) Vault view: telemetry "104 KB of 10.0 GB" (origin estimate), "1 of 1 shown · persists in this browser", PDF object preview rendered, delete → "vault empty" ✓
+  5) Studio Recorder: mode tabs switch + ARM label relabels (MICROPHONE→SCREEN); headless denies getUserMedia → graceful "denied · capture blocked" state w/ guidance, 0 console errors ✓ (full record/pause/resume flow implemented but not browser-exercisable in headless — honest limitation, denial path verified)
+- Lint clean. 0 console errors. Screenshot: download/phase5-studio-recorder.png.
+
+Stage Summary:
+- Phase-5 modules LIVE: Vault (full CRUD + persistence + telemetry) and Studio Recorder (3 capture modes, denial-safe). Dashboard hub finalized w/ live stats + vault strip.
+- Tool Matrix: 20 live / 23. Vault persistence retrofitted onto ALL 18 output-producing tools via OutputCard.
+- Patterns for Phase 6: engine-free gating already proven; Capacitor will wrap the same single-canvas app; QR tool (html5-qrcode) follows requiresEngine:false + registry + TOOL_COMPONENTS recipe.
+- PAUSED — awaiting user confirmation to begin PHASE 6 (Mobile Cross-Platform Setup with Capacitor).

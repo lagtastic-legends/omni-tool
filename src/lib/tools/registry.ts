@@ -257,8 +257,9 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "system",
     icon: Vault,
     phase: 5,
-    status: "locked",
+    status: "online",
     accent: "violet",
+    requiresEngine: false,
   },
   {
     id: "studio-recorder",
@@ -267,8 +268,9 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "studio",
     icon: Camera,
     phase: 5,
-    status: "locked",
+    status: "online",
     accent: "fuchsia",
+    requiresEngine: false,
   },
 
   /* ---------------- PHASE 6 — Capacitor / Android -------------------- */

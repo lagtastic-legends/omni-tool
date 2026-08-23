@@ -24,9 +24,11 @@ import { ScanToPdf } from "@/components/tools/scan-to-pdf";
 import { SlowedReverb } from "@/components/tools/slowed-reverb";
 import { Spatial8D } from "@/components/tools/spatial-8d";
 import { StereoPanner } from "@/components/tools/stereo-panner";
+import { StudioRecorder } from "@/components/tools/studio-recorder";
 import { TextToPdf } from "@/components/tools/text-to-pdf";
 import { PaletteExtractor } from "@/components/tools/palette-extractor";
 import { ToolShell } from "@/components/tools/tool-shell";
+import { VaultView } from "@/components/vault/vault-view";
 import { VideoCompressor } from "@/components/tools/video-compressor";
 import { VideoMute } from "@/components/tools/video-mute";
 import { VolumeChanger } from "@/components/tools/volume-changer";
@@ -52,6 +54,8 @@ const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "lock-pdf": LockPdf,
   "scan-to-pdf": ScanToPdf,
   "palette-extractor": PaletteExtractor,
+  vault: VaultView,
+  "studio-recorder": StudioRecorder,
 };
 
 function ToolView({ toolId }: { toolId: string }) {
