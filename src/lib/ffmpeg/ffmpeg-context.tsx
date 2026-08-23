@@ -47,7 +47,7 @@ const CORE_VER = "0.12.10";
 
 const ENGINE_ASSETS = {
   worker: "/ffmpeg/worker.js",
-  core: `https://unpkg.com/@ffmpeg/core@${CORE_VER}/dist/umd/ffmpeg-core.js`,
+  core: `https://unpkg.com/@ffmpeg/core@${CORE_VER}/dist/esm/ffmpeg-core.js`,
   wasm: `https://unpkg.com/@ffmpeg/core@${CORE_VER}/dist/umd/ffmpeg-core.wasm`,
 } as const;
 
@@ -165,11 +165,8 @@ export function FFmpegEngineProvider({ children }: { children: ReactNode }) {
         `Spawning module worker → ${ENGINE_ASSETS.worker}`,
       );
 
-      /* Core glue script is tiny — no progress needed. */
-      const coreURL = await toBlobURL(
-        ENGINE_ASSETS.core,
-        "text/javascript",
-      );
+      /* Core glue script is tiny — no progress needed. Fetching directly via CDN. */
+      const coreURL = ENGINE_ASSETS.core;
 
       setStage("fetch");
       const totalBytesGuess = WASM_BYTES_FALLBACK;
