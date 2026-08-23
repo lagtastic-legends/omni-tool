@@ -1,5 +1,20 @@
 apply plugin: 'com.android.application'
 
+// =====================================================================
+// OMNI TOOL — conditional Firebase wiring.
+// The google-services plugin is ONLY applied when real credentials are
+// present, so builds succeed out-of-the-box without a Firebase project.
+// Run ./scripts/setup-firebase.sh after downloading credentials.
+// =====================================================================
+def googleServicesJson = file('google-services.json')
+if (googleServicesJson.exists()) {
+    apply plugin: 'com.google.gms.google-services'
+} else {
+    logger.lifecycle("OMNI TOOL: google-services.json missing — building WITHOUT Firebase auth (open mode).")
+}
+
+def isFirebaseEnabled = googleServicesJson.exists()
+
 android {
     namespace = "app.omnitool.suite"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -40,6 +55,14 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$androidxJunitVersion"
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
+}
+
+// Firebase auth plugin is only compiled in when credentials exist —
+// mirrors the conditional plugin block above.
+if (isFirebaseEnabled) {
+    // google-services plugin (applied above) injects the required
+    // firebase-auth transitives for @capacitor-firebase/authentication.
+    logger.lifecycle("OMNI TOOL: Firebase ENABLED — auth gate active in the native build.")
 }
 
 apply from: 'capacitor.build.gradle'

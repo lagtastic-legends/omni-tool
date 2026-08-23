@@ -1,0 +1,9 @@
+{
+  "_comment": "Copy to public/firebase-config.json (web) after registering a Web App in the Firebase console. The runtime config loader picks this up automatically — no rebuild needed.",
+  "apiKey": "AIzaSy...your-web-api-key",
+  "authDomain": "your-project.firebaseapp.com",
+  "projectId": "your-project",
+  "storageBucket": "your-project.appspot.com",
+  "messagingSenderId": "000000000000",
+  "appId": "1:000000000000:web:abcdef123456"
+}

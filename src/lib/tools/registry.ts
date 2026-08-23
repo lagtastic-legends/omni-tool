@@ -305,8 +305,9 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "system",
     icon: Fingerprint,
     phase: 7,
-    status: "locked",
+    status: "online",
     accent: "amber",
+    requiresEngine: false,
   },
 ];
 

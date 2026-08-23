@@ -1,0 +1,35 @@
+{
+  "_comment": "Copy to android/app/google-services.json after registering the Android app (package app.omnitool.suite) in the Firebase console. Values below are placeholder-shaped but structurally valid so the google-services Gradle plugin can parse them.",
+  "project_info": {
+    "project_number": "000000000000",
+    "project_id": "your-project",
+    "storage_bucket": "your-project.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:000000000000:android:abcdef123456",
+        "android_client_info": {
+          "package_name": "app.omnitool.suite"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "000000000000-placeholder.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSy-placeholder-android-api-key"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

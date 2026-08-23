@@ -165,3 +165,30 @@ Stage Summary:
 - Tool Matrix: 22 live / 23. Only Phase 7 (auth-gateway) remains locked.
 - The androidScheme:https choice matters — getUserMedia requires a secure context, so camera tools work inside the native WebView.
 - PAUSED — awaiting user confirmation to begin PHASE 7 (Firebase Authentication & Security).
+
+---
+Task ID: 7
+Agent: Super Z (principal engineer, main agent)
+Task: PHASE 7 — Firebase Authentication & Security (Google Sign-In, dashboard gate, native credential scaffolding)
+
+Work Log:
+- Installed firebase (JS SDK) + @capacitor-firebase/authentication@8.4.0; cap sync registered the plugin in the android project.
+- src/lib/auth/firebase.ts: credential-optional bootstrap — runtime fetch of /firebase-config.json (survives static export, no build-time secrets) with NEXT_PUBLIC_FIREBASE_* env fallback; memoized config probe; getFirebaseApp/getFirebaseAuth null-safe accessors.
+- src/lib/auth/auth-context.tsx: AuthProvider — mode: probing|unconfigured|configured; onAuthStateChanged session subscription; signInWithGoogle() branches on Capacitor.isNativePlatform() → FirebaseAuthentication.signInWithGoogle() (native OS account picker) vs signInWithPopup (web); signOut both paths; AuthUser projection (uid/name/email/photo/provider); popup-blocked error copy.
+- AuthGateway module (auth-gateway.tsx): Identity panel (Google button w/ official 4-color mark, profile card w/ avatar + authenticated badge, sign-out), open-mode notice when unconfigured, security posture panel (firebase linked / gate enforced / on-device processing / local vault), 4-step setup guide (console → register app.omnitool.suite + SHA-1 via keytool → setup-firebase.sh → rebuild+relock), "how the gate behaves" explainer.
+- AuthGuard (auth-guard.tsx): config-driven security — probing splash / unconfigured → children + amber open-mode banner (app never bricks) / configured+signed-out → RESTRICTED AREA lock screen (pulsing fingerprint, Google sign-in, error surface) / signed-in → children.
+- Native scaffolding: android/app/google-services.json.example + public/firebase-config.example.json (placeholder-shaped, documented); scripts/setup-firebase.sh installs both + prints SHA-1 keytool guidance + chmod 600; android/app/build.gradle patched with conditional google-services plugin (applies only when google-services.json exists — builds succeed without Firebase); root build.gradle classpath commented.
+- Integration: auth-gateway online + requiresEngine:false (23/23 live, 10 engine-free); app-shell wraps dashboard+tools in AuthGuard with auth-gateway rendered above the gate; TopBar user chip (avatar/initials + sign-out) / amber "open mode" chip; page.tsx wraps AuthProvider outermost; topbar v0.7 PHASE 7/7; footer "complete · auth-ready". Registry flip script: scripts/flip-registry-7.mjs.
+- E2E via agent-browser:
+  1) Open mode: banner live, dashboard accessible, 23/23 modules live ✓
+  2) Auth Gateway renders: identity + open-mode notice + 4-step guide (SHA-1, setup-firebase.sh) + posture rows (not linked / open mode / on-device / local) ✓
+  3) GATE ENGAGEMENT TEST: injected dummy firebase-config.json → reload → RESTRICTED AREA lock screen, Google button present, Tool Matrix hidden (tools protected) ✓
+  4) Sign-in error path: clicked Google → real Firebase error "auth/api-key-not-valid" surfaced cleanly in the lock screen error panel ✓
+  5) Recovery: removed dummy config → reload → open mode restored, 23/23 live, 0 console errors ✓
+  6) Native scaffold: example files + scripts + conditional Gradle patch verified; cap sync green with the Firebase plugin registered ✓
+- Lint clean. Screenshot: download/phase7-auth-gateway.png.
+
+Stage Summary:
+- ALL 7 PHASES COMPLETE. Tool Matrix: 23/23 live (10 engine-free). Suite fully browser-verified end-to-end across every phase.
+- Security model: config-driven gate — engages automatically when credentials appear (verified via dummy-config lock-screen test), refuses to brick when absent. Google Sign-In wired for web (popup) + native (Capacitor plugin + google-services.json path).
+- For production: run scripts/setup-firebase.sh with real credentials → scripts/build-mobile.sh → signed release (SHA-1 instructions in the Auth Gateway + setup script).

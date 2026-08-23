@@ -7,6 +7,8 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Compass } from "lucide-react";
+import { AuthGateway } from "@/components/auth/auth-gateway";
+import { AuthGuard } from "@/components/auth/auth-guard";
 import { AuroraBackground } from "@/components/shell/aurora-background";
 import { AppFooter } from "@/components/shell/footer";
 import { TopBar } from "@/components/shell/top-bar";
@@ -60,6 +62,7 @@ const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "studio-recorder": StudioRecorder,
   "qr-studio": QrStudio,
   "android-shell": AndroidShell,
+  "auth-gateway": AuthGateway,
 };
 
 function ToolView({ toolId }: { toolId: string }) {
@@ -109,7 +112,18 @@ export function AppShell() {
             transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
             className="flex-1"
           >
-            {view === "dashboard" ? <DashboardView /> : <ToolView toolId={view} />}
+            {/* The Auth Gateway stays reachable above the security gate —
+             * it hosts the setup instructions (open mode) and profile
+             * management (signed in). Every other surface is guarded. */}
+            {view === "auth-gateway" ? (
+              <ToolShell toolId="auth-gateway">
+                <AuthGateway />
+              </ToolShell>
+            ) : (
+              <AuthGuard>
+                {view === "dashboard" ? <DashboardView /> : <ToolView toolId={view} />}
+              </AuthGuard>
+            )}
           </motion.div>
         </AnimatePresence>
       </main>

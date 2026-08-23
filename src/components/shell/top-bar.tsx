@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Hexagon, Zap } from "lucide-react";
+import { Hexagon, LogOut, ShieldAlert, Zap } from "lucide-react";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
+import { useAuth } from "@/lib/auth/auth-context";
 import type { EngineState } from "@/types/omni";
 
 const STATE_META: Record<
@@ -33,7 +34,8 @@ const STATE_META: Record<
 
 export function TopBar() {
   const { state, capabilities } = useFFmpegEngine();
-  const meta = STATE_META[state];
+  const { mode, user, signOut } = useAuth();
+  const meta = STATE_META[state];;
 
   return (
     <motion.header
@@ -65,6 +67,50 @@ export function TopBar() {
 
         {/* Status cluster */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* auth state chip */}
+          {mode === "unconfigured" ? (
+            <div
+              className="hidden items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1.5 md:flex"
+              title="Firebase credentials not detected — the security gate is disengaged"
+            >
+              <ShieldAlert className="size-3 text-amber-300" />
+              <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-300">
+                open mode
+              </span>
+            </div>
+          ) : user ? (
+            <div className="flex items-center gap-2">
+              <div
+                className="hidden items-center gap-2 rounded-full border border-pulse/30 bg-pulse/10 px-2.5 py-1.5 md:flex"
+                title={user.email ?? "authenticated"}
+              >
+                {user.photoURL ? (
+                   
+                  <img
+                    src={user.photoURL}
+                    alt=""
+                    className="size-4 rounded-full"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <span className="grid size-4 place-items-center rounded-full bg-pulse/30 font-mono text-[9px] font-bold text-pulse">
+                    {(user.displayName ?? user.email ?? "?").charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <span className="max-w-24 truncate font-mono text-[10px] text-pulse">
+                  {(user.displayName ?? user.email ?? "user").split(" ")[0]}
+                </span>
+              </div>
+              <button
+                onClick={() => void signOut()}
+                aria-label="Sign out"
+                title="Sign out"
+                className="grid size-8 place-items-center rounded-lg border border-border/70 text-muted-foreground transition-colors hover:border-red-400/40 hover:text-red-300"
+              >
+                <LogOut className="size-3.5" />
+              </button>
+            </div>
+          ) : null}
           <div
             className="hidden items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3 py-1.5 md:flex"
             title={
@@ -113,7 +159,7 @@ export function TopBar() {
           </div>
 
           <span className="hidden rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 font-mono text-[10px] tracking-[0.14em] text-primary sm:inline-block">
-            v0.6 · PHASE 6/7
+            v0.7 · PHASE 7/7
           </span>
         </div>
       </div>
