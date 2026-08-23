@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1006411301114",
+    "project_id": "omni-tool-7ba2d",
+    "storage_bucket": "omni-tool-7ba2d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1006411301114:android:956666ec5eda39b225c943",
+        "android_client_info": {
+          "package_name": "com.omnitool.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1006411301114-2jlvom07ndpshtftp1njlj73plsu42m8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.omnitool.app",
+            "certificate_hash": "4c30e2984ae2e5535903632c0dae7066ccb0ed65"
+          }
+        },
+        {
+          "client_id": "1006411301114-e4329n3tpilaqi169j78i48ea49v4o2b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.omnitool.app",
+            "certificate_hash": "e09563bf421e58c4f2fc4fdf14c5a78be450ba46"
+          }
+        },
+        {
+          "client_id": "1006411301114-q48l1fmvbiba3rq6u1s59qgl13c57sd1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgMmIHw2s_W6ldWtPmnXTi_YdehNHKzN4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1006411301114-q48l1fmvbiba3rq6u1s59qgl13c57sd1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

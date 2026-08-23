@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
-import { Hexagon, LogOut, ShieldAlert, Zap } from "lucide-react";
+import { LogOut, ShieldAlert } from "lucide-react";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { EngineState } from "@/types/omni";
@@ -47,14 +47,14 @@ export function TopBar() {
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <motion.div
-            whileHover={{ rotate: 90 }}
-            transition={{ type: "spring", stiffness: 260, damping: 18 }}
-            className="relative grid size-10 place-items-center rounded-xl border border-primary/40 bg-primary/10 glow-box-violet"
-          >
-            <Hexagon className="size-5 text-primary" strokeWidth={1.75} />
-            <Zap className="absolute size-3 text-neon" fill="currentColor" />
-          </motion.div>
+            <motion.div
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              transition={{ type: "spring", stiffness: 260, damping: 18 }}
+              className="relative grid size-10 place-items-center rounded-xl border border-primary/40 overflow-hidden glow-box-violet"
+            >
+              <img src="/logo.jpg" alt="Omni Tool" className="w-full h-full object-cover" />
+            </motion.div>
           <div className="flex flex-col leading-none">
             <span className="font-display text-sm font-bold tracking-[0.32em] text-foreground">
               OMNI&nbsp;TOOL
@@ -71,7 +71,7 @@ export function TopBar() {
           {mode === "unconfigured" ? (
             <div
               className="hidden items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1.5 md:flex"
-              title="Firebase credentials not detected — the security gate is disengaged"
+              title="Firebase credentials not detected â€” the security gate is disengaged"
             >
               <ShieldAlert className="size-3 text-amber-300" />
               <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-300">
@@ -115,8 +115,8 @@ export function TopBar() {
             className="hidden items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3 py-1.5 md:flex"
             title={
               capabilities.crossOriginIsolated
-                ? "Cross-origin isolation is active — SharedArrayBuffer available"
-                : "Not isolated — single-threaded WASM core in use (still fully functional)"
+                ? "Cross-origin isolation is active â€” SharedArrayBuffer available"
+                : "Not isolated â€” single-threaded WASM core in use (still fully functional)"
             }
           >
             <span
@@ -158,11 +158,8 @@ export function TopBar() {
             </span>
           </div>
 
-          <span className="hidden rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 font-mono text-[10px] tracking-[0.14em] text-primary sm:inline-block">
-            v0.7 · PHASE 7/7
-          </span>
+          </div>
         </div>
-      </div>
-    </motion.header>
+      </motion.header>
   );
 }

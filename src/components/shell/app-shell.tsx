@@ -12,6 +12,7 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 import { AuroraBackground } from "@/components/shell/aurora-background";
 import { AppFooter } from "@/components/shell/footer";
 import { TopBar } from "@/components/shell/top-bar";
+import AskOmni from "@/components/AskOmni";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 import { AndroidShell } from "@/components/tools/android-shell";
 import { GifMaker } from "@/components/tools/gif-maker";
@@ -101,6 +102,7 @@ export function AppShell() {
     <div className="relative flex min-h-screen flex-col">
       <AuroraBackground />
       <TopBar />
+      <AskOmni />
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-8 sm:px-6 sm:py-12">
         <AnimatePresence mode="wait">
