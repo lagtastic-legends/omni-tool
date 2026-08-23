@@ -66,7 +66,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "video",
     icon: FileVideo,
     phase: 2,
-    status: "locked",
+    status: "online",
     accent: "violet",
   },
   {
@@ -76,7 +76,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "video",
     icon: Shrink,
     phase: 2,
-    status: "locked",
+    status: "online",
     accent: "cyan",
   },
   {
@@ -86,7 +86,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "video",
     icon: VolumeX,
     phase: 2,
-    status: "locked",
+    status: "online",
     accent: "fuchsia",
   },
   {
@@ -96,7 +96,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "video",
     icon: ImagePlay,
     phase: 2,
-    status: "locked",
+    status: "online",
     accent: "emerald",
   },
 

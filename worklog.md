@@ -27,3 +27,29 @@ Stage Summary:
 - Lint clean. Dev server healthy on :3000.
 - Architecture notes for next phases: consume engine via useFFmpeg() (engine non-null when state==="ready"); tools render inside the single-canvas shell via client view-routing; registry entries flip status to "online" when implemented; keep all engine file I/O virtual (ffmpeg FS) then hand off to Vault (IndexedDB, Phase 5).
 - PAUSED — awaiting user confirmation to begin PHASE 2 (Video & Visual Engine).
+
+---
+Task ID: 2
+Agent: Super Z (principal engineer, main agent)
+Task: PHASE 2 — The Video & Visual Engine (Media Converter, Video Compressor, Video Mute, GIF Maker)
+
+Work Log:
+- Verified codec availability by grepping wasm binary: libx264, libvpx, libmp3lame, libvorbis, libopus all present.
+- Infra: src/lib/navigation/nav-store.ts (zustand view router for single-canvas SPA), src/lib/media/probe.ts (browser-native video/audio metadata probe), src/lib/media/ffmpeg-jobs.ts (MIME map, ext/baseName helpers, 300MB warn / 900MB block guards).
+- Job runner: src/hooks/use-media-job.ts — declarative JobSpec {write[], passes[], read[], cleanup[]}; per-pass progress via engine.on("progress") with overall = (passIdx + ratio)/totalPasses; elapsed timer; exit-code check (ret!==0 throws with pass label); best-effort virtual FS cleanup; blob URL lifecycle (revoke on reset/unmount). Fixed TDZ closure + passCount state defects during self-review.
+- UI primitives: drop-zone.tsx (drag&drop w/ depth counter, sr-only input for a11y+uploads, derived previewUrl via useMemo + revoke cleanup, file-identity-guarded probe results — refactored to satisfy react-hooks/set-state-in-effect), processing-status.tsx (phase/progress/pass chips/error), output-card.tsx (player by kind + download + badges).
+- Tools: media-converter.tsx (video formats mp4/mov/mkv=x264+aac+faststart, avi=mpeg4+mp3, webm=vp8+vorbis realtime; audio extraction mp3/wav/m4a/flac/ogg), video-compressor.tsx (CRF 18-38 slider, resolution cap via scale=-2:'min(ih,H)' no-upscale, audio toggle, savings stats source/output/saved), video-mute.tsx (-c copy -an instant path + x264 fallback on failure), gif-maker.tsx (2-pass palettegen=stats_mode=diff → paletteuse bayer dither, time range sliders + presets, fps/width/loop).
+- Integration: tool-shell.tsx (engine gate w/ inline boot), app-shell.tsx (AnimatePresence view switching, TOOL_COMPONENTS registry map), dashboard-view.tsx (extracted from old page), registry 4 tools→online, tool-grid navigates online tools, topbar/footer phase 2/7.
+- E2E via agent-browser with system-ffmpeg-generated fixture (testsrc2 480x320 6s + 440Hz sine, H.264+AAC):
+  1) Converter video→MP4: playable, readyState 4, 6s ✓; audio→MP3: 6.01s readyState 4, 143KB ✓
+  2) Compressor: 709KB→538KB −24%, 1.16s ✓
+  3) Mute: instant stream-copy badge, playable ✓
+  4) GIF: 2-pass, 1.6MB 480x320 renders ✓
+- Bugs found & fixed during E2E: (a) app-shell imported non-existent `reset` export (module-level import instead of store method) → 500 SSR error; (b) palettegen option typo stat_mode→stats_mode reproduced & confirmed via system ffmpeg; (c) lint rule react-hooks/set-state-in-effect → refactored DropZone to derived-URL pattern.
+- Lint clean. Fresh-reload console: 0 errors. Screenshot: download/phase2-gif-maker.png. Fixture: scripts/omni-test.mp4.
+
+Stage Summary:
+- 4 Phase-2 modules LIVE and browser-verified end-to-end. Tool Matrix shows "4 live".
+- Patterns established for Phase 3+: useMediaJob(JobSpec) is the single way tools drive ffmpeg; multi-pass jobs supported (progress split per pass); DropZone+OutputCard+ProcessingStatus are the tool UI kit; ToolShell gates on engine; new tools = registry online flip + TOOL_COMPONENTS entry + module component.
+- Audio note for Phase 3: audio filter chains (atempo/areverse/apad/stereotools/equalizer) compose into passes[0].exec as -af strings; engine stays hot between tools.
+- PAUSED — awaiting user confirmation to begin PHASE 3 (Advanced Audio Engineering Suite).

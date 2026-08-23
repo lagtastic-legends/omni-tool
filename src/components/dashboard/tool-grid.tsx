@@ -3,53 +3,29 @@
 /**
  * TOOL MATRIX — registry-driven dashboard grid.
  * Every tool across all 7 phases is declared once in TOOL_REGISTRY;
- * this grid renders them with phase badges and lock states. As phases
- * ship, statuses flip to "online" and click handlers route to the
- * real module — no dashboard rewrite required.
+ * online tools navigate into their module, locked ones tease their phase.
  */
 
 import { AnimatePresence, motion } from "framer-motion";
-import { LayoutGrid, Lock } from "lucide-react";
+import { ArrowUpRight, LayoutGrid, Lock } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
+import { useNavStore } from "@/lib/navigation/nav-store";
+import { ACCENT_STYLES } from "@/lib/tools/accents";
 import {
   CATEGORY_LABELS,
   CATEGORY_ORDER,
   TOOL_REGISTRY,
+  getOnlineTools,
 } from "@/lib/tools/registry";
 import type { ToolCategory, ToolMeta } from "@/types/omni";
 
 type Filter = "all" | ToolCategory;
 
-const ACCENT_STYLES: Record<
-  ToolMeta["accent"],
-  { tile: string; phaseChip: string }
-> = {
-  violet: {
-    tile: "border-violet-400/30 bg-violet-500/10 text-violet-300",
-    phaseChip: "border-violet-400/25 text-violet-300/90",
-  },
-  cyan: {
-    tile: "border-cyan-400/30 bg-cyan-500/10 text-cyan-300",
-    phaseChip: "border-cyan-400/25 text-cyan-300/90",
-  },
-  fuchsia: {
-    tile: "border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-300",
-    phaseChip: "border-fuchsia-400/25 text-fuchsia-300/90",
-  },
-  emerald: {
-    tile: "border-emerald-400/30 bg-emerald-500/10 text-emerald-300",
-    phaseChip: "border-emerald-400/25 text-emerald-300/90",
-  },
-  amber: {
-    tile: "border-amber-400/30 bg-amber-500/10 text-amber-300",
-    phaseChip: "border-amber-400/25 text-amber-300/90",
-  },
-};
-
 function ToolCard({ tool, index }: { tool: ToolMeta; index: number }) {
   const { toast } = useToast();
+  const navigate = useNavStore((s) => s.navigate);
   const accent = ACCENT_STYLES[tool.accent];
   const locked = tool.status !== "online";
 
@@ -68,14 +44,14 @@ function ToolCard({ tool, index }: { tool: ToolMeta; index: number }) {
               title: `${tool.name} is sealed`,
               description: `This module unlocks in Phase ${tool.phase} of the build sequence.`,
             })
-          : undefined
+          : navigate(tool.id)
       }
       className={`panel-hud group relative flex min-h-11 flex-col gap-3 rounded-xl p-4 text-left transition-shadow ${
         locked
           ? "cursor-pointer hover:border-primary/35"
-          : "border-primary/40 glow-box-violet"
+          : "cursor-pointer border-primary/40 glow-box-violet"
       }`}
-      aria-label={`${tool.name} — ${locked ? `locked, phase ${tool.phase}` : "online"}`}
+      aria-label={`${tool.name} — ${locked ? `locked, phase ${tool.phase}` : "online, open module"}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div
@@ -89,7 +65,7 @@ function ToolCard({ tool, index }: { tool: ToolMeta; index: number }) {
             phase {tool.phase}
           </span>
         ) : (
-          <span className="flex items-center gap-1.5 rounded-full border border-pulse/30 bg-pulse/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-pulse">
+          <span className="flex items-center gap-1 rounded-full border border-pulse/30 bg-pulse/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-pulse">
             <span className="size-1.5 animate-pulse rounded-full bg-pulse" />
             online
           </span>
@@ -97,8 +73,11 @@ function ToolCard({ tool, index }: { tool: ToolMeta; index: number }) {
       </div>
 
       <div>
-        <p className="font-display text-[13px] font-bold tracking-wide text-foreground">
+        <p className="flex items-center gap-1.5 font-display text-[13px] font-bold tracking-wide text-foreground">
           {tool.name}
+          {!locked && (
+            <ArrowUpRight className="size-3.5 text-primary opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
+          )}
         </p>
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
           {tool.description}
@@ -139,6 +118,8 @@ export function ToolGrid() {
     ...CATEGORY_ORDER.map((c) => ({ id: c, label: CATEGORY_LABELS[c] })),
   ];
 
+  const onlineCount = useMemo(() => getOnlineTools().length, []);
+
   return (
     <section aria-labelledby="matrix-heading" className="space-y-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -150,6 +131,7 @@ export function ToolGrid() {
           Tool Matrix
         </h3>
         <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+          <span className="text-pulse">{onlineCount} live</span> ·{" "}
           {TOOL_REGISTRY.length} modules · engine{" "}
           <span className={state === "ready" ? "text-pulse" : "text-amber-300"}>
             {state}
