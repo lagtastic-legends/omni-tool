@@ -11,6 +11,7 @@ import { AuroraBackground } from "@/components/shell/aurora-background";
 import { AppFooter } from "@/components/shell/footer";
 import { TopBar } from "@/components/shell/top-bar";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
+import { AndroidShell } from "@/components/tools/android-shell";
 import { GifMaker } from "@/components/tools/gif-maker";
 import { AudioEditor } from "@/components/tools/audio-editor";
 import { BassBooster } from "@/components/tools/bass-booster";
@@ -27,6 +28,7 @@ import { StereoPanner } from "@/components/tools/stereo-panner";
 import { StudioRecorder } from "@/components/tools/studio-recorder";
 import { TextToPdf } from "@/components/tools/text-to-pdf";
 import { PaletteExtractor } from "@/components/tools/palette-extractor";
+import { QrStudio } from "@/components/tools/qr-studio";
 import { ToolShell } from "@/components/tools/tool-shell";
 import { VaultView } from "@/components/vault/vault-view";
 import { VideoCompressor } from "@/components/tools/video-compressor";
@@ -56,6 +58,8 @@ const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "palette-extractor": PaletteExtractor,
   vault: VaultView,
   "studio-recorder": StudioRecorder,
+  "qr-studio": QrStudio,
+  "android-shell": AndroidShell,
 };
 
 function ToolView({ toolId }: { toolId: string }) {

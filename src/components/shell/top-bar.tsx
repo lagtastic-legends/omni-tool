@@ -113,7 +113,7 @@ export function TopBar() {
           </div>
 
           <span className="hidden rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 font-mono text-[10px] tracking-[0.14em] text-primary sm:inline-block">
-            v0.5 · PHASE 5/7
+            v0.6 · PHASE 6/7
           </span>
         </div>
       </div>

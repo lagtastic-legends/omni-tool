@@ -136,3 +136,32 @@ Stage Summary:
 - Tool Matrix: 20 live / 23. Vault persistence retrofitted onto ALL 18 output-producing tools via OutputCard.
 - Patterns for Phase 6: engine-free gating already proven; Capacitor will wrap the same single-canvas app; QR tool (html5-qrcode) follows requiresEngine:false + registry + TOOL_COMPONENTS recipe.
 - PAUSED — awaiting user confirmation to begin PHASE 6 (Mobile Cross-Platform Setup with Capacitor).
+
+---
+Task ID: 6
+Agent: Super Z (principal engineer, main agent)
+Task: PHASE 6 — Mobile Cross-Platform Setup (Capacitor) + QR Code Scanner & Generator
+
+Work Log:
+- Installed @capacitor/core@8.5.0, @capacitor/cli@8.5.0, @capacitor/android@8.5.0, html5-qrcode@2.3.8, qrcode@1.5.4 (+@types).
+- capacitor.config.ts: appId app.omnitool.suite, appName "Omni Tool", webDir "out", androidScheme https (secure context → getUserMedia works in WebView), webContentsDebuggingEnabled.
+- next.config.ts: MOBILE_EXPORT=1 branch → output "export" + unoptimized images + trailingSlash, headers() returns [] in export mode (meaningless in static bundles). Dev/web path unchanged (standalone + COOP/COEP).
+- src/app/api/route.ts: boilerplate → force-static health endpoint (keeps static export viable).
+- Generated real android/ project via `bunx cap add android` (out/ placeholder index.html first). Patched AndroidManifest.xml: CAMERA + RECORD_AUDIO permissions + camera/mic uses-feature declarations (required for QR scanner + Studio Recorder in native WebView). `bunx cap sync android` succeeded — assets copied, capacitor.config.json stamped.
+- scripts/build-mobile.sh: production pipeline for user machines (MOBILE_EXPORT=1 build → cap sync → optional cap open). Sandbox keeps dev server on .next/ so the real export runs outside.
+- QR Studio (tools/qr-studio.tsx): Scanner tab — camera mode (Html5Qrcode, environment facing, fresh instance per run, stop/clear teardown on unmount/mode switch) + image-file mode (scanFile w/ showImage), graceful camera-denied state, decoded result panel w/ copy + open-link (URL detection), 8-entry scan history w/ inspect + clear. Generator tab — qrcode.toCanvas (size slider 160-640, ECC L/M/Q/H, module/background color pickers), PNG → OutputCard (download + vault).
+- Android Shell (tools/android-shell.tsx): pipeline status (export/sync/permissions ready; gradle + store release = user machine), build console w/ 4 commands (build-mobile.sh, cap open, gradlew assembleDebug, livereload), "what ships inside" summary.
+- Integration: registry qr-studio + android-shell online + requiresEngine:false (22/23 live, 9 engine-free), app-shell +2, topbar v0.6 PHASE 6/7, footer. Registry flip script: scripts/flip-registry-6.mjs.
+- E2E via agent-browser:
+  1) QR camera mode → denied state graceful w/ guidance (headless blocks getUserMedia) ✓
+  2) Generator: payload "https://omni.tool/e2e-roundtrip-42" → 360x360 canvas, ECC M badge, preview img loaded ✓
+  3) ROUND-TRIP: exported the generated PNG (base64 → disk, PNG magic verified) → switched to Scanner → IMAGE FILE → uploaded → DECODED "https://omni.tool/e2e-roundtrip-42" — exact match; open-link button correctly wired to the URL ✓
+  4) Android Shell: 5-step pipeline + commands rendered, content verified ✓
+  5) Native scaffold: android/app/src/main/assets/public/ populated by cap sync, manifest has CAMERA+RECORD_AUDIO, capacitor.config.json stamped ✓
+- Lint clean, 0 console errors. Screenshot: download/phase6-qr-studio.png. Round-trip artifact: scripts/roundtrip-qr.png.
+
+Stage Summary:
+- Phase-6 modules LIVE: QR Studio (scanner+generator, decode-verified) and Android Shell (build status console). Capacitor Android project scaffolded + permission-patched + synced.
+- Tool Matrix: 22 live / 23. Only Phase 7 (auth-gateway) remains locked.
+- The androidScheme:https choice matters — getUserMedia requires a secure context, so camera tools work inside the native WebView.
+- PAUSED — awaiting user confirmation to begin PHASE 7 (Firebase Authentication & Security).

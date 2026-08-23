@@ -3,31 +3,42 @@ import type { NextConfig } from "next";
 /**
  * OMNI TOOL — Next.js configuration
  *
- * Cross-Origin Isolation is REQUIRED for SharedArrayBuffer, which powers
- * multi-threaded WebAssembly (ffmpeg.wasm MT cores). The headers below turn
- * the entire origin into a cross-origin isolated context:
+ * Two build targets share this file:
  *
- *  - Cross-Origin-Opener-Policy: same-origin  → detaches the window opener
- *  - Cross-Origin-Embedder-Policy: require-corp → forces CORP on subresources
+ *  DEV / WEB (default)
+ *    `output: "standalone"` + COOP/COEP headers for cross-origin isolation
+ *    (SharedArrayBuffer, multi-threaded WASM readiness).
  *
- * All FFmpeg assets are self-hosted from /public/ffmpeg (same-origin), so
- * `require-corp` never blocks engine assets. The single-threaded core
- * (@ffmpeg/core) is additionally resilient: it boots even if a proxy strips
- * these headers.
+ *  MOBILE EXPORT (MOBILE_EXPORT=1 — see scripts/build-mobile.sh)
+ *    `output: "export"` produces `out/` which Capacitor wraps into the
+ *    Android shell. Custom headers are meaningless in a static bundle,
+ *    so they are dropped in that mode.
  */
+
 const COOP_COEP_HEADERS = [
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
 ];
 
+const isMobileExport = process.env.MOBILE_EXPORT === "1";
+
 const nextConfig: NextConfig = {
-  output: "standalone",
   typescript: {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
-  allowedDevOrigins: ["*.space-z.ai", "localhost", "127.0.0.1"],
+  ...(isMobileExport
+    ? {
+        output: "export" as const,
+        images: { unoptimized: true },
+        trailingSlash: true,
+      }
+    : {
+        output: "standalone" as const,
+        allowedDevOrigins: ["*.space-z.ai", "localhost", "127.0.0.1"],
+      }),
   async headers() {
+    if (isMobileExport) return [];
     return [
       {
         // Global cross-origin isolation for every route.

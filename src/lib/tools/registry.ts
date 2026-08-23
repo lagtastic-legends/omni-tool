@@ -281,8 +281,9 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "studio",
     icon: QrCode,
     phase: 6,
-    status: "locked",
+    status: "online",
     accent: "cyan",
+    requiresEngine: false,
   },
   {
     id: "android-shell",
@@ -291,8 +292,9 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "system",
     icon: Smartphone,
     phase: 6,
-    status: "locked",
+    status: "online",
     accent: "emerald",
+    requiresEngine: false,
   },
 
   /* ---------------- PHASE 7 — Auth & Security ------------------------ */
