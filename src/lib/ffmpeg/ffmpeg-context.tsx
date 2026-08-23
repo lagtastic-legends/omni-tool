@@ -43,10 +43,12 @@ import type {
 const LOG_RING_CAPACITY = 400;
 const WASM_BYTES_FALLBACK = 32_232_419;
 
+const CORE_VER = "0.12.10";
+
 const ENGINE_ASSETS = {
   worker: "/ffmpeg/worker.js",
-  core: "/ffmpeg/ffmpeg-core.js",
-  wasm: "/ffmpeg/ffmpeg-core.wasm",
+  core: `https://unpkg.com/@ffmpeg/core@${CORE_VER}/dist/umd/ffmpeg-core.js`,
+  wasm: `https://unpkg.com/@ffmpeg/core@${CORE_VER}/dist/umd/ffmpeg-core.wasm`,
 } as const;
 
 export interface FFmpegEngineContextValue {
