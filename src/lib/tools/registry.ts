@@ -1,0 +1,326 @@
+import {
+  AudioLines,
+  AudioWaveform,
+  BellRing,
+  Camera,
+  FileImage,
+  FileText,
+  FileVideo,
+  Fingerprint,
+  Gauge,
+  ImagePlay,
+  LockKeyhole,
+  Orbit,
+  Palette,
+  QrCode,
+  Rewind,
+  ScanLine,
+  ShieldCheck,
+  Shrink,
+  Smartphone,
+  SlidersVertical,
+  Speaker,
+  Vault,
+  Volume2,
+  VolumeX,
+  type LucideIcon,
+} from "lucide-react";
+import type { ToolCategory, ToolMeta } from "@/types/omni";
+
+/* ------------------------------------------------------------------ */
+/* Category presentation metadata                                      */
+/* ------------------------------------------------------------------ */
+
+export const CATEGORY_LABELS: Record<ToolCategory, string> = {
+  video: "Video",
+  audio: "Audio",
+  documents: "Documents",
+  imaging: "Imaging",
+  studio: "Studio",
+  system: "System",
+};
+
+export const CATEGORY_ORDER: ToolCategory[] = [
+  "video",
+  "audio",
+  "documents",
+  "imaging",
+  "studio",
+  "system",
+];
+
+/* ------------------------------------------------------------------ */
+/* The registry — tools unlock phase by phase                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Single source of truth for every module in the Omni Tool suite.
+ * Later phases flip `status` to "online" and wire implementations.
+ */
+export const TOOL_REGISTRY: ToolMeta[] = [
+  /* ---------------- PHASE 2 — Video & Visual Engine ---------------- */
+  {
+    id: "video-converter",
+    name: "Video Converter",
+    description: "Transcode MP4, MOV, AVI, MKV & extract audio tracks.",
+    category: "video",
+    icon: FileVideo,
+    phase: 2,
+    status: "locked",
+    accent: "violet",
+  },
+  {
+    id: "video-compressor",
+    name: "Video Compressor",
+    description: "Shrink file size with live bitrate & quality control.",
+    category: "video",
+    icon: Shrink,
+    phase: 2,
+    status: "locked",
+    accent: "cyan",
+  },
+  {
+    id: "video-mute",
+    name: "Video Mute",
+    description: "Strip audio from any clip in a single pass.",
+    category: "video",
+    icon: VolumeX,
+    phase: 2,
+    status: "locked",
+    accent: "fuchsia",
+  },
+  {
+    id: "gif-maker",
+    name: "GIF Maker",
+    description: "Extract frames & bake looping GIFs from video.",
+    category: "video",
+    icon: ImagePlay,
+    phase: 2,
+    status: "locked",
+    accent: "emerald",
+  },
+
+  /* ---------------- PHASE 3 — Audio Engineering Suite --------------- */
+  {
+    id: "audio-editor",
+    name: "MP3 Audio Editor",
+    description: "Full editing deck for MP3, WAV, FLAC & more.",
+    category: "audio",
+    icon: AudioLines,
+    phase: 3,
+    status: "locked",
+    accent: "violet",
+  },
+  {
+    id: "slowed-reverb",
+    name: "Slowed + Reverb",
+    description: "That late-night slowed & reverbed signature sound.",
+    category: "audio",
+    icon: AudioWaveform,
+    phase: 3,
+    status: "locked",
+    accent: "cyan",
+  },
+  {
+    id: "bass-booster",
+    name: "Bass Booster",
+    description: "Low-end amplifier with adjustable intensity.",
+    category: "audio",
+    icon: Speaker,
+    phase: 3,
+    status: "locked",
+    accent: "fuchsia",
+  },
+  {
+    id: "spatial-8d",
+    name: "3D / 8D Audio",
+    description: "Rotating binaural panning around the listener.",
+    category: "audio",
+    icon: Orbit,
+    phase: 3,
+    status: "locked",
+    accent: "violet",
+  },
+  {
+    id: "equalizer",
+    name: "Equalizer",
+    description: "Multi-band EQ sculpting with live preview.",
+    category: "audio",
+    icon: SlidersVertical,
+    phase: 3,
+    status: "locked",
+    accent: "emerald",
+  },
+  {
+    id: "reverse-audio",
+    name: "Reverse Audio",
+    description: "Flip the waveform — play any track backwards.",
+    category: "audio",
+    icon: Rewind,
+    phase: 3,
+    status: "locked",
+    accent: "amber",
+  },
+  {
+    id: "stereo-panner",
+    name: "Stereo Panner",
+    description: "Position audio left ↔ right with channel control.",
+    category: "audio",
+    icon: AudioLines,
+    phase: 3,
+    status: "locked",
+    accent: "cyan",
+  },
+  {
+    id: "volume-changer",
+    name: "Volume Changer",
+    description: "Clean gain staging from whisper to wall-shaking.",
+    category: "audio",
+    icon: Volume2,
+    phase: 3,
+    status: "locked",
+    accent: "fuchsia",
+  },
+  {
+    id: "ringtone-maker",
+    name: "Ringtone Maker",
+    description: "Precision trim & cut for perfect ringtones.",
+    category: "audio",
+    icon: BellRing,
+    phase: 3,
+    status: "locked",
+    accent: "violet",
+  },
+
+  /* ---------------- PHASE 4 — Document & Image Toolkit -------------- */
+  {
+    id: "image-to-pdf",
+    name: "Image → PDF",
+    description: "Compile JPG/PNG pages into a single PDF document.",
+    category: "documents",
+    icon: FileImage,
+    phase: 4,
+    status: "locked",
+    accent: "amber",
+  },
+  {
+    id: "text-to-pdf",
+    name: "Text → PDF",
+    description: "Typeset raw text into a clean, printable PDF.",
+    category: "documents",
+    icon: FileText,
+    phase: 4,
+    status: "locked",
+    accent: "violet",
+  },
+  {
+    id: "lock-pdf",
+    name: "Lock PDF",
+    description: "Encrypt PDFs with password protection.",
+    category: "documents",
+    icon: LockKeyhole,
+    phase: 4,
+    status: "locked",
+    accent: "cyan",
+  },
+  {
+    id: "scan-to-pdf",
+    name: "Scan → PDF",
+    description: "Capture scanned pages & compile into PDF.",
+    category: "documents",
+    icon: ScanLine,
+    phase: 4,
+    status: "locked",
+    accent: "fuchsia",
+  },
+  {
+    id: "palette-extractor",
+    name: "Palette Extractor",
+    description: "Pull top HEX/RGB colors from any image instantly.",
+    category: "imaging",
+    icon: Palette,
+    phase: 4,
+    status: "locked",
+    accent: "emerald",
+  },
+
+  /* ---------------- PHASE 5 — Vault, Recorder & Dashboard ----------- */
+  {
+    id: "vault",
+    name: "File Vault",
+    description: "IndexedDB-backed manager for processed files.",
+    category: "system",
+    icon: Vault,
+    phase: 5,
+    status: "locked",
+    accent: "violet",
+  },
+  {
+    id: "studio-recorder",
+    name: "Studio Recorder",
+    description: "Record mic, webcam & screen — zero uploads.",
+    category: "studio",
+    icon: Camera,
+    phase: 5,
+    status: "locked",
+    accent: "fuchsia",
+  },
+
+  /* ---------------- PHASE 6 — Capacitor / Android -------------------- */
+  {
+    id: "qr-studio",
+    name: "QR Studio",
+    description: "Scan real-world QR codes & generate your own.",
+    category: "studio",
+    icon: QrCode,
+    phase: 6,
+    status: "locked",
+    accent: "cyan",
+  },
+  {
+    id: "android-shell",
+    name: "Android Shell",
+    description: "Capacitor wrapper for native Android builds.",
+    category: "system",
+    icon: Smartphone,
+    phase: 6,
+    status: "locked",
+    accent: "emerald",
+  },
+
+  /* ---------------- PHASE 7 — Auth & Security ------------------------ */
+  {
+    id: "auth-gateway",
+    name: "Auth Gateway",
+    description: "Google Sign-In across web & Android.",
+    category: "system",
+    icon: Fingerprint,
+    phase: 7,
+    status: "locked",
+    accent: "amber",
+  },
+];
+
+/* Helpers ----------------------------------------------------------- */
+
+export function getToolsByPhase(phase: number): ToolMeta[] {
+  return TOOL_REGISTRY.filter((tool) => tool.phase === phase);
+}
+
+export function getOnlineTools(): ToolMeta[] {
+  return TOOL_REGISTRY.filter((tool) => tool.status === "online");
+}
+
+export function totalToolCount(): number {
+  return TOOL_REGISTRY.length;
+}
+
+/** Icon used for a category chip in the dashboard filter bar. */
+export const CATEGORY_ICONS: Record<ToolCategory, LucideIcon> = {
+  video: FileVideo,
+  audio: AudioLines,
+  documents: FileText,
+  imaging: Palette,
+  studio: Gauge,
+  system: ShieldCheck,
+};
