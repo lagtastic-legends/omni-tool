@@ -53,3 +53,33 @@ Stage Summary:
 - Patterns established for Phase 3+: useMediaJob(JobSpec) is the single way tools drive ffmpeg; multi-pass jobs supported (progress split per pass); DropZone+OutputCard+ProcessingStatus are the tool UI kit; ToolShell gates on engine; new tools = registry online flip + TOOL_COMPONENTS entry + module component.
 - Audio note for Phase 3: audio filter chains (atempo/areverse/apad/stereotools/equalizer) compose into passes[0].exec as -af strings; engine stays hot between tools.
 - PAUSED — awaiting user confirmation to begin PHASE 3 (Advanced Audio Engineering Suite).
+
+---
+Task ID: 3
+Agent: Super Z (principal engineer, main agent)
+Task: PHASE 3 — The Advanced Audio Engineering Suite (9 audio modules)
+
+Work Log:
+- Verified all required libavfilter filters in wasm binary: apulsator, stereotools, areverse, atempo, asetrate, aresample, aecho, equalizer, dynaudnorm, extrastereo, afade, atrim, asetpts + ffprobe support.
+- Built src/lib/audio/filters.ts — pure filter-graph builders: slowedFilters (asetrate pitch-drop + tiered aecho), bassFilters, spatialFilters (extrastereo+apulsator sine), eqFilters (6-band Q=1 peaking, zero-gain bands skipped), reverseFilters, panFilters, volumeFilters (volume/dynaudnorm), trimFadeFilters (atrim+asetpts+afade), editorFilters (combined chain w/ final-length projection), audioOutputArgs (mp3/wav/flac/ogg/m4a encoders).
+- Built src/lib/audio/probe.ts — detectSampleRate via engine.ffprobe (-show_entries stream=sample_rate -o scratch file, parse, cleanup, fallback 44100).
+- Built audio UI kit: param-controls.tsx (ParamSlider/ParamSelect/ParamToggle/ParamPanel), audio-workbench.tsx (2-col layout, decorative animated bar strip, internal format+bitrate bar, onRun(format,kbps,outputArgs) contract).
+- Extended DropZone: preview="audio" now probes duration via probeAudioDuration → onProbed (for range UIs).
+- 9 tools: slowed-reverb (stages input itself for pre-run sr probe), bass-booster (+clarity shelf), spatial-8d, equalizer-tool (preset chips), reverse-audio, stereo-panner (center-snap, disabled at 0), volume-changer (normalize toggle), ringtone-maker (trim/fades/boost, M4R-M4A-MP3-OGG, 40s iOS warn), audio-editor (flagship: trim+reverse+speed+volume/normalize+fades, live timeline projection strip w/ final length + filter count + dirty state).
+- Integration: registry 9 audio tools → online (13 total), app-shell TOOL_COMPONENTS +9 imports, topbar v0.3 · PHASE 3/7, footer audio engineering suite.
+- E2E via agent-browser with stereo tremolo mp3 fixture (12s, 44.1k):
+  1) slowed-reverb: output 14.30s = 12/0.85 ✓ (sr probe + asetrate chain confirmed; earlier confusion was eval selecting input preview element)
+  2) bass-booster: ✓ after fixing t=0.8 → t=q:w=0.8 (t is width_type enum in bass/treble)
+  3) spatial-8d: ✓ 4) equalizer preset: ✓ 5) reverse: ✓
+  6) stereo-panner: ✓ after fixing stereotools=balance → balance_out (modern ffmpeg split the option)
+  7) volume +6dB: ✓
+  8) ringtone M4R: ✓ after adding -f ipod (ffmpeg cannot guess muxer from .m4r extension)
+  9) audio-editor: 12.00→8.00s combined (trim 10s ÷ 1.25 speed, reversed, 4 filters) — output duration EXACTLY matches live projection
+- All remaining chains pre-validated with system ffmpeg before browser re-tests (batch script, 0 errors).
+- Lint clean. Console errors 0. Screenshot: download/phase3-audio-editor.png.
+
+Stage Summary:
+- 9 Phase-3 modules LIVE and browser-verified; Tool Matrix: 13 live / 23.
+- ffmpeg filter-option lessons recorded in code comments (width_type enums, balance_out, -f ipod for m4r).
+- Patterns for Phase 4: pdf-lib + canvas tools are engine-independent (no FFmpeg); registry flips + TOOL_COMPONENTS entries remain the integration path; AudioWorkbench pattern reusable if more effect tools appear.
+- PAUSED — awaiting user confirmation to begin PHASE 4 (Document & Image Toolkit).

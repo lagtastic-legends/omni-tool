@@ -12,7 +12,7 @@ import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { formatBytes } from "@/lib/format";
 import { SIZE_BLOCK_BYTES, SIZE_WARN_BYTES } from "@/lib/media/ffmpeg-jobs";
-import { probeVideo, type VideoMeta } from "@/lib/media/probe";
+import { probeAudioDuration, probeVideo, type VideoMeta } from "@/lib/media/probe";
 
 interface DropZoneProps {
   /** MIME filter, e.g. "video/*" — also used to validate drops. */
@@ -59,11 +59,20 @@ export function DropZone({
   );
 
   /* Native metadata probe — setState lands inside the async callback,
-   * never synchronously in the effect body. */
+   * never synchronously in the effect body. Audio probing reports duration
+   * only (width/height zeroed) for range-slider UIs. */
   useEffect(() => {
-    if (!file || preview !== "video") return;
+    if (!file || preview === "none") return;
     let cancelled = false;
-    probeVideo(file)
+    const probing: Promise<VideoMeta> =
+      preview === "video"
+        ? probeVideo(file)
+        : probeAudioDuration(file).then((d) => ({
+            durationSec: d,
+            width: 0,
+            height: 0,
+          }));
+    probing
       .then((m) => {
         if (cancelled) return;
         setProbed({ file, meta: m });
@@ -75,7 +84,6 @@ export function DropZone({
     return () => {
       cancelled = true;
     };
-     
   }, [file, preview]);
 
   /* Only trust probe results that belong to the current file. */

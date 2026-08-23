@@ -12,10 +12,19 @@ import { AppFooter } from "@/components/shell/footer";
 import { TopBar } from "@/components/shell/top-bar";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 import { GifMaker } from "@/components/tools/gif-maker";
+import { AudioEditor } from "@/components/tools/audio-editor";
+import { BassBooster } from "@/components/tools/bass-booster";
+import { EqualizerTool } from "@/components/tools/equalizer-tool";
 import { MediaConverter } from "@/components/tools/media-converter";
+import { ReverseAudio } from "@/components/tools/reverse-audio";
+import { RingtoneMaker } from "@/components/tools/ringtone-maker";
+import { SlowedReverb } from "@/components/tools/slowed-reverb";
+import { Spatial8D } from "@/components/tools/spatial-8d";
+import { StereoPanner } from "@/components/tools/stereo-panner";
 import { ToolShell } from "@/components/tools/tool-shell";
 import { VideoCompressor } from "@/components/tools/video-compressor";
 import { VideoMute } from "@/components/tools/video-mute";
+import { VolumeChanger } from "@/components/tools/volume-changer";
 import { useNavStore } from "@/lib/navigation/nav-store";
 
 /** tool id → module implementation (grows every phase) */
@@ -24,6 +33,15 @@ const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "video-compressor": VideoCompressor,
   "video-mute": VideoMute,
   "gif-maker": GifMaker,
+  "audio-editor": AudioEditor,
+  "slowed-reverb": SlowedReverb,
+  "bass-booster": BassBooster,
+  "spatial-8d": Spatial8D,
+  "equalizer": EqualizerTool,
+  "reverse-audio": ReverseAudio,
+  "stereo-panner": StereoPanner,
+  "volume-changer": VolumeChanger,
+  "ringtone-maker": RingtoneMaker,
 };
 
 function ToolView({ toolId }: { toolId: string }) {

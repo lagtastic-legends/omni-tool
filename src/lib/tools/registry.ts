@@ -108,7 +108,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "audio",
     icon: AudioLines,
     phase: 3,
-    status: "locked",
+    status: "online",
     accent: "violet",
   },
   {
@@ -118,7 +118,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "audio",
     icon: AudioWaveform,
     phase: 3,
-    status: "locked",
+    status: "online",
     accent: "cyan",
   },
   {
@@ -128,7 +128,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "audio",
     icon: Speaker,
     phase: 3,
-    status: "locked",
+    status: "online",
     accent: "fuchsia",
   },
   {
@@ -138,7 +138,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "audio",
     icon: Orbit,
     phase: 3,
-    status: "locked",
+    status: "online",
     accent: "violet",
   },
   {
@@ -148,7 +148,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "audio",
     icon: SlidersVertical,
     phase: 3,
-    status: "locked",
+    status: "online",
     accent: "emerald",
   },
   {
@@ -158,7 +158,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "audio",
     icon: Rewind,
     phase: 3,
-    status: "locked",
+    status: "online",
     accent: "amber",
   },
   {
@@ -168,7 +168,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "audio",
     icon: AudioLines,
     phase: 3,
-    status: "locked",
+    status: "online",
     accent: "cyan",
   },
   {
@@ -178,7 +178,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "audio",
     icon: Volume2,
     phase: 3,
-    status: "locked",
+    status: "online",
     accent: "fuchsia",
   },
   {
@@ -188,7 +188,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     category: "audio",
     icon: BellRing,
     phase: 3,
-    status: "locked",
+    status: "online",
     accent: "violet",
   },
 
