@@ -214,9 +214,14 @@ export function StudioRecorder() {
         });
       });
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
       setMediaState("denied");
       const name = err instanceof Error ? err.name : "";
       void name; // message rendered in UI below
+      console.error("Camera error:", err);
+      // We will store the error in a temporary state or just alert it.
+      // For now, let's just use an alert to quickly debug for the user.
+      alert(`Capture Error: ${name} - ${message}`);
     }
   };
 
