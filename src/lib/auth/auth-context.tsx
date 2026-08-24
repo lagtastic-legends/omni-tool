@@ -107,23 +107,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       if (isNative) {
         // Native Android: OS-level Google account picker.
-        try {
-          const result = await FirebaseAuthentication.signInWithGoogle();
-          const u = result.user;
-          if (u) {
-            setUser({
-              uid: u.uid,
-              displayName: u.displayName ?? null,
-              email: u.email ?? null,
-              photoURL: u.photoUrl ?? null,
-              providerId: "google.com",
-            });
-          }
-          return;
-        } catch (nativeErr) {
-          console.warn("Native Google Sign-In failed. Falling back to web flow.", nativeErr);
-          // Fall through to web flow below.
+        const result = await FirebaseAuthentication.signInWithGoogle();
+        const u = result.user;
+        if (u) {
+          setUser({
+            uid: u.uid,
+            displayName: u.displayName ?? null,
+            email: u.email ?? null,
+            photoURL: u.photoUrl ?? null,
+            providerId: "google.com",
+          });
         }
+        return;
       }
 
       const auth = getFirebaseAuth();
@@ -136,7 +131,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       const message =
         err instanceof Error ? err.message : String(err ?? "sign-in failed");
-      setError(`Sign In Error: ${message}`);
+      setError(
+        /popup/i.test(message)
+          ? "Sign-in popup was blocked or closed before finishing."
+          : message,
+      );
     } finally {
       setBusy(false);
     }
