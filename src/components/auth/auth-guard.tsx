@@ -12,7 +12,7 @@
  */
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Fingerprint, Loader2, ShieldCheck } from "lucide-react";
+import { Lock, Loader2, ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 
@@ -74,11 +74,15 @@ export function AuthGuard({ children }: { children: ReactNode }) {
           className="panel-hud scanlines mx-4 flex w-full max-w-md flex-col items-center gap-5 rounded-2xl p-10 text-center"
         >
           <motion.div
-            animate={{ scale: [1, 1.06, 1] }}
+            animate={{ scale: [1, 1.06, 1], rotateX: [0, 10, 0], rotateY: [0, -10, 0] }}
             transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            className="grid size-16 place-items-center rounded-2xl border border-primary/40 bg-primary/10 glow-box-violet"
+            className="grid size-16 place-items-center rounded-2xl border border-primary/40 bg-primary/10 glow-box-violet shadow-[inset_0_1px_4px_rgba(255,255,255,0.1),0_4px_12px_rgba(0,0,0,0.5)]"
+            style={{ perspective: 1000 }}
           >
-            <Fingerprint className="size-8 text-primary" strokeWidth={1.5} />
+            <Lock 
+              className="size-8 text-primary drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]" 
+              strokeWidth={2.5} 
+            />
           </motion.div>
 
           <div>
