@@ -23,12 +23,25 @@ import androidx.activity.result.ActivityResult;
 import com.omnitool.app.recorder.OmniRecordService;
 import com.omnitool.app.recorder.OmniScreenRecorder;
 
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
+import com.getcapacitor.PermissionState;
+import android.Manifest;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-@CapacitorPlugin(name = "OmniRecorder")
+@CapacitorPlugin(
+    name = "OmniRecorder",
+    permissions = {
+        @Permission(
+            alias = "microphone",
+            strings = { Manifest.permission.RECORD_AUDIO }
+        )
+    }
+)
 public class OmniRecorderPlugin extends Plugin {
     private PluginCall startCall;
     private PluginCall stopCall;
@@ -105,6 +118,26 @@ public class OmniRecorderPlugin extends Plugin {
             this.bitrate = 12000000;
         }
 
+        if (internalAudio || mic) {
+            if (getPermissionState("microphone") != PermissionState.GRANTED) {
+                requestPermissionForAlias("microphone", call, "microphonePermsCallback");
+                return;
+            }
+        }
+        
+        launchScreenCaptureIntent(call);
+    }
+
+    @PermissionCallback
+    private void microphonePermsCallback(PluginCall call) {
+        if (getPermissionState("microphone") == PermissionState.GRANTED) {
+            launchScreenCaptureIntent(call);
+        } else {
+            call.reject("Microphone permission is required for internal audio or mic recording");
+        }
+    }
+
+    private void launchScreenCaptureIntent(PluginCall call) {
         MediaProjectionManager projectionManager = (MediaProjectionManager) getContext().getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         Intent permissionIntent = projectionManager.createScreenCaptureIntent();
         startActivityForResult(call, permissionIntent, "screenCaptureResult");
@@ -118,17 +151,12 @@ public class OmniRecorderPlugin extends Plugin {
             currentOutputPath = new File(dir, "OmniScreen_" + timeStamp + ".mp4").getAbsolutePath();
             
             Intent serviceIntent = new Intent(getContext(), OmniRecordService.class);
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION.SDK_INT) {
-                getContext().startForegroundService(serviceIntent);
-            } else {
-                getContext().startService(serviceIntent);
-            }
+            serviceIntent.putExtra("resultCode", result.getResultCode());
+            serviceIntent.putExtra("resultData", result.getData());
             
             isRecording = true;
             
-            recordService.startRecording(
-                result.getData(), result.getResultCode(), 
-                width, height, dpi, bitrate, fps, internalAudio, mic, currentOutputPath, 
+            recordService.setRecordingParams(width, height, dpi, bitrate, fps, internalAudio, mic, currentOutputPath, 
                 new OmniScreenRecorder.Listener() {
                     @Override
                     public void onComplete(String path) {
@@ -153,6 +181,12 @@ public class OmniRecorderPlugin extends Plugin {
                     }
                 }
             );
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                getContext().startForegroundService(serviceIntent);
+            } else {
+                getContext().startService(serviceIntent);
+            }
             
             call.resolve();
         } else {

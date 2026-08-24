@@ -32,6 +32,28 @@ public class OmniRecordService extends Service {
         return binder;
     }
 
+    private int width;
+    private int height;
+    private int dpi;
+    private int bitrate;
+    private int fps;
+    private boolean internalAudio;
+    private boolean mic;
+    private String outputPath;
+    private OmniScreenRecorder.Listener listener;
+
+    public void setRecordingParams(int width, int height, int dpi, int bitrate, int fps, boolean internalAudio, boolean mic, String outputPath, OmniScreenRecorder.Listener listener) {
+        this.width = width;
+        this.height = height;
+        this.dpi = dpi;
+        this.bitrate = bitrate;
+        this.fps = fps;
+        this.internalAudio = internalAudio;
+        this.mic = mic;
+        this.outputPath = outputPath;
+        this.listener = listener;
+    }
+
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (ACTION_STOP.equals(intent.getAction())) {
@@ -57,29 +79,41 @@ public class OmniRecordService extends Service {
             startForeground(1, notification);
         }
 
+        if (intent != null && intent.hasExtra("resultCode")) {
+            int resultCode = intent.getIntExtra("resultCode", 0);
+            Intent resultData = intent.getParcelableExtra("resultData");
+            startRecordingInternal(resultData, resultCode);
+        }
+
         return START_NOT_STICKY;
     }
 
-    public void startRecording(Intent resultData, int resultCode, int width, int height, int dpi, int bitrate, int fps, boolean internalAudio, boolean mic, String outputPath, OmniScreenRecorder.Listener listener) {
-        MediaProjectionManager projectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
-        MediaProjection mediaProjection = projectionManager.getMediaProjection(resultCode, resultData);
-        
-        recorder = new OmniScreenRecorder(mediaProjection, width, height, dpi, bitrate, fps, internalAudio, mic, outputPath, new OmniScreenRecorder.Listener() {
-            @Override
-            public void onComplete(String path) {
-                stopForeground(true);
-                stopSelf();
-                if (listener != null) listener.onComplete(path);
-            }
+    private void startRecordingInternal(Intent resultData, int resultCode) {
+        try {
+            MediaProjectionManager projectionManager = (MediaProjectionManager) getSystemService(Context.MEDIA_PROJECTION_SERVICE);
+            MediaProjection mediaProjection = projectionManager.getMediaProjection(resultCode, resultData);
+            
+            recorder = new OmniScreenRecorder(mediaProjection, width, height, dpi, bitrate, fps, internalAudio, mic, outputPath, new OmniScreenRecorder.Listener() {
+                @Override
+                public void onComplete(String path) {
+                    stopForeground(true);
+                    stopSelf();
+                    if (listener != null) listener.onComplete(path);
+                }
 
-            @Override
-            public void onError(String error) {
-                stopForeground(true);
-                stopSelf();
-                if (listener != null) listener.onError(error);
-            }
-        });
-        recorder.start();
+                @Override
+                public void onError(String error) {
+                    stopForeground(true);
+                    stopSelf();
+                    if (listener != null) listener.onError(error);
+                }
+            });
+            recorder.start();
+        } catch (Exception e) {
+            stopForeground(true);
+            stopSelf();
+            if (listener != null) listener.onError(e.getMessage());
+        }
     }
 
     public void stopRecording() {
