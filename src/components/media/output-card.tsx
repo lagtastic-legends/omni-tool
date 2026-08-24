@@ -104,14 +104,13 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse" }: Output
       {extra}
 
       <div className="grid grid-cols-[1fr_auto] gap-2">
-        <a
-          href={output.url}
-          download={output.name}
+        <button
+          onClick={() => void import("@/lib/native-save").then(m => m.nativeSave(output.blob, output.name))}
           className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-pulse/40 bg-pulse/15 font-display text-xs font-bold tracking-[0.18em] text-pulse transition-colors hover:bg-pulse/25"
         >
           <Download className="size-4" />
           SAVE TO DEVICE
-        </a>
+        </button>
         <motion.button
           onClick={() => void saveToVault()}
           disabled={vaultState === "saved"}

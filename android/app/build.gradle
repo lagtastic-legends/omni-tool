@@ -16,10 +16,10 @@ if (googleServicesJson.exists()) {
 def isFirebaseEnabled = googleServicesJson.exists()
 
 android {
-    namespace = "app.omnitool.suite"
+    namespace = "com.omnitool.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "app.omnitool.suite"
+        applicationId "com.omnitool.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

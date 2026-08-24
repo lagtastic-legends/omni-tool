@@ -115,21 +115,13 @@ function VaultRow({ item, onDelete }: { item: VaultItem; onDelete: (id: string) 
           >
             {open ? "hide" : "view"}
           </button>
-          <a
-            href={previewUrl ?? URL.createObjectURL(item.blob)}
-            download={item.name}
-            onClick={(e) => {
-              /* href already materialized above; if not, create once now */
-              if (!previewUrl && !urlRef.current) {
-                urlRef.current = URL.createObjectURL(item.blob);
-                e.currentTarget.href = urlRef.current;
-              }
-            }}
+          <button
+            onClick={() => void import("@/lib/native-save").then(m => m.nativeSave(item.blob, item.name))}
             aria-label={`Download ${item.name}`}
             className="grid size-8 place-items-center rounded-lg border border-pulse/40 bg-pulse/10 text-pulse transition-colors hover:bg-pulse/20"
           >
             <HardDrive className="size-3.5" />
-          </a>
+          </button>
           <button
             onClick={() => onDelete(item.id)}
             aria-label={`Delete ${item.name}`}

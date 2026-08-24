@@ -9,7 +9,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
  * camera permissions granted for the QR Studio scanner.
  */
 const config: CapacitorConfig = {
-  appId: "app.omnitool.suite",
+  appId: "com.omnitool.app",
   appName: "Omni Tool",
   webDir: "out",
   android: {
@@ -19,6 +19,12 @@ const config: CapacitorConfig = {
   },
   server: {
     androidScheme: "https",
+  },
+  plugins: {
+    FirebaseAuthentication: {
+      skipNativeAuth: false,
+      providers: ["google.com"],
+    },
   },
 };
 

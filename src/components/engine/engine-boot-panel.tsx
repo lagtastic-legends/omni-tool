@@ -289,7 +289,7 @@ export function EngineBootPanel() {
           {/* log stream */}
           <div
             ref={consoleRef}
-            className="scroll-hud flex-1 space-y-1 overflow-y-auto p-4 font-mono text-[11px] leading-relaxed lg:max-h-[26rem]"
+            className="scroll-hud flex-1 space-y-1 overflow-y-auto p-4 font-mono text-[11px] leading-relaxed max-h-72 lg:max-h-[26rem]"
             role="log"
             aria-live="polite"
             aria-label="Engine boot log"

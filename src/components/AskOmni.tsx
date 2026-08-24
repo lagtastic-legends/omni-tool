@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,7 +7,7 @@ import { useAiStore } from '../store/useAiStore';
 import { generateAiResponse } from '../lib/gemini';
 
 export default function AskOmni() {
-  const { isOpen, toggleOpen, messages, addMessage, isLoading, setLoading, clearChat } = useAiStore();
+  const { isOpen, toggleOpen, messages, addMessage, updateLastMessage, isLoading, setLoading, clearChat } = useAiStore();
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -30,13 +30,20 @@ export default function AskOmni() {
     setLoading(true);
 
     try {
-      // Pass the updated messages array to the API
       const updatedMessages = [...messages, { role: 'user' as const, content: userText }];
-      const response = await generateAiResponse(updatedMessages);
-      addMessage({ role: 'model', content: response });
+      const { streamAiResponse } = await import('../lib/gemini');
+      const stream = streamAiResponse(updatedMessages);
+      
+      addMessage({ role: 'model', content: '' });
+      let fullContent = '';
+      setLoading(false); // Stop loading animation immediately once streaming starts
+      
+      for await (const chunk of stream) {
+        fullContent += chunk;
+        updateLastMessage(fullContent);
+      }
     } catch (error) {
-      addMessage({ role: 'model', content: 'Connection to Omni network failed. Please try again later.' });
-    } finally {
+      updateLastMessage('Connection to Omni network failed. Please try again later.');
       setLoading(false);
     }
   };
@@ -59,7 +66,7 @@ export default function AskOmni() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed bottom-20 right-4 sm:right-6 w-[calc(100vw-32px)] sm:w-[400px] h-[600px] max-h-[80vh] z-50 rounded-2xl glass-panel border border-white/10 shadow-2xl flex flex-col overflow-hidden"
+            className="fixed bottom-20 right-4 sm:right-6 w-[calc(100vw-32px)] sm:w-[400px] h-[600px] max-h-[80vh] z-50 rounded-2xl bg-zinc-950/95 backdrop-blur-3xl border border-white/10 shadow-2xl flex flex-col overflow-hidden"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/40 backdrop-blur-md">

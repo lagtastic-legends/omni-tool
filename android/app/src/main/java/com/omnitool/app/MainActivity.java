@@ -1,4 +1,4 @@
-package app.omnitool.suite;
+package com.omnitool.app;
 
 import com.getcapacitor.BridgeActivity;
 
