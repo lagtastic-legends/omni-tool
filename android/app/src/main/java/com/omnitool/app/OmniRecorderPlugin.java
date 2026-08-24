@@ -39,6 +39,10 @@ import java.util.Locale;
         @Permission(
             alias = "microphone",
             strings = { Manifest.permission.RECORD_AUDIO }
+        ),
+        @Permission(
+            alias = "notifications",
+            strings = { Manifest.permission.POST_NOTIFICATIONS }
         )
     }
 )
@@ -125,6 +129,19 @@ public class OmniRecorderPlugin extends Plugin {
             }
         }
         
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            if (getPermissionState("notifications") != PermissionState.GRANTED) {
+                requestPermissionForAlias("notifications", call, "notificationsPermsCallback");
+                return;
+            }
+        }
+
+        launchScreenCaptureIntent(call);
+    }
+
+    @PermissionCallback
+    private void notificationsPermsCallback(PluginCall call) {
+        // We don't strictly reject if they deny notifications, but we try
         launchScreenCaptureIntent(call);
     }
 

@@ -209,26 +209,23 @@ public class OmniScreenRecorder {
             }
             
             int outIndex = audioEncoder.dequeueOutputBuffer(info, 10000);
-            while (outIndex >= 0) {
-                if (outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
-                    synchronized(this) {
-                        audioTrackIndex = muxer.addTrack(audioEncoder.getOutputFormat());
-                        checkMuxerStart();
-                    }
-                } else if (outIndex >= 0) {
-                    if ((info.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-                        info.size = 0;
-                    }
-                    if (info.size != 0 && muxerStarted) {
-                        ByteBuffer outBuf = audioEncoder.getOutputBuffer(outIndex);
-                        info.presentationTimeUs = (System.nanoTime() - startTime) / 1000;
-                        synchronized(this) {
-                            muxer.writeSampleData(audioTrackIndex, outBuf, info);
-                        }
-                    }
-                    audioEncoder.releaseOutputBuffer(outIndex, false);
+            if (outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                synchronized(this) {
+                    audioTrackIndex = muxer.addTrack(audioEncoder.getOutputFormat());
+                    checkMuxerStart();
                 }
-                outIndex = audioEncoder.dequeueOutputBuffer(info, 0);
+            } else if (outIndex >= 0) {
+                if ((info.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
+                    info.size = 0;
+                }
+                if (info.size != 0 && muxerStarted) {
+                    ByteBuffer outBuf = audioEncoder.getOutputBuffer(outIndex);
+                    info.presentationTimeUs = (System.nanoTime() - startTime) / 1000;
+                    synchronized(this) {
+                        muxer.writeSampleData(audioTrackIndex, outBuf, info);
+                    }
+                }
+                audioEncoder.releaseOutputBuffer(outIndex, false);
             }
         }
     }
