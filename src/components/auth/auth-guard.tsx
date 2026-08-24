@@ -13,7 +13,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Lock, Loader2, ShieldCheck } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 
 function GoogleMark({ className }: { className?: string }) {
@@ -28,7 +28,43 @@ function GoogleMark({ className }: { className?: string }) {
 }
 
 export function AuthGuard({ children }: { children: ReactNode }) {
-  const { mode, user, busy, error, signInWithGoogle } = useAuth();
+  const { mode, user, busy, error, isNative, signInWithGoogle, signInWithIdToken } = useAuth();
+
+  useEffect(() => {
+    if (mode === "configured" && !user && !isNative) {
+      const script = document.createElement("script");
+      script.src = "https://accounts.google.com/gsi/client";
+      script.async = true;
+      script.onload = () => {
+        if ((window as any).google) {
+          (window as any).google.accounts.id.initialize({
+            client_id: "1006411301114-q48l1fmvbiba3rq6u1s59qgl13c57sd1.apps.googleusercontent.com",
+            callback: (response: any) => {
+              void signInWithIdToken(response.credential);
+            },
+          });
+          (window as any).google.accounts.id.prompt();
+        }
+      };
+      document.body.appendChild(script);
+      return () => {
+        if ((window as any).google) (window as any).google.accounts.id.cancel();
+        document.body.removeChild(script);
+      };
+    }
+  }, [mode, user, isNative, signInWithIdToken]);
+
+  const handleSignInClick = () => {
+    if (!isNative && (window as any).google) {
+      (window as any).google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          void signInWithGoogle();
+        }
+      });
+    } else {
+      void signInWithGoogle();
+    }
+  };
 
   /* probe splash --------------------------------------------------------- */
   if (mode === "probing") {
@@ -96,7 +132,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
           </div>
 
           <motion.button
-            onClick={() => void signInWithGoogle()}
+            onClick={handleSignInClick}
             disabled={busy}
             whileTap={busy ? undefined : { scale: 0.97 }}
             className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-transparent bg-white px-4 font-headline text-sm font-semibold tracking-wider text-zinc-900 shadow-sm transition-transform hover:scale-[1.02] disabled:opacity-60"

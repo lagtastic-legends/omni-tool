@@ -28,6 +28,7 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
+  signInWithCredential,
   signOut as webSignOut,
   type User,
 } from "firebase/auth";
@@ -49,6 +50,7 @@ interface AuthContextValue {
   error: string | null;
   isNative: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithIdToken: (idToken: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -171,7 +173,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [isNative]);
 
+  const signInWithIdToken = useCallback(async (idToken: string) => {
+    setError(null);
+    setBusy(true);
+    try {
+      const auth = getFirebaseAuth();
+      if (!auth) throw new Error("Firebase unconfigured");
+      const credential = GoogleAuthProvider.credential(idToken);
+      const res = await signInWithCredential(auth, credential);
+      setUser(toAuthUser(res.user));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setBusy(false);
+    }
+  }, []);
+
   const signOut = useCallback(async () => {
+    setError(null);
     setBusy(true);
     try {
       if (isNative) {
@@ -179,18 +198,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       } else {
         const auth = getFirebaseAuth();
-        if (auth) await webSignOut(auth);
-        setUser(null);
+        if (auth) {
+          await webSignOut(auth);
+          setUser(null);
+        }
       }
-      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setBusy(false);
     }
   }, [isNative]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ mode, user, busy, error, isNative, signInWithGoogle, signOut }),
-    [mode, user, busy, error, isNative, signInWithGoogle, signOut],
+    () => ({ mode, user, busy, error, isNative, signInWithGoogle, signInWithIdToken, signOut }),
+    [mode, user, busy, error, isNative, signInWithGoogle, signInWithIdToken, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
