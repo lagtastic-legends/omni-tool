@@ -54,13 +54,13 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function toAuthUser(user: User): AuthUser {
+function toAuthUser(user: User | any): AuthUser {
   return {
     uid: user.uid,
-    displayName: user.displayName,
+    displayName: user.displayName || user.displayName,
     email: user.email,
-    photoURL: user.photoURL,
-    providerId: user.providerData[0]?.providerId ?? "google.com",
+    photoURL: user.photoUrl || user.photoURL,
+    providerId: user.providerData?.[0]?.providerId ?? "google.com",
   };
 }
 
@@ -75,7 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   /* Probe configuration once, then subscribe to session changes. -------- */
   useEffect(() => {
-    let unsubscribe: (() => void) | undefined;
+    let unsubscribeWeb: (() => void) | undefined;
+    let unsubscribeNative: (() => void) | undefined;
 
     void (async () => {
       const config = await loadFirebaseConfig();
@@ -85,21 +86,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setMode("configured");
 
+      if (isNative) {
+        // Check existing native session first
+        try {
+          const res = await FirebaseAuthentication.getCurrentUser();
+          if (res.user) {
+            setUser(toAuthUser(res.user as unknown as User));
+          }
+          // Listen for native auth state changes
+          const listener = await FirebaseAuthentication.addListener(
+            "authStateChange",
+            (changed) => {
+              setUser(changed.user ? toAuthUser(changed.user as unknown as User) : null);
+            }
+          );
+          unsubscribeNative = () => {
+            listener.remove().catch(() => {});
+          };
+        } catch (e) {
+          console.warn("Native auth check failed", e);
+        }
+        return;
+      }
+
+      // Web fallback
       const auth = getFirebaseAuth();
       if (!auth) {
         setMode("unconfigured");
         return;
       }
 
-      unsubscribe = onAuthStateChanged(auth, (u) => {
+      unsubscribeWeb = onAuthStateChanged(auth, (u) => {
         setUser(u ? toAuthUser(u) : null);
       });
     })();
 
     return () => {
-      unsubscribe?.();
+      unsubscribeWeb?.();
+      unsubscribeNative?.();
     };
-  }, []);
+  }, [isNative]);
 
   const signInWithGoogle = useCallback(async () => {
     setError(null);
