@@ -16,7 +16,7 @@ export const generateAiResponse = async (messages: ChatMessage[]) => {
     }));
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash-8b:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
@@ -58,7 +58,7 @@ export const streamAiResponse = async function* (messages: ChatMessage[]) {
     }));
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:streamGenerateContent?alt=sse&key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash-8b:streamGenerateContent?alt=sse&key=${apiKey}`,
       {
         method: 'POST',
         headers: {
@@ -86,17 +86,21 @@ export const streamAiResponse = async function* (messages: ChatMessage[]) {
 
     const reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
+    let buffer = '';
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      const chunk = decoder.decode(value, { stream: true });
-      const lines = chunk.split('\n');
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
 
       for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
+        const trimmed = line.trim();
+        if (trimmed === '') continue;
+        if (trimmed.startsWith('data: ')) {
+          const data = trimmed.slice(6);
           if (data === '[DONE]') continue;
           
           try {
