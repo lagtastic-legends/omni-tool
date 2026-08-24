@@ -81,6 +81,8 @@ export function StudioRecorder() {
   const [elapsedMs, setElapsedMs] = useState(0);
   const [output, setOutput] = useState<JobOutput | null>(null);
   const [levels, setLevels] = useState<number[]>(() => new Array(28).fill(0.06));
+  const [screenQuality, setScreenQuality] = useState<"1080p" | "4k">("1080p");
+  const [screenFps, setScreenFps] = useState<30 | 60>(30);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -120,6 +122,36 @@ export function StudioRecorder() {
   }, [stopAnalysis]);
 
   useEffect(() => () => teardownMedia(), [teardownMedia]);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const sub = OmniRecorder.addListener("onRecordComplete", async (info) => {
+      try {
+        const res = await fetch(Capacitor.convertFileSrc(info.uri));
+        const blob = await res.blob();
+        const stamp = new Date().toISOString().slice(11, 19).replace(/:/g, "");
+        const name = `omni-screen-${stamp}.mp4`;
+        
+        setOutput((prev) => {
+          if (prev) URL.revokeObjectURL(prev.url);
+          return {
+            name,
+            blob,
+            url: URL.createObjectURL(blob),
+            size: blob.size,
+            mime: "video/mp4",
+          };
+        });
+      } catch (err) {
+        console.error("Failed to process background record completion:", err);
+      }
+      setRecording(false);
+      setPaused(false);
+    });
+    return () => {
+      sub.then(handle => handle.remove()).catch(() => undefined);
+    };
+  }, []);
 
   /* elapsed timer while recording ------------------------------------- */
   useEffect(() => {
@@ -232,7 +264,12 @@ export function StudioRecorder() {
   const beginRecording = async () => {
     if (mode === "screen" && Capacitor.isNativePlatform()) {
       try {
-        await OmniRecorder.startRecording({ internalAudio: true, microphone: true });
+        await OmniRecorder.startRecording({ 
+          internalAudio: true, 
+          microphone: true, 
+          quality: screenQuality, 
+          fps: screenFps 
+        });
         startedAtRef.current = performance.now();
         pausedAccumRef.current = 0;
         pausedAtRef.current = null;
@@ -427,11 +464,33 @@ export function StudioRecorder() {
                     requesting {meta.label.toLowerCase()}…
                   </p>
                 ) : mode === "screen" && Capacitor.isNativePlatform() && mediaState === "live" ? (
-                  <div className="space-y-2">
-                    <Monitor className="mx-auto size-8 text-muted-foreground/50" />
-                    <p className="font-mono text-[11px] text-muted-foreground">
-                      native screen recording ready
-                    </p>
+                  <div className="flex flex-col items-center justify-center gap-4">
+                    <div className="space-y-2">
+                      <Monitor className="mx-auto size-8 text-muted-foreground/50" />
+                      <p className="font-mono text-[11px] text-muted-foreground">
+                        native screen recording ready
+                      </p>
+                    </div>
+                    {!recording && (
+                      <div className="flex items-center gap-4">
+                        <select 
+                          value={screenQuality}
+                          onChange={(e) => setScreenQuality(e.target.value as "1080p" | "4k")}
+                          className="bg-surface-container-low border border-outline-variant rounded-md text-[11px] font-mono p-1 text-on-surface focus:outline-none"
+                        >
+                          <option value="1080p">1080p (FHD)</option>
+                          <option value="4k">4K (UHD)</option>
+                        </select>
+                        <select 
+                          value={screenFps}
+                          onChange={(e) => setScreenFps(Number(e.target.value) as 30 | 60)}
+                          className="bg-surface-container-low border border-outline-variant rounded-md text-[11px] font-mono p-1 text-on-surface focus:outline-none"
+                        >
+                          <option value={30}>30 FPS</option>
+                          <option value={60}>60 FPS</option>
+                        </select>
+                      </div>
+                    )}
                   </div>
                 ) : mode === "mic" && mediaState === "live" ? (
                   <div className="flex h-24 w-full max-w-sm items-center justify-center gap-[3px]">

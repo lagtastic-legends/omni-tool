@@ -28,6 +28,7 @@ import java.util.Locale;
 public class OmniRecorderPlugin extends Plugin implements HBRecorderListener {
     private HBRecorder hbRecorder;
     private PluginCall startCall;
+    private PluginCall stopCall;
     private String currentOutputPath;
 
     @Override
@@ -44,9 +45,25 @@ public class OmniRecorderPlugin extends Plugin implements HBRecorderListener {
         }
         this.startCall = call;
 
+        // Custom Quality Settings
+        String quality = call.getString("quality", "1080p");
+        int fps = call.getInt("fps", 30);
+        
+        hbRecorder.enableCustomSettings();
+        hbRecorder.setVideoFrameRate(fps);
+        
+        if (quality.equals("4k")) {
+            hbRecorder.setVideoBitrate(24000000); // 24 Mbps for 4K
+        } else {
+            hbRecorder.setVideoBitrate(12000000); // 12 Mbps for 1080p
+        }
+
+        // Notification Settings
+        hbRecorder.setNotificationTitle("Omni Tool Studio");
+        hbRecorder.setNotificationDescription("Recording screen natively...");
+
         // Ensure audio is enabled
         hbRecorder.isAudioEnabled(true);
-        hbRecorder.recordHDVideo(true);
         
         MediaProjectionManager projectionManager = (MediaProjectionManager) getContext().getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         Intent permissionIntent = projectionManager.createScreenCaptureIntent();
@@ -76,10 +93,9 @@ public class OmniRecorderPlugin extends Plugin implements HBRecorderListener {
             call.reject("Not recording");
             return;
         }
+        this.stopCall = call;
         hbRecorder.stopScreenRecording();
-        JSObject ret = new JSObject();
-        ret.put("uri", "file://" + currentOutputPath);
-        call.resolve(ret);
+        // Will resolve in HBRecorderOnComplete
     }
 
     // HBRecorderListener overrides
@@ -91,11 +107,24 @@ public class OmniRecorderPlugin extends Plugin implements HBRecorderListener {
     @Override
     public void HBRecorderOnComplete() {
         Log.i("OmniRecorder", "Recording complete");
+        JSObject ret = new JSObject();
+        ret.put("uri", "file://" + currentOutputPath);
+        if (this.stopCall != null) {
+            this.stopCall.resolve(ret);
+            this.stopCall = null;
+        } else {
+            // Stopped via notification
+            notifyListeners("onRecordComplete", ret);
+        }
     }
 
     @Override
     public void HBRecorderOnError(int errorCode, String reason) {
         Log.e("OmniRecorder", "Error: " + reason);
+        if (this.stopCall != null) {
+            this.stopCall.reject(reason);
+            this.stopCall = null;
+        }
     }
 
     @Override
