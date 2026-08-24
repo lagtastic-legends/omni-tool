@@ -1,70 +1,110 @@
 package com.omnitool.app;
 
 import android.app.Activity;
-import android.content.Intent;
-import android.media.projection.MediaProjectionManager;
+import android.content.ComponentName;
 import android.content.Context;
-import android.os.Build;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.media.projection.MediaProjectionManager;
 import android.os.Environment;
-import android.util.Log;
+import android.os.IBinder;
+import android.util.DisplayMetrics;
+import android.view.WindowManager;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
-import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.ActivityCallback;
+import com.getcapacitor.annotation.CapacitorPlugin;
+
 import androidx.activity.result.ActivityResult;
 
-import com.hbisoft.hbrecorder.HBRecorder;
-import com.hbisoft.hbrecorder.HBRecorderListener;
+import com.omnitool.app.recorder.OmniRecordService;
+import com.omnitool.app.recorder.OmniScreenRecorder;
 
 import java.io.File;
-import java.util.Date;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 
 @CapacitorPlugin(name = "OmniRecorder")
-public class OmniRecorderPlugin extends Plugin implements HBRecorderListener {
-    private HBRecorder hbRecorder;
+public class OmniRecorderPlugin extends Plugin {
     private PluginCall startCall;
     private PluginCall stopCall;
     private String currentOutputPath;
+    private OmniRecordService recordService;
+    private boolean isBound = false;
+    private boolean isRecording = false;
+
+    private int width = 720;
+    private int height = 1280;
+    private int dpi = 320;
+    private int bitrate = 12000000;
+    private int fps = 30;
+    private boolean internalAudio = true;
+    private boolean mic = false;
+
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            OmniRecordService.LocalBinder binder = (OmniRecordService.LocalBinder) service;
+            recordService = binder.getService();
+            isBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            isBound = false;
+        }
+    };
 
     @Override
     public void load() {
         super.load();
-        hbRecorder = new HBRecorder(getContext(), this);
+        Intent intent = new Intent(getContext(), OmniRecordService.class);
+        getContext().bindService(intent, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void handleOnDestroy() {
+        super.handleOnDestroy();
+        if (isBound) {
+            getContext().unbindService(serviceConnection);
+            isBound = false;
+        }
     }
 
     @PluginMethod
     public void startRecording(PluginCall call) {
-        if (hbRecorder.isBusyRecording()) {
+        if (isRecording) {
             call.reject("Already recording");
+            return;
+        }
+        if (!isBound || recordService == null) {
+            call.reject("Service not bound yet");
             return;
         }
         this.startCall = call;
 
-        // Custom Quality Settings
         String quality = call.getString("quality", "1080p");
-        int fps = call.getInt("fps", 30);
+        this.fps = call.getInt("fps", 30);
+        this.internalAudio = Boolean.TRUE.equals(call.getBoolean("internalAudio", true));
+        this.mic = Boolean.TRUE.equals(call.getBoolean("microphone", false));
         
-        hbRecorder.enableCustomSettings();
-        hbRecorder.setVideoFrameRate(fps);
+        WindowManager wm = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+        DisplayMetrics metrics = new DisplayMetrics();
+        wm.getDefaultDisplay().getRealMetrics(metrics);
+        this.width = metrics.widthPixels;
+        this.height = metrics.heightPixels;
+        this.dpi = metrics.densityDpi;
         
         if (quality.equals("4k")) {
-            hbRecorder.setVideoBitrate(24000000); // 24 Mbps for 4K
+            this.bitrate = 24000000;
         } else {
-            hbRecorder.setVideoBitrate(12000000); // 12 Mbps for 1080p
+            this.bitrate = 12000000;
         }
 
-        // Notification Settings
-        hbRecorder.setNotificationTitle("Omni Tool Studio");
-        hbRecorder.setNotificationDescription("Recording screen natively...");
-
-        // Ensure audio is enabled
-        hbRecorder.isAudioEnabled(true);
-        
         MediaProjectionManager projectionManager = (MediaProjectionManager) getContext().getSystemService(Context.MEDIA_PROJECTION_SERVICE);
         Intent permissionIntent = projectionManager.createScreenCaptureIntent();
         startActivityForResult(call, permissionIntent, "screenCaptureResult");
@@ -77,9 +117,42 @@ public class OmniRecorderPlugin extends Plugin implements HBRecorderListener {
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
             currentOutputPath = new File(dir, "OmniScreen_" + timeStamp + ".mp4").getAbsolutePath();
             
-            hbRecorder.setOutputPath(dir.getAbsolutePath());
-            hbRecorder.setFileName("OmniScreen_" + timeStamp);
-            hbRecorder.startScreenRecording(result.getData(), result.getResultCode());
+            Intent serviceIntent = new Intent(getContext(), OmniRecordService.class);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION.SDK_INT) {
+                getContext().startForegroundService(serviceIntent);
+            } else {
+                getContext().startService(serviceIntent);
+            }
+            
+            isRecording = true;
+            
+            recordService.startRecording(
+                result.getData(), result.getResultCode(), 
+                width, height, dpi, bitrate, fps, internalAudio, mic, currentOutputPath, 
+                new OmniScreenRecorder.Listener() {
+                    @Override
+                    public void onComplete(String path) {
+                        isRecording = false;
+                        JSObject ret = new JSObject();
+                        ret.put("uri", "file://" + path);
+                        if (stopCall != null) {
+                            stopCall.resolve(ret);
+                            stopCall = null;
+                        } else {
+                            notifyListeners("onRecordComplete", ret);
+                        }
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        isRecording = false;
+                        if (stopCall != null) {
+                            stopCall.reject(error);
+                            stopCall = null;
+                        }
+                    }
+                }
+            );
             
             call.resolve();
         } else {
@@ -89,47 +162,13 @@ public class OmniRecorderPlugin extends Plugin implements HBRecorderListener {
 
     @PluginMethod
     public void stopRecording(PluginCall call) {
-        if (!hbRecorder.isBusyRecording()) {
+        if (!isRecording) {
             call.reject("Not recording");
             return;
         }
         this.stopCall = call;
-        hbRecorder.stopScreenRecording();
-        // Will resolve in HBRecorderOnComplete
-    }
-
-    // HBRecorderListener overrides
-    @Override
-    public void HBRecorderOnStart() {
-        Log.i("OmniRecorder", "Recording started");
-    }
-
-    @Override
-    public void HBRecorderOnComplete() {
-        Log.i("OmniRecorder", "Recording complete");
-        JSObject ret = new JSObject();
-        ret.put("uri", "file://" + currentOutputPath);
-        if (this.stopCall != null) {
-            this.stopCall.resolve(ret);
-            this.stopCall = null;
-        } else {
-            // Stopped via notification
-            notifyListeners("onRecordComplete", ret);
+        if (recordService != null) {
+            recordService.stopRecording();
         }
     }
-
-    @Override
-    public void HBRecorderOnError(int errorCode, String reason) {
-        Log.e("OmniRecorder", "Error: " + reason);
-        if (this.stopCall != null) {
-            this.stopCall.reject(reason);
-            this.stopCall = null;
-        }
-    }
-
-    @Override
-    public void HBRecorderOnPause() {}
-
-    @Override
-    public void HBRecorderOnResume() {}
 }

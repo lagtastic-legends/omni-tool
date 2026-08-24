@@ -266,7 +266,7 @@ export function StudioRecorder() {
       try {
         await OmniRecorder.startRecording({ 
           internalAudio: true, 
-          microphone: true, 
+          microphone: false, 
           quality: screenQuality, 
           fps: screenFps 
         });
