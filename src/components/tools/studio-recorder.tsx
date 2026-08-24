@@ -17,6 +17,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Capacitor } from "@capacitor/core";
+import { OmniRecorder } from "@/lib/native-recorder";
 import { OutputCard } from "@/components/media/output-card";
 import {
   AlertDialog,
@@ -194,6 +196,10 @@ export function StudioRecorder() {
     setMediaState("starting");
     setOutput(null);
     try {
+      if (m === "screen" && Capacitor.isNativePlatform()) {
+        setMediaState("live");
+        return;
+      }
       const stream = await acquireStream(m);
       streamRef.current = stream;
       if (videoRef.current && stream.getVideoTracks().length > 0) {
@@ -223,7 +229,23 @@ export function StudioRecorder() {
   /* ------------------------------------------------------------------ */
   /* recorder control                                                     */
   /* ------------------------------------------------------------------ */
-  const beginRecording = () => {
+  const beginRecording = async () => {
+    if (mode === "screen" && Capacitor.isNativePlatform()) {
+      try {
+        await OmniRecorder.startRecording({ internalAudio: true, microphone: true });
+        startedAtRef.current = performance.now();
+        pausedAccumRef.current = 0;
+        pausedAtRef.current = null;
+        setRecording(true);
+        setPaused(false);
+        setElapsedMs(0);
+      } catch (err) {
+        console.error("Native recording failed:", err);
+        setMediaState("denied");
+      }
+      return;
+    }
+
     const stream = streamRef.current;
     if (!stream) return;
     const mime = pickMime(MODE_META[mode].mime);
@@ -263,7 +285,33 @@ export function StudioRecorder() {
     setElapsedMs(0);
   };
 
-  const finalizeRecording = () => {
+  const finalizeRecording = async () => {
+    if (mode === "screen" && Capacitor.isNativePlatform()) {
+      try {
+        const result = await OmniRecorder.stopRecording();
+        const res = await fetch(Capacitor.convertFileSrc(result.uri));
+        const blob = await res.blob();
+        const stamp = new Date().toISOString().slice(11, 19).replace(/:/g, "");
+        const name = `omni-screen-${stamp}.mp4`;
+        
+        setOutput((prev) => {
+          if (prev) URL.revokeObjectURL(prev.url);
+          return {
+            name,
+            blob,
+            url: URL.createObjectURL(blob),
+            size: blob.size,
+            mime: "video/mp4",
+          };
+        });
+      } catch (err) {
+        console.error("Native recording stop failed:", err);
+      }
+      setRecording(false);
+      setPaused(false);
+      return;
+    }
+
     if (recorderRef.current && recorderRef.current.state !== "inactive") {
       recorderRef.current.stop();
     }
@@ -358,11 +406,11 @@ export function StudioRecorder() {
               ref={videoRef}
               muted
               playsInline
-              className={`aspect-video w-full object-cover ${mode !== "mic" && mediaState === "live" ? "" : "hidden"}`}
+              className={`aspect-video w-full object-cover ${mode !== "mic" && mediaState === "live" && !(mode === "screen" && Capacitor.isNativePlatform()) ? "" : "hidden"}`}
               aria-label="Capture preview"
             />
 
-            {(mode === "mic" || mediaState !== "live") && (
+            {(mode === "mic" || mediaState !== "live" || (mode === "screen" && Capacitor.isNativePlatform())) && (
               <div className="grid aspect-video w-full place-items-center px-6 text-center">
                 {mediaState === "denied" ? (
                   <div className="space-y-2">
@@ -378,6 +426,13 @@ export function StudioRecorder() {
                   <p className="animate-pulse font-mono text-[11px] text-muted-foreground">
                     requesting {meta.label.toLowerCase()}…
                   </p>
+                ) : mode === "screen" && Capacitor.isNativePlatform() && mediaState === "live" ? (
+                  <div className="space-y-2">
+                    <Monitor className="mx-auto size-8 text-muted-foreground/50" />
+                    <p className="font-mono text-[11px] text-muted-foreground">
+                      native screen recording ready
+                    </p>
+                  </div>
                 ) : mode === "mic" && mediaState === "live" ? (
                   <div className="flex h-24 w-full max-w-sm items-center justify-center gap-[3px]">
                     {levels.map((lv, i) => (
