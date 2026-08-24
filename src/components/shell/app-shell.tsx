@@ -14,7 +14,6 @@ import { AppFooter } from "@/components/shell/footer";
 import { TopBar } from "@/components/shell/top-bar";
 import AskOmni from "@/components/AskOmni";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
-import { AndroidShell } from "@/components/tools/android-shell";
 import { GifMaker } from "@/components/tools/gif-maker";
 import { AudioEditor } from "@/components/tools/audio-editor";
 import { BassBooster } from "@/components/tools/bass-booster";
@@ -62,7 +61,6 @@ const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   vault: VaultView,
   "studio-recorder": StudioRecorder,
   "qr-studio": QrStudio,
-  "android-shell": AndroidShell,
   "auth-gateway": AuthGateway,
 };
 

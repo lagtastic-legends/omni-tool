@@ -44,7 +44,8 @@ function GoogleMark({ className }: { className?: string }) {
 }
 
 export function AuthGateway() {
-  const { mode, user, busy, error, isNative, signInWithGoogle, signOut } = useAuth();
+  const { mode, user, busy, error, isNative, signInWithGoogle, signOut } =
+    useAuth();
 
   const configured = mode === "configured";
 
@@ -79,7 +80,6 @@ export function AuthGateway() {
             >
               <div className="flex items-center gap-4 rounded-xl border border-pulse/30 bg-pulse/5 p-4">
                 {user.photoURL ? (
-                   
                   <img
                     src={user.photoURL}
                     alt=""
@@ -88,7 +88,9 @@ export function AuthGateway() {
                   />
                 ) : (
                   <div className="grid size-12 place-items-center rounded-full border border-pulse/40 bg-pulse/10 font-display text-lg font-bold text-pulse">
-                    {(user.displayName ?? user.email ?? "?").charAt(0).toUpperCase()}
+                    {(user.displayName ?? user.email ?? "?")
+                      .charAt(0)
+                      .toUpperCase()}
                   </div>
                 )}
                 <div className="min-w-0">
@@ -142,7 +144,10 @@ export function AuthGateway() {
                 </p>
               )}
               {error && (
-                <p className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 font-mono text-[10px] leading-relaxed text-red-300" role="alert">
+                <p
+                  className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 font-mono text-[10px] leading-relaxed text-red-300"
+                  role="alert"
+                >
                   {error}
                 </p>
               )}
@@ -177,74 +182,6 @@ export function AuthGateway() {
               <span className="text-pulse">indexeddb · local</span>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* -------------------------------------------------------- setup side */}
-      <div className="space-y-5">
-        <div className="panel-hud space-y-4 rounded-xl p-5">
-          <p className="flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-neon/90">
-            <KeyRound className="size-3.5" />
-            enable the gate — 4 steps
-          </p>
-          <ol className="space-y-3">
-            {[
-              {
-                icon: TerminalSquare,
-                title: "Create the Firebase project",
-                body: "console.firebase.google.com → add project → enable Authentication → Sign-in method → Google.",
-              },
-              {
-                icon: Smartphone,
-                title: "Register the Android app",
-                body: "Add app with package app.omnitool.suite. Paste the SHA-1 of your debug/release keystore (keytool -list -v -alias androiddebugkey), then download google-services.json.",
-              },
-              {
-                icon: KeyRound,
-                title: "Drop credentials in place",
-                body: "Run ./scripts/setup-firebase.sh — it copies google-services.json into android/app/ and firebase-config.json into public/ for the web side.",
-              },
-              {
-                icon: ShieldCheck,
-                title: "Rebuild and relock",
-                body: "./scripts/build-mobile.sh rebuilds the APK; the web app picks the config up on next load. The gate engages automatically.",
-              },
-            ].map((step, i) => (
-              <motion.li
-                key={step.title}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.06 }}
-                className="flex gap-3 rounded-lg border border-border/60 bg-card/40 p-3"
-              >
-                <span className="grid size-8 shrink-0 place-items-center rounded-lg border border-primary/40 bg-primary/10 font-mono text-[11px] font-bold text-primary">
-                  {i + 1}
-                </span>
-                <div>
-                  <p className="font-mono text-[11px] font-semibold text-foreground/90">
-                    {step.title}
-                  </p>
-                  <p className="mt-1 font-mono text-[10px] leading-relaxed text-muted-foreground">
-                    {step.body}
-                  </p>
-                </div>
-              </motion.li>
-            ))}
-          </ol>
-        </div>
-
-        <div className="rounded-xl border border-border/60 bg-card/40 p-4">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            how the gate behaves
-          </p>
-          <p className="mt-2 font-mono text-[11px] leading-relaxed text-muted-foreground">
-            With Firebase linked, every tool route locks behind your Google
-            identity — sign-in is the only way into the matrix. Without it,
-            Omni Tool refuses to brick itself: it runs in open mode with a
-            visible banner, and this page shows exactly what to wire up.
-            Processing is on-device in both modes — auth guards access, never
-            exfiltrates data.
-          </p>
         </div>
       </div>
     </div>

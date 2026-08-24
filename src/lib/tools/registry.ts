@@ -285,17 +285,6 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     accent: "cyan",
     requiresEngine: false,
   },
-  {
-    id: "android-shell",
-    name: "Android Shell",
-    description: "Capacitor wrapper for native Android builds.",
-    category: "system",
-    icon: Smartphone,
-    phase: 6,
-    status: "online",
-    accent: "emerald",
-    requiresEngine: false,
-  },
 
   /* ---------------- PHASE 7 — Auth & Security ------------------------ */
   {
