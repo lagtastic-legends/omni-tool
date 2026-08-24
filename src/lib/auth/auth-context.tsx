@@ -107,7 +107,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       if (isNative) {
         // Native Android: OS-level Google account picker.
-        const result = await FirebaseAuthentication.signInWithGoogle();
+        // We disable useCredentialManager because it causes "No credentials available"
+        // on many devices and sometimes doesn't list all Gmail accounts.
+        const result = await FirebaseAuthentication.signInWithGoogle({
+          useCredentialManager: false,
+        });
         const u = result.user;
         if (u) {
           setUser({
