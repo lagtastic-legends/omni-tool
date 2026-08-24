@@ -71,25 +71,25 @@ export function AuthGuard({ children }: { children: ReactNode }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          className="panel-hud scanlines mx-4 flex w-full max-w-md flex-col items-center gap-5 rounded-2xl p-10 text-center"
+          className="mx-4 flex w-full max-w-md flex-col items-center gap-5 rounded-3xl border border-outline-variant/60 bg-surface-container-low p-10 text-center shadow-[0_2px_16px_rgba(58,48,42,0.04)]"
         >
           <motion.div
             animate={{ scale: [1, 1.06, 1], rotateX: [0, 10, 0], rotateY: [0, -10, 0] }}
-            transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            className="grid size-16 place-items-center rounded-2xl border border-primary/40 bg-primary/10 glow-box-violet shadow-[inset_0_1px_4px_rgba(255,255,255,0.1),0_4px_12px_rgba(0,0,0,0.5)]"
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            className="grid size-16 place-items-center rounded-2xl border border-outline-variant/60 bg-surface-container shadow-sm"
             style={{ perspective: 1000 }}
           >
             <Lock 
-              className="size-8 text-primary drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]" 
+              className="size-8 text-primary drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]" 
               strokeWidth={2.5} 
             />
           </motion.div>
 
           <div>
-            <h1 className="font-display text-xl font-bold tracking-wide text-foreground">
+            <h1 className="font-headline text-xl font-semibold tracking-wide text-on-surface">
               RESTRICTED AREA
             </h1>
-            <p className="mt-2 font-mono text-[11px] leading-relaxed text-muted-foreground">
+            <p className="mt-2 font-body text-[13px] leading-relaxed text-on-surface-variant">
               Omni Tool&apos;s modules are locked behind your Google identity.
               Authenticate to restore access to the full suite.
             </p>
@@ -99,10 +99,10 @@ export function AuthGuard({ children }: { children: ReactNode }) {
             onClick={() => void signInWithGoogle()}
             disabled={busy}
             whileTap={busy ? undefined : { scale: 0.97 }}
-            className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-border/60 bg-white px-4 font-display text-xs font-bold tracking-[0.14em] text-zinc-900 transition-transform hover:scale-[1.01] disabled:opacity-60"
+            className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-transparent bg-white px-4 font-headline text-sm font-semibold tracking-wider text-zinc-900 shadow-sm transition-transform hover:scale-[1.02] disabled:opacity-60"
           >
             <GoogleMark className="size-5" />
-            {busy ? "CONNECTING…" : "SIGN IN WITH GOOGLE"}
+            {busy ? "CONNECTING..." : "SIGN IN WITH GOOGLE"}
           </motion.button>
 
           <AnimatePresence>
@@ -111,7 +111,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 font-mono text-[10px] leading-relaxed text-red-300"
+                className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 font-body text-xs leading-relaxed text-red-400"
                 role="alert"
               >
                 {error}
@@ -119,7 +119,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
             )}
           </AnimatePresence>
 
-          <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground/60">
+          <p className="font-label text-[10px] font-bold uppercase tracking-widest text-secondary/70">
             processing stays on-device · auth guards access only
           </p>
         </motion.div>
