@@ -578,7 +578,7 @@ export function StudioRecorder() {
         });
       } catch (err) {
         console.error("Native recording stop failed:", err);
-          toast({ title: "Recording failed", description: err.message, variant: "destructive" });
+
       }
       setRecording(false);
       setPaused(false);
@@ -947,12 +947,5 @@ export function StudioRecorder() {
     </div>
   );
 }
-  useEffect(() => {
-    return () => {
-      setOutput((prev) => {
-        if (prev) URL.revokeObjectURL(prev.url);
-        return null;
-      });
-    };
-  }, []);
+
 
