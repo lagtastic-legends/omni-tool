@@ -135,6 +135,9 @@ export function AuthGateway() {
                     <GoogleMark className="size-5" />
                     {busy ? "CONNECTING…" : "SIGN IN WITH GOOGLE"}
                   </motion.button>
+                  <p className="mt-4 text-center font-mono text-[10px] text-muted-foreground">
+                    By signing in, you agree to our <a href="/privacy" className="underline hover:text-foreground">Privacy Policy</a>
+                  </p>
                 </>
               ) : (
                 <p className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2.5 font-mono text-[11px] leading-relaxed text-amber-300">
