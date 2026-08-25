@@ -7,6 +7,9 @@
 
 import { motion } from "framer-motion";
 import { Activity, Boxes, Database, FileAudio, FileImage, FileText, FileVideo, Files, Timer } from "lucide-react";
+import { useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
+import { OmniRecorder } from "@/lib/native-recorder";
 import { EngineBootPanel } from "@/components/engine/engine-boot-panel";
 import { SystemStatusHUD } from "@/components/engine/system-status-hud";
 import { ToolGrid } from "@/components/dashboard/tool-grid";
@@ -62,6 +65,12 @@ export function DashboardView() {
   const { state, bootMs } = useFFmpegEngine();
   const { items, totalBytes } = useVault();
   const navigate = useNavStore((s) => s.navigate);
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      OmniRecorder.requestPermissions().catch(console.warn);
+    }
+  }, []);
 
   const onlineCount = getOnlineTools().length;
   const recent = items.slice(0, 4);

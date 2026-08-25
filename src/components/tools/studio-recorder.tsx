@@ -75,7 +75,7 @@ function pickMime(candidates: string[]): string | undefined {
 }
 
 export function StudioRecorder() {
-  const [mode, setMode] = useState<RecorderMode>("mic");
+  const [mode, setMode] = useState<RecorderMode>(() => Capacitor.isNativePlatform() ? "screen" : "mic");
   const [mediaState, setMediaState] = useState<MediaState>("off");
   const [recording, setRecording] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -443,11 +443,13 @@ export function StudioRecorder() {
       {/* ------------------------------------------------------- input column */}
       <div className="space-y-5">
         {/* mode tabs */}
-        <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Recording source">
-          {(Object.keys(MODE_META) as RecorderMode[]).map((m) => {
-            const MIcon = MODE_META[m].icon;
-            const active = mode === m;
-            return (
+        <div className={`grid ${Capacitor.isNativePlatform() ? "grid-cols-1" : "grid-cols-3"} gap-2`} role="tablist" aria-label="Recording source">
+          {(Object.keys(MODE_META) as RecorderMode[])
+            .filter((m) => Capacitor.isNativePlatform() ? m === "screen" : true)
+            .map((m) => {
+              const MIcon = MODE_META[m].icon;
+              const active = mode === m;
+              return (
               <button
                 key={m}
                 role="tab"
