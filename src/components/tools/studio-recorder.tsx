@@ -283,118 +283,10 @@ export function StudioRecorder() {
         setMediaState("live");
         return;
       }
-      const stream = await acquireStream(m);
-      streamRef.current = stream;
-      if (videoRef.current && stream.getVideoTracks().length > 0) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play().catch(() => undefined);
-      }
-      if (m !== "screen") startAnalysis(stream);
-      setMediaState("live");
-
-      /* auto-disarm when a screen share ends from the browser UI */
-      stream.getVideoTracks().forEach((t) => {
-        t.addEventListener("ended", () => {
-          if (recorderRef.current?.state === "recording") {
-            finalizeRecording();
-          } else {
-            teardownMedia();
-          }
-        });
-      });
-    } catch (err) {
-      setMediaState("denied");
-      const name = err instanceof Error ? err.name : "";
-      void name; // message rendered in UI below
-    }
-  };
-
-  /* ------------------------------------------------------------------ */
-  /* recorder control                                                     */
-  /* ------------------------------------------------------------------ */
-  const beginRecording = async () => {
-    if (mode === "screen" && Capacitor.isNativePlatform()) {
-      try {
-        await OmniRecorder.startRecording({ 
-          internalAudio: true, 
-          microphone: false, 
-          quality: screenQuality, 
-          fps: screenFps 
-        });
-        startedAtRef.current = performance.now();
-        pausedAccumRef.current = 0;
-        pausedAtRef.current = null;
-        setRecording(true);
-        setPaused(false);
-        setElapsedMs(0);
-      } catch (err) {
-        console.error("Native recording failed:", err);
-        setMediaState("denied");
-      }
-      return;
-    }
-
-    const stream = streamRef.current;
-    if (!stream) return;
-    const mime = pickMime(MODE_META[mode].mime);
-    const options: MediaRecorderOptions = {};
-    if (mime) options.mimeType = mime;
-    if (mode === "screen") {
-      options.videoBitsPerSecond = screenQuality === "4k" ? 20_000_000 : screenQuality === "720p" ? 4_000_000 : 8_000_000;
-      options.audioBitsPerSecond = 192_000;
-    } else if (mode === "webcam") {
-      options.videoBitsPerSecond = 5_000_000;
-      options.audioBitsPerSecond = 160_000;
-    } else {
-      options.audioBitsPerSecond = 192_000;
-    }
-    const recorder = new MediaRecorder(stream, options);
-    chunksRef.current = [];
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) chunksRef.current.push(e.data);
-    };
-    recorder.onstop = async () => {
-      const type = recorder.mimeType || mime || "video/webm";
-      let blob = new Blob(chunksRef.current, { type });
-      const isAudio = mode === "mic";
-      const ext = type.includes("mp4") ? "mp4" : "webm";
-      const stamp = new Date().toISOString().slice(11, 19).replace(/:/g, "");
-      const name = `omni-${mode}-${stamp}.${ext}`;
-
-      if (ext === "webm") {
-        const now = performance.now();
-        const pTotal = pausedAccumRef.current + (pausedAtRef.current !== null ? now - pausedAtRef.current : 0);
-        const durationMs = startedAtRef.current !== null ? Math.floor(now - startedAtRef.current - pTotal) : 0;
-        if (durationMs > 0) {
-          try {
-            blob = await fixWebmDuration(blob, durationMs, { logger: false });
-          } catch (err) {
-            console.error("Failed to fix webm duration:", err);
-          }
-        }
-      }
-
-      setOutput((prev) => {
-        if (prev) URL.revokeObjectURL(prev.url);
-        return {
-          name,
-          blob,
-          url: URL.createObjectURL(blob),
-          size: blob.size,
-          mime: isAudio && type.startsWith("audio") ? type.split(";")[0] : type.split(";")[0],
-        };
-      });
-    };
-    recorder.start(400);
-    recorderRef.current = recorder;
-    startedAtRef.current = performance.now();
-    pausedAccumRef.current = 0;
-    pausedAtRef.current = null;
-    setRecording(true);
-    setPaused(false);
-    setElapsedMs(0);
-
-    if (!Capacitor.isNativePlatform() && "documentPictureInPicture" in window) {
+      
+      // Auto-open PiP for screen recording on web
+      if (m === "screen") {
+        if (!Capacitor.isNativePlatform() && "documentPictureInPicture" in window) {
       try {
         const pip = await (window as any).documentPictureInPicture.requestWindow({
           width: 400,
@@ -517,6 +409,124 @@ export function StudioRecorder() {
         console.warn("PiP failed", err);
       }
     }
+      }
+      const stream = await acquireStream(m);
+      streamRef.current = stream;
+      if (videoRef.current && stream.getVideoTracks().length > 0) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play().catch(() => undefined);
+      }
+      if (m !== "screen") startAnalysis(stream);
+      setMediaState("live");
+      
+      if (m === "screen" && !Capacitor.isNativePlatform()) {
+        // Auto-start recording!
+        beginRecording();
+      }
+
+      /* auto-disarm when a screen share ends from the browser UI */
+      stream.getVideoTracks().forEach((t) => {
+        t.addEventListener("ended", () => {
+          if (recorderRef.current?.state === "recording") {
+            finalizeRecording();
+          } else {
+            teardownMedia();
+          }
+        });
+      });
+    } catch (err) {
+      setMediaState("denied");
+      const name = err instanceof Error ? err.name : "";
+      void name; // message rendered in UI below
+    }
+  };
+
+  /* ------------------------------------------------------------------ */
+  /* recorder control                                                     */
+  /* ------------------------------------------------------------------ */
+  const beginRecording = async () => {
+    if (mode === "screen" && Capacitor.isNativePlatform()) {
+      try {
+        await OmniRecorder.startRecording({ 
+          internalAudio: true, 
+          microphone: false, 
+          quality: screenQuality, 
+          fps: screenFps 
+        });
+        startedAtRef.current = performance.now();
+        pausedAccumRef.current = 0;
+        pausedAtRef.current = null;
+        setRecording(true);
+        setPaused(false);
+        setElapsedMs(0);
+      } catch (err) {
+        console.error("Native recording failed:", err);
+        setMediaState("denied");
+      }
+      return;
+    }
+
+    const stream = streamRef.current;
+    if (!stream) return;
+    const mime = pickMime(MODE_META[mode].mime);
+    const options: MediaRecorderOptions = {};
+    if (mime) options.mimeType = mime;
+    if (mode === "screen") {
+      options.videoBitsPerSecond = screenQuality === "4k" ? 20_000_000 : screenQuality === "720p" ? 4_000_000 : 8_000_000;
+      options.audioBitsPerSecond = 192_000;
+    } else if (mode === "webcam") {
+      options.videoBitsPerSecond = 5_000_000;
+      options.audioBitsPerSecond = 160_000;
+    } else {
+      options.audioBitsPerSecond = 192_000;
+    }
+    const recorder = new MediaRecorder(stream, options);
+    chunksRef.current = [];
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) chunksRef.current.push(e.data);
+    };
+    recorder.onstop = async () => {
+      const type = recorder.mimeType || mime || "video/webm";
+      let blob = new Blob(chunksRef.current, { type });
+      const isAudio = mode === "mic";
+      const ext = type.includes("mp4") ? "mp4" : "webm";
+      const stamp = new Date().toISOString().slice(11, 19).replace(/:/g, "");
+      const name = `omni-${mode}-${stamp}.${ext}`;
+
+      if (ext === "webm") {
+        const now = performance.now();
+        const pTotal = pausedAccumRef.current + (pausedAtRef.current !== null ? now - pausedAtRef.current : 0);
+        const durationMs = startedAtRef.current !== null ? Math.floor(now - startedAtRef.current - pTotal) : 0;
+        if (durationMs > 0) {
+          try {
+            blob = await fixWebmDuration(blob, durationMs, { logger: false });
+          } catch (err) {
+            console.error("Failed to fix webm duration:", err);
+          }
+        }
+      }
+
+      setOutput((prev) => {
+        if (prev) URL.revokeObjectURL(prev.url);
+        return {
+          name,
+          blob,
+          url: URL.createObjectURL(blob),
+          size: blob.size,
+          mime: isAudio && type.startsWith("audio") ? type.split(";")[0] : type.split(";")[0],
+        };
+      });
+    };
+    recorder.start(400);
+    recorderRef.current = recorder;
+    startedAtRef.current = performance.now();
+    pausedAccumRef.current = 0;
+    pausedAtRef.current = null;
+    setRecording(true);
+    setPaused(false);
+    setElapsedMs(0);
+
+    
   };
 
   const finalizeRecording = async () => {
@@ -801,7 +811,7 @@ export function StudioRecorder() {
               className="col-span-3 flex min-h-12 items-center justify-center gap-2.5 rounded-xl border border-primary/50 bg-gradient-to-r from-primary/90 to-plasma/80 font-display text-xs font-bold tracking-[0.2em] text-white transition-transform hover:scale-[1.01] active:scale-95 glow-box-violet"
             >
               <Play className="size-4" />
-              ARM {meta.label.toUpperCase()}
+              {mode === "screen" && !Capacitor.isNativePlatform() ? "SHARE & RECORD" : "ARM " + meta.label.toUpperCase()}
             </button>
           ) : (
             <>

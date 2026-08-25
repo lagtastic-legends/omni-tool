@@ -26,6 +26,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { ToolCategory, ToolMeta } from "@/types/omni";
+import { Capacitor } from "@capacitor/core";
 
 /* ------------------------------------------------------------------ */
 /* Category presentation metadata                                      */
@@ -263,8 +264,8 @@ export const TOOL_REGISTRY: ToolMeta[] = [
   },
   {
     id: "studio-recorder",
-    name: "Studio Recorder",
-    description: "Record mic, webcam & screen — zero uploads.",
+    get name() { return Capacitor.isNativePlatform() ? "Screen Recorder" : "Studio Recorder"; },
+    get description() { return Capacitor.isNativePlatform() ? "Record your screen natively — zero uploads." : "Record mic, webcam & screen — zero uploads."; },
     category: "studio",
     icon: Camera,
     phase: 5,
