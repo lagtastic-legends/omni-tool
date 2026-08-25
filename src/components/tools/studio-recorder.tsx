@@ -294,14 +294,25 @@ export function StudioRecorder() {
         });
         pipWindowRef.current = pip;
 
+        
         pip.document.head.innerHTML = `
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Omni Tool - Recording</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
-<script>
+<style>
+  .pulse-dot { animation: pulse 2s infinite; }
+  @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+  .glass-panel { background: rgba(250, 245, 238, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(216, 208, 200, 0.6); }
+  
+  /* Fallback visibility until Tailwind loads */
+  body { background: transparent; padding: 1rem; }
+</style>`;
+
+        // Inject Tailwind config
+        const twConfig = pip.document.createElement("script");
+        twConfig.textContent = `
   tailwind.config = {
     darkMode: "class",
     theme: {
@@ -369,26 +380,43 @@ export function StudioRecorder() {
         }
       }
     }
-  }
-</script>
-<style>
-  .pulse-dot { animation: pulse 2s infinite; }
-  @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
-  .glass-panel { background: rgba(250, 245, 238, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(216, 208, 200, 0.6); }
-</style>`;
+  };
+        `;
+        pip.document.head.appendChild(twConfig);
+
+        // Load Tailwind CDN dynamically so it executes
+        const twScript = pip.document.createElement("script");
+        twScript.src = "https://cdn.tailwindcss.com?plugins=forms,container-queries";
+        pip.document.head.appendChild(twScript);
+        
+        // Also copy styles from parent as fallback
+        [...document.styleSheets].forEach((styleSheet) => {
+          try {
+            const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
+            const style = pip.document.createElement('style');
+            style.textContent = cssRules;
+            pip.document.head.appendChild(style);
+          } catch (e) {
+            // Ignore cross-origin stylesheet errors
+          }
+        });
+
         pip.document.body.className = "bg-background min-h-screen flex items-center justify-center p-4";
         pip.document.body.innerHTML = `<!-- Screen Recording Control Overlay -->
-<div class="glass-panel shadow-[0_2px_16px_rgba(58,48,42,0.08)] rounded-full px-6 py-3 flex items-center gap-6 max-w-sm mx-auto transition-all duration-300 ease-in-out hover:shadow-[0_4px_24px_rgba(58,48,42,0.12)]">
-<div class="flex items-center gap-3 border-r border-outline-variant/60 pr-6">
-<div id="pip-rec-indicator" class="w-3 h-3 bg-error rounded-full pulse-dot shadow-[0_0_8px_rgba(192,57,43,0.4)]"></div>
-<span id="pip-time" class="font-body text-on-surface text-lg font-medium tracking-wide tabular-nums">00:00:00</span>
+<div class="glass-panel shadow-[0_2px_16px_rgba(58,48,42,0.08)] rounded-full px-5 py-2.5 flex items-center gap-5 max-w-sm mx-auto transition-all duration-300 ease-in-out hover:shadow-[0_4px_24px_rgba(58,48,42,0.12)]">
+<div class="flex items-center gap-3 border-r border-outline-variant/60 pr-5">
+<div id="pip-rec-indicator" class="w-2.5 h-2.5 bg-[#e08850] rounded-full pulse-dot"></div>
+<span id="pip-time" class="font-body text-on-surface text-[17px] font-medium tracking-wide tabular-nums mt-0.5">00:00:00</span>
 </div>
-<div class="flex items-center gap-4">
-<button id="pip-pause" aria-label="Pause Recording" class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
-<span id="pip-pause-icon" class="material-symbols-outlined text-[22px]">pause</span>
+<div class="flex items-center gap-2">
+<button id="pip-pause" aria-label="Pause Recording" class="w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
+<span id="pip-pause-icon" class="material-symbols-outlined text-[20px]">pause</span>
 </button>
-<button id="pip-stop" aria-label="Stop Recording" class="w-12 h-12 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-sm hover:opacity-90 hover:shadow-md transition-all active:scale-95 focus:outline-none focus:ring-4 focus:ring-primary/30">
-<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">stop</span>
+<button id="pip-stop" aria-label="Stop Recording" class="w-11 h-11 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-sm hover:opacity-90 hover:shadow-md transition-all active:scale-95 focus:outline-none focus:ring-4 focus:ring-primary/30 mx-1">
+<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">stop</span>
+</button>
+<button id="pip-settings" aria-label="Settings" class="w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
+<span class="material-symbols-outlined text-[20px]">settings</span>
 </button>
 </div>
 </div>`;
