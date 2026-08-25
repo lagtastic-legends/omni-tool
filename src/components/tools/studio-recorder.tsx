@@ -20,6 +20,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { OmniRecorder } from "@/lib/native-recorder";
 import { OutputCard } from "@/components/media/output-card";
+import fixWebmDuration from "fix-webm-duration";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -222,8 +223,12 @@ export function StudioRecorder() {
           echoCancellation: false,
           noiseSuppression: false,
           autoGainControl: false,
+          sampleRate: 48000,
+          channelCount: 2,
         },
-      } as MediaStreamConstraints);
+        surfaceSwitching: "include",
+        systemAudio: "include",
+      } as MediaStreamConstraints & { surfaceSwitching?: string; systemAudio?: string });
     }
     if (m === "mic") {
       return navigator.mediaDevices.getUserMedia({
@@ -231,7 +236,8 @@ export function StudioRecorder() {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          sampleRate: { ideal: 48000 },
+          sampleRate: 48000,
+          channelCount: 2,
         },
         video: false,
       });
@@ -330,13 +336,27 @@ export function StudioRecorder() {
     recorder.ondataavailable = (e) => {
       if (e.data.size > 0) chunksRef.current.push(e.data);
     };
-    recorder.onstop = () => {
+    recorder.onstop = async () => {
       const type = recorder.mimeType || mime || "video/webm";
-      const blob = new Blob(chunksRef.current, { type });
+      let blob = new Blob(chunksRef.current, { type });
       const isAudio = mode === "mic";
       const ext = type.includes("mp4") ? "mp4" : "webm";
       const stamp = new Date().toISOString().slice(11, 19).replace(/:/g, "");
       const name = `omni-${mode}-${stamp}.${ext}`;
+
+      if (ext === "webm") {
+        const now = performance.now();
+        const pTotal = pausedAccumRef.current + (pausedAtRef.current !== null ? now - pausedAtRef.current : 0);
+        const durationMs = startedAtRef.current !== null ? Math.floor(now - startedAtRef.current - pTotal) : 0;
+        if (durationMs > 0) {
+          try {
+            blob = await fixWebmDuration(blob, durationMs, { logger: false });
+          } catch (err) {
+            console.error("Failed to fix webm duration:", err);
+          }
+        }
+      }
+
       setOutput((prev) => {
         if (prev) URL.revokeObjectURL(prev.url);
         return {
