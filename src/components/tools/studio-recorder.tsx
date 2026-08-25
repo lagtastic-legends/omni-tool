@@ -172,7 +172,13 @@ export function StudioRecorder() {
         setElapsedMs(ms);
         if (pipWindowRef.current) {
           const timeEl = pipWindowRef.current.document.getElementById('pip-time');
-          if (timeEl) timeEl.textContent = formatDurationMs(ms);
+          if (timeEl) {
+            const totalS = Math.floor(ms / 1000);
+            const h = Math.floor(totalS / 3600);
+            const m = Math.floor((totalS % 3600) / 60);
+            const s = totalS % 60;
+            timeEl.textContent = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+          }
         }
       }
     }, 100);
@@ -238,7 +244,8 @@ export function StudioRecorder() {
         },
         surfaceSwitching: "include",
         systemAudio: "include",
-      } as MediaStreamConstraints & { surfaceSwitching?: string; systemAudio?: string });
+        selfBrowserSurface: "exclude",
+      } as MediaStreamConstraints & { surfaceSwitching?: string; systemAudio?: string; selfBrowserSurface?: string });
     }
     if (m === "mic") {
       return navigator.mediaDevices.getUserMedia({
@@ -390,22 +397,63 @@ export function StudioRecorder() {
     if (!Capacitor.isNativePlatform() && "documentPictureInPicture" in window) {
       try {
         const pip = await (window as any).documentPictureInPicture.requestWindow({
-          width: 280,
-          height: 120,
+          width: 320,
+          height: 100,
         });
         pipWindowRef.current = pip;
 
+        pip.document.head.innerHTML = `
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Omni Tool - Recording</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "primary": "#c2652a",
+          "on-primary": "#ffffff",
+          "error": "#c0392b",
+          "on-surface": "#3a302a",
+          "on-surface-variant": "#605850",
+          "outline-variant": "#d8d0c8",
+          "background": "#faf5ee",
+          "surface-container-high": "#ece6dc"
+        },
+        "fontFamily": {
+          "body": ["Manrope", "sans-serif"]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .pulse-dot { animation: pulse 2s infinite; }
+  @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
+  .glass-panel { background: rgba(250, 245, 238, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(216, 208, 200, 0.6); }
+</style>
+        `;
+        pip.document.body.className = "bg-background min-h-screen flex items-center justify-center p-4";
         pip.document.body.innerHTML = `
-          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; color:#fff; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; margin:0; padding:16px; box-sizing:border-box;">
-             <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
-               <div id="pip-rec-indicator" style="width:10px; height:10px; border-radius:50%; background:#ef4444; box-shadow: 0 0 8px #ef4444;"></div>
-               <div id="pip-time" style="font-size:16px; color:#ef4444; letter-spacing:2px; font-weight:bold;">00:00</div>
-             </div>
-             <div style="display:flex; gap:12px; width:100%;">
-               <button id="pip-pause" style="flex:1; padding:10px; border-radius:10px; border:1px solid #333; background:#111; color:#fff; cursor:pointer; font-weight:bold; font-size:11px; letter-spacing:1px; transition: 0.2s;">PAUSE</button>
-               <button id="pip-stop" style="flex:1; padding:10px; border-radius:10px; border:1px solid #7f1d1d; background:#450a0a; color:#fca5a5; cursor:pointer; font-weight:bold; font-size:11px; letter-spacing:1px; transition: 0.2s;">STOP</button>
-             </div>
-          </div>
+<!-- Screen Recording Control Overlay -->
+<div class="glass-panel shadow-[0_2px_16px_rgba(58,48,42,0.08)] rounded-full px-6 py-3 flex items-center gap-6 max-w-sm mx-auto transition-all duration-300 ease-in-out hover:shadow-[0_4px_24px_rgba(58,48,42,0.12)]">
+<div class="flex items-center gap-3 border-r border-outline-variant/60 pr-6">
+<div class="w-3 h-3 bg-error rounded-full pulse-dot shadow-[0_0_8px_rgba(192,57,43,0.4)]" id="pip-rec-indicator"></div>
+<span class="font-body text-on-surface text-lg font-medium tracking-wide tabular-nums" id="pip-time">00:00:00</span>
+</div>
+<div class="flex items-center gap-4">
+<button id="pip-pause" aria-label="Pause Recording" class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
+<span class="material-symbols-outlined text-[22px]" id="pip-pause-icon">pause</span>
+</button>
+<button id="pip-stop" aria-label="Stop Recording" class="w-12 h-12 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-sm hover:opacity-90 hover:shadow-md transition-all active:scale-95 focus:outline-none focus:ring-4 focus:ring-primary/30">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">stop</span>
+</button>
+</div>
+</div>
         `;
 
         pip.document.getElementById("pip-stop").onclick = () => {
@@ -478,19 +526,13 @@ export function StudioRecorder() {
       pausedAtRef.current = performance.now();
       setPaused(true);
       if (pipWindowRef.current) {
-        const btn = pipWindowRef.current.document.getElementById('pip-pause');
+        const icon = pipWindowRef.current.document.getElementById('pip-pause-icon');
         const ind = pipWindowRef.current.document.getElementById('pip-rec-indicator');
-        const time = pipWindowRef.current.document.getElementById('pip-time');
-        if (btn) {
-          btn.textContent = 'RESUME';
-          btn.style.borderColor = '#d97706'; // amber-600
-          btn.style.color = '#fcd34d'; // amber-300
-        }
+        if (icon) icon.textContent = 'play_arrow';
         if (ind) {
-          ind.style.background = '#f59e0b'; // amber-500
-          ind.style.boxShadow = 'none';
+          ind.classList.remove('pulse-dot');
+          ind.style.opacity = '0.5';
         }
-        if (time) time.style.color = '#f59e0b';
       }
     } else if (r.state === "paused") {
       if (pausedAtRef.current !== null) {
@@ -500,19 +542,13 @@ export function StudioRecorder() {
       r.resume();
       setPaused(false);
       if (pipWindowRef.current) {
-        const btn = pipWindowRef.current.document.getElementById('pip-pause');
+        const icon = pipWindowRef.current.document.getElementById('pip-pause-icon');
         const ind = pipWindowRef.current.document.getElementById('pip-rec-indicator');
-        const time = pipWindowRef.current.document.getElementById('pip-time');
-        if (btn) {
-          btn.textContent = 'PAUSE';
-          btn.style.borderColor = '#333';
-          btn.style.color = '#fff';
-        }
+        if (icon) icon.textContent = 'pause';
         if (ind) {
-          ind.style.background = '#ef4444';
-          ind.style.boxShadow = '0 0 8px #ef4444';
+          ind.classList.add('pulse-dot');
+          ind.style.opacity = '1';
         }
-        if (time) time.style.color = '#ef4444';
       }
     }
   };
