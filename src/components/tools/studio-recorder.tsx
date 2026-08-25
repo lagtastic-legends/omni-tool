@@ -95,6 +95,7 @@ export function StudioRecorder() {
   const startedAtRef = useRef<number | null>(null);
   const pausedAccumRef = useRef(0);
   const pausedAtRef = useRef<number | null>(null);
+  const pipWindowRef = useRef<any>(null);
 
   /* ------------------------------------------------------------------ */
   /* teardown helpers                                                     */
@@ -113,6 +114,10 @@ export function StudioRecorder() {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
+    if (pipWindowRef.current) {
+      pipWindowRef.current.close();
+      pipWindowRef.current = null;
+    }
     stopAnalysis();
     setMediaState("off");
     setRecording(false);
@@ -163,7 +168,12 @@ export function StudioRecorder() {
         const now = performance.now();
         const pausedTotal = pausedAccumRef.current +
           (pausedAtRef.current !== null ? now - pausedAtRef.current : 0);
-        setElapsedMs(now - startedAtRef.current - pausedTotal);
+        const ms = now - startedAtRef.current - pausedTotal;
+        setElapsedMs(ms);
+        if (pipWindowRef.current) {
+          const timeEl = pipWindowRef.current.document.getElementById('pip-time');
+          if (timeEl) timeEl.textContent = formatDurationMs(ms);
+        }
       }
     }, 100);
     return () => clearInterval(t);
@@ -376,6 +386,44 @@ export function StudioRecorder() {
     setRecording(true);
     setPaused(false);
     setElapsedMs(0);
+
+    if (!Capacitor.isNativePlatform() && "documentPictureInPicture" in window) {
+      try {
+        const pip = await (window as any).documentPictureInPicture.requestWindow({
+          width: 280,
+          height: 120,
+        });
+        pipWindowRef.current = pip;
+
+        pip.document.body.innerHTML = `
+          <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; background:#000; color:#fff; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; margin:0; padding:16px; box-sizing:border-box;">
+             <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+               <div id="pip-rec-indicator" style="width:10px; height:10px; border-radius:50%; background:#ef4444; box-shadow: 0 0 8px #ef4444;"></div>
+               <div id="pip-time" style="font-size:16px; color:#ef4444; letter-spacing:2px; font-weight:bold;">00:00</div>
+             </div>
+             <div style="display:flex; gap:12px; width:100%;">
+               <button id="pip-pause" style="flex:1; padding:10px; border-radius:10px; border:1px solid #333; background:#111; color:#fff; cursor:pointer; font-weight:bold; font-size:11px; letter-spacing:1px; transition: 0.2s;">PAUSE</button>
+               <button id="pip-stop" style="flex:1; padding:10px; border-radius:10px; border:1px solid #7f1d1d; background:#450a0a; color:#fca5a5; cursor:pointer; font-weight:bold; font-size:11px; letter-spacing:1px; transition: 0.2s;">STOP</button>
+             </div>
+          </div>
+        `;
+
+        pip.document.getElementById("pip-stop").onclick = () => {
+          finalizeRecording();
+          pip.close();
+        };
+
+        pip.document.getElementById("pip-pause").onclick = () => {
+          togglePause();
+        };
+
+        pip.addEventListener("pagehide", () => {
+          pipWindowRef.current = null;
+        });
+      } catch (err) {
+        console.warn("PiP failed", err);
+      }
+    }
   };
 
   const finalizeRecording = async () => {
@@ -410,6 +458,11 @@ export function StudioRecorder() {
     }
     setRecording(false);
     setPaused(false);
+    
+    if (pipWindowRef.current) {
+      pipWindowRef.current.close();
+      pipWindowRef.current = null;
+    }
   };
 
   const stopEverything = () => {
@@ -424,6 +477,21 @@ export function StudioRecorder() {
       r.pause();
       pausedAtRef.current = performance.now();
       setPaused(true);
+      if (pipWindowRef.current) {
+        const btn = pipWindowRef.current.document.getElementById('pip-pause');
+        const ind = pipWindowRef.current.document.getElementById('pip-rec-indicator');
+        const time = pipWindowRef.current.document.getElementById('pip-time');
+        if (btn) {
+          btn.textContent = 'RESUME';
+          btn.style.borderColor = '#d97706'; // amber-600
+          btn.style.color = '#fcd34d'; // amber-300
+        }
+        if (ind) {
+          ind.style.background = '#f59e0b'; // amber-500
+          ind.style.boxShadow = 'none';
+        }
+        if (time) time.style.color = '#f59e0b';
+      }
     } else if (r.state === "paused") {
       if (pausedAtRef.current !== null) {
         pausedAccumRef.current += performance.now() - pausedAtRef.current;
@@ -431,6 +499,21 @@ export function StudioRecorder() {
       }
       r.resume();
       setPaused(false);
+      if (pipWindowRef.current) {
+        const btn = pipWindowRef.current.document.getElementById('pip-pause');
+        const ind = pipWindowRef.current.document.getElementById('pip-rec-indicator');
+        const time = pipWindowRef.current.document.getElementById('pip-time');
+        if (btn) {
+          btn.textContent = 'PAUSE';
+          btn.style.borderColor = '#333';
+          btn.style.color = '#fff';
+        }
+        if (ind) {
+          ind.style.background = '#ef4444';
+          ind.style.boxShadow = '0 0 8px #ef4444';
+        }
+        if (time) time.style.color = '#ef4444';
+      }
     }
   };
 
