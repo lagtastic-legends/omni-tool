@@ -37,6 +37,9 @@ import { VideoCompressor } from "@/components/tools/video-compressor";
 import { VideoMute } from "@/components/tools/video-mute";
 import { VolumeChanger } from "@/components/tools/volume-changer";
 import { useNavStore } from "@/lib/navigation/nav-store";
+import { useEffect } from "react";
+import { App as CapacitorApp } from "@capacitor/app";
+import { Capacitor } from "@capacitor/core";
 
 /** tool id → module implementation (grows every phase) */
 const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
@@ -94,6 +97,19 @@ function ToolView({ toolId }: { toolId: string }) {
 }
 
 export function AppShell() {
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const sub = CapacitorApp.addListener("backButton", () => {
+      if (useNavStore.getState().view !== "dashboard") {
+        useNavStore.getState().reset();
+      } else {
+        CapacitorApp.exitApp();
+      }
+    });
+    return () => {
+      sub.then((s) => s.remove()).catch(() => {});
+    };
+  }, []);
   const view = useNavStore((s) => s.view);
 
   return (
