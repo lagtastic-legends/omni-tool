@@ -161,6 +161,7 @@ export function ImageToPdf() {
         {output && (
           <OutputCard
             output={output}
+            onClear={reset}
             badge={`${pageCount} page${pageCount === 1 ? "" : "s"}`}
             badgeTone="neon"
             extra={

@@ -233,6 +233,7 @@ export function RingtoneMaker() {
         {output && (
           <OutputCard
             output={output}
+            onClear={reset}
             badge={`${format.toUpperCase()} · ${clipLength.toFixed(1)}s`}
             badgeTone="plasma"
           />

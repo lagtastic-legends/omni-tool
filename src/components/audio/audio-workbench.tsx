@@ -188,7 +188,7 @@ export function AudioWorkbench({
       {/* ------------------------------------------------ right: status + output */}
       <div className="space-y-4">
         <ProcessingStatus {...job} />
-        {output && <OutputCard output={output} badge={badge} badgeTone={badgeTone} />}
+        {output && <OutputCard output={output} badge={badge} badgeTone={badgeTone} onClear={onClear} />}
         {!output && job.phase === "idle" && (
           <div className="grid min-h-40 place-items-center rounded-xl border border-dashed border-border/60">
             <p className="font-mono text-[11px] text-muted-foreground/70">

@@ -302,6 +302,7 @@ export function MediaConverter() {
         {output && (
           <OutputCard
             output={output}
+            onClear={reset}
             badge={mode === "audio" ? "audio extracted" : "transcoded"}
             badgeTone={mode === "audio" ? "neon" : "pulse"}
           />

@@ -99,7 +99,9 @@ public class OmniScreenRecorder {
     }
 
     private void prepareVideoEncoder() throws IOException {
-        MediaFormat format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height);
+        int encWidth = (width / 2) * 2;
+        int encHeight = (height / 2) * 2;
+        MediaFormat format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, encWidth, encHeight);
         format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
         format.setInteger(MediaFormat.KEY_BIT_RATE, videoBitrate);
         format.setInteger(MediaFormat.KEY_FRAME_RATE, fps);
@@ -111,7 +113,7 @@ public class OmniScreenRecorder {
         videoEncoder.start();
 
         virtualDisplay = mediaProjection.createVirtualDisplay("OmniScreen",
-                width, height, dpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                encWidth, encHeight, dpi, DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
                 surface, null, null);
     }
 
@@ -120,6 +122,7 @@ public class OmniScreenRecorder {
         int channelConfig = AudioFormat.CHANNEL_IN_MONO;
         int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
         int minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat);
+        if (minBufferSize <= 0) minBufferSize = 4096;
 
         if (recordInternalAudio && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             AudioPlaybackCaptureConfiguration config = new AudioPlaybackCaptureConfiguration.Builder(mediaProjection)
@@ -147,15 +150,23 @@ public class OmniScreenRecorder {
         audioEncoder = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_AUDIO_AAC);
         audioEncoder.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         audioEncoder.start();
-        audioRecord.startRecording();
+        try {
+            audioRecord.startRecording();
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to start audioRecord: " + e.getMessage());
+        }
     }
 
     private synchronized boolean checkMuxerStart() {
         if (muxerStarted) return true;
         if (videoTrackIndex >= 0 && (audioEncoder == null || audioTrackIndex >= 0)) {
-            muxer.start();
-            muxerStarted = true;
-            return true;
+            try {
+                muxer.start();
+                muxerStarted = true;
+                return true;
+            } catch (Exception e) {
+                Log.e(TAG, "Failed to start muxer: " + e.getMessage());
+            }
         }
         return false;
     }
@@ -177,14 +188,18 @@ public class OmniScreenRecorder {
                 }
                 if (info.size != 0 && muxerStarted) {
                     ByteBuffer outBuf = videoEncoder.getOutputBuffer(outIndex);
-                    info.presentationTimeUs = (System.nanoTime() - startTime) / 1000;
-                    synchronized(this) {
-                        muxer.writeSampleData(videoTrackIndex, outBuf, info);
+                    if (outBuf != null) {
+                        info.presentationTimeUs = (System.nanoTime() - startTime) / 1000;
+                        synchronized(this) {
+                            if (muxerStarted) {
+                                muxer.writeSampleData(videoTrackIndex, outBuf, info);
+                            }
+                        }
                     }
                 }
                 videoEncoder.releaseOutputBuffer(outIndex, false);
                 if (!isRecording.get()) {
-                    try { videoEncoder.signalEndOfInputStream(); } catch (Exception e){}
+                    try { videoEncoder.signalEndOfInputStream(); } catch (Exception ignored){}
                     break;
                 }
             }
@@ -195,16 +210,36 @@ public class OmniScreenRecorder {
         byte[] buf = new byte[2048];
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         long startTime = System.nanoTime();
-        while (isRecording.get()) {
-            int read = audioRecord.read(buf, 0, buf.length);
-            if (read > 0) {
-                int inIndex = audioEncoder.dequeueInputBuffer(10000);
-                if (inIndex >= 0) {
-                    ByteBuffer inBuf = audioEncoder.getInputBuffer(inIndex);
+
+        // Feed initial silent PCM buffer so audio encoder emits format change immediately
+        try {
+            int initIndex = audioEncoder.dequeueInputBuffer(10000);
+            if (initIndex >= 0) {
+                ByteBuffer inBuf = audioEncoder.getInputBuffer(initIndex);
+                if (inBuf != null) {
                     inBuf.clear();
-                    inBuf.put(buf, 0, read);
-                    long pts = (System.nanoTime() - startTime) / 1000;
-                    audioEncoder.queueInputBuffer(inIndex, 0, read, pts, 0);
+                    inBuf.put(new byte[1024]);
+                    audioEncoder.queueInputBuffer(initIndex, 0, 1024, 0, 0);
+                }
+            }
+        } catch (Exception ignored) {}
+
+        while (isRecording.get()) {
+            if (audioRecord != null) {
+                int read = audioRecord.read(buf, 0, buf.length);
+                if (read > 0) {
+                    int inIndex = audioEncoder.dequeueInputBuffer(10000);
+                    if (inIndex >= 0) {
+                        ByteBuffer inBuf = audioEncoder.getInputBuffer(inIndex);
+                        if (inBuf != null) {
+                            inBuf.clear();
+                            inBuf.put(buf, 0, read);
+                            long pts = (System.nanoTime() - startTime) / 1000;
+                            audioEncoder.queueInputBuffer(inIndex, 0, read, pts, 0);
+                        }
+                    }
+                } else if (read <= 0) {
+                    try { Thread.sleep(10); } catch (InterruptedException ignored) {}
                 }
             }
             
@@ -220,9 +255,13 @@ public class OmniScreenRecorder {
                 }
                 if (info.size != 0 && muxerStarted) {
                     ByteBuffer outBuf = audioEncoder.getOutputBuffer(outIndex);
-                    info.presentationTimeUs = (System.nanoTime() - startTime) / 1000;
-                    synchronized(this) {
-                        muxer.writeSampleData(audioTrackIndex, outBuf, info);
+                    if (outBuf != null) {
+                        info.presentationTimeUs = (System.nanoTime() - startTime) / 1000;
+                        synchronized(this) {
+                            if (muxerStarted) {
+                                muxer.writeSampleData(audioTrackIndex, outBuf, info);
+                            }
+                        }
                     }
                 }
                 audioEncoder.releaseOutputBuffer(outIndex, false);

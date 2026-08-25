@@ -81,8 +81,9 @@ export function StudioRecorder() {
   const [elapsedMs, setElapsedMs] = useState(0);
   const [output, setOutput] = useState<JobOutput | null>(null);
   const [levels, setLevels] = useState<number[]>(() => new Array(28).fill(0.06));
-  const [screenQuality, setScreenQuality] = useState<"1080p" | "4k">("1080p");
+  const [screenQuality, setScreenQuality] = useState<"720p" | "1080p" | "4k">("1080p");
   const [screenFps, setScreenFps] = useState<30 | 60>(30);
+  const [cameraFacing, setCameraFacing] = useState<"user" | "environment">("user");
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -207,22 +208,49 @@ export function StudioRecorder() {
         getDisplayMedia?: (c: MediaStreamConstraints) => Promise<MediaStream>;
       };
       if (!md.getDisplayMedia) throw new Error("Screen capture unsupported in this browser.");
+      const is4k = screenQuality === "4k";
+      const is720 = screenQuality === "720p";
+      const idealW = is4k ? 3840 : is720 ? 1280 : 1920;
+      const idealH = is4k ? 2160 : is720 ? 720 : 1080;
       return md.getDisplayMedia({
-        video: { frameRate: 30 },
-        audio: false,
+        video: {
+          width: { ideal: idealW },
+          height: { ideal: idealH },
+          frameRate: { ideal: screenFps, max: screenFps },
+        },
+        audio: {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+        },
       } as MediaStreamConstraints);
     }
     if (m === "mic") {
       return navigator.mediaDevices.getUserMedia({
-        audio: { echoCancellation: true, noiseSuppression: true },
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: { ideal: 48000 },
+        },
         video: false,
       });
     }
+    const isNative = Capacitor.isNativePlatform();
     return navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" },
-      audio: true,
+      video: {
+        width: { ideal: isNative ? 1280 : 1920 },
+        height: { ideal: isNative ? 720 : 1080 },
+        facingMode: cameraFacing,
+        frameRate: { ideal: 30 },
+      },
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
     });
-  }, []);
+  }, [screenQuality, screenFps, cameraFacing]);
 
   const arm = async (m: RecorderMode) => {
     setMediaState("starting");
@@ -286,10 +314,18 @@ export function StudioRecorder() {
     const stream = streamRef.current;
     if (!stream) return;
     const mime = pickMime(MODE_META[mode].mime);
-    const recorder = new MediaRecorder(
-      stream,
-      mime ? { mimeType: mime } : undefined,
-    );
+    const options: MediaRecorderOptions = {};
+    if (mime) options.mimeType = mime;
+    if (mode === "screen") {
+      options.videoBitsPerSecond = screenQuality === "4k" ? 20_000_000 : screenQuality === "720p" ? 4_000_000 : 8_000_000;
+      options.audioBitsPerSecond = 192_000;
+    } else if (mode === "webcam") {
+      options.videoBitsPerSecond = 5_000_000;
+      options.audioBitsPerSecond = 160_000;
+    } else {
+      options.audioBitsPerSecond = 192_000;
+    }
+    const recorder = new MediaRecorder(stream, options);
     chunksRef.current = [];
     recorder.ondataavailable = (e) => {
       if (e.data.size > 0) chunksRef.current.push(e.data);
@@ -475,9 +511,10 @@ export function StudioRecorder() {
                       <div className="flex items-center gap-4">
                         <select 
                           value={screenQuality}
-                          onChange={(e) => setScreenQuality(e.target.value as "1080p" | "4k")}
+                          onChange={(e) => setScreenQuality(e.target.value as "720p" | "1080p" | "4k")}
                           className="bg-surface-container-low border border-outline-variant rounded-md text-[11px] font-mono p-1 text-on-surface focus:outline-none"
                         >
+                          <option value="720p">720p (HD)</option>
                           <option value="1080p">1080p (FHD)</option>
                           <option value="4k">4K (UHD)</option>
                         </select>
@@ -508,9 +545,41 @@ export function StudioRecorder() {
                     ))}
                   </div>
                 ) : (
-                  <p className="max-w-60 font-mono text-[10px] leading-relaxed text-muted-foreground">
-                    {mode === "mic" ? "audio-only capture — arm the mic to see levels" : `${meta.hint} · arm to preview`}
-                  </p>
+                  <div className="space-y-3">
+                    <p className="max-w-60 font-mono text-[10px] leading-relaxed text-muted-foreground">
+                      {mode === "mic" ? "audio-only capture — arm the mic to see levels" : `${meta.hint} · arm to preview`}
+                    </p>
+                    {mode === "screen" && !Capacitor.isNativePlatform() && (
+                      <div className="flex items-center justify-center gap-3">
+                        <select 
+                          value={screenQuality}
+                          onChange={(e) => setScreenQuality(e.target.value as "720p" | "1080p" | "4k")}
+                          className="bg-surface-container-low border border-outline-variant rounded-md text-[11px] font-mono p-1 text-on-surface focus:outline-none"
+                        >
+                          <option value="720p">720p (HD)</option>
+                          <option value="1080p">1080p (FHD)</option>
+                          <option value="4k">4K (UHD)</option>
+                        </select>
+                        <select 
+                          value={screenFps}
+                          onChange={(e) => setScreenFps(Number(e.target.value) as 30 | 60)}
+                          className="bg-surface-container-low border border-outline-variant rounded-md text-[11px] font-mono p-1 text-on-surface focus:outline-none"
+                        >
+                          <option value={30}>30 FPS</option>
+                          <option value={60}>60 FPS</option>
+                        </select>
+                      </div>
+                    )}
+                    {mode === "webcam" && Capacitor.isNativePlatform() && (
+                      <button
+                        type="button"
+                        onClick={() => setCameraFacing((f) => (f === "user" ? "environment" : "user"))}
+                        className="rounded-lg border border-border/60 bg-card/60 px-3 py-1 font-mono text-[10px] text-muted-foreground hover:text-foreground"
+                      >
+                        Lens: {cameraFacing === "user" ? "Front (Selfie)" : "Rear (Back)"}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             )}
@@ -534,7 +603,7 @@ export function StudioRecorder() {
           </div>
 
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
-            {meta.hint} · encodes to WebM locally — nothing is transmitted anywhere.
+            {meta.hint} · {Capacitor.isNativePlatform() ? "native hardware acceleration" : "encodes locally in browser"}.
           </p>
         </div>
 
@@ -617,6 +686,10 @@ export function StudioRecorder() {
                 output={output}
                 badge={mode === "mic" ? "audio captured" : mode === "webcam" ? "camera take" : "screen capture"}
                 badgeTone={mode === "screen" ? "plasma" : "neon"}
+                onClear={() => {
+                  if (output) URL.revokeObjectURL(output.url);
+                  setOutput(null);
+                }}
               />
             </motion.div>
           ) : (

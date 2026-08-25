@@ -159,6 +159,7 @@ export function TextToPdf() {
         {output && (
           <OutputCard
             output={output}
+            onClear={reset}
             badge={`${pageCount} page${pageCount === 1 ? "" : "s"} · ${words} words`}
             badgeTone="neon"
             extra={

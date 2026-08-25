@@ -196,6 +196,7 @@ export function LockPdf() {
         {output && (
           <OutputCard
             output={output}
+            onClear={reset}
             badge={verified ? "encrypted ✓" : "unverified"}
             badgeTone={verified ? "pulse" : "plasma"}
             extra={

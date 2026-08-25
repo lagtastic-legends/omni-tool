@@ -217,6 +217,7 @@ export function VideoCompressor() {
         {output && (
           <OutputCard
             output={output}
+            onClear={reset}
             badge={
               savings && savings.delta > 0
                 ? `−${savings.pct}% smaller`

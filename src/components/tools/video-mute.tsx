@@ -149,6 +149,7 @@ export function VideoMute() {
         {output && (
           <OutputCard
             output={output}
+            onClear={reset}
             badge={usedFallback ? "re-encoded" : "instant copy"}
             badgeTone={usedFallback ? "plasma" : "neon"}
           />

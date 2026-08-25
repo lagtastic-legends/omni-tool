@@ -6,7 +6,7 @@
  */
 
 import { motion } from "framer-motion";
-import { Check, Database, Download, FileAudio, FileImage, FileText, FileVideo, Sparkles } from "lucide-react";
+import { Check, Database, Download, FileAudio, FileImage, FileText, FileVideo, Sparkles, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import { formatBytes } from "@/lib/format";
 import { useVault } from "@/lib/vault/vault-context";
@@ -19,6 +19,8 @@ interface OutputCardProps {
   /** Compact badge, e.g. "−72% smaller". */
   badge?: string;
   badgeTone?: "pulse" | "neon" | "plasma";
+  /** Callback to dismiss/clear the output preview. */
+  onClear?: () => void;
 }
 
 const TONE: Record<NonNullable<OutputCardProps["badgeTone"]>, string> = {
@@ -27,7 +29,7 @@ const TONE: Record<NonNullable<OutputCardProps["badgeTone"]>, string> = {
   plasma: "border-plasma/40 bg-plasma/10 text-plasma",
 };
 
-export function OutputCard({ output, extra, badge, badgeTone = "pulse" }: OutputCardProps) {
+export function OutputCard({ output, extra, badge, badgeTone = "pulse", onClear }: OutputCardProps) {
   const { save } = useVault();
   const [vaultState, setVaultState] = useState<"idle" | "saved">("idle");
 
@@ -81,6 +83,16 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse" }: Output
             {badge}
           </span>
         )}
+        {onClear && (
+          <button
+            onClick={onClear}
+            title="Remove preview"
+            aria-label="Remove preview"
+            className="grid size-8 shrink-0 place-items-center rounded-lg border border-border/60 bg-card/40 text-muted-foreground transition-colors hover:border-red-400/50 hover:bg-red-500/10 hover:text-red-300"
+          >
+            <X className="size-4" />
+          </button>
+        )}
       </div>
 
       {isVideo && (
@@ -91,7 +103,11 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse" }: Output
           className="max-h-72 w-full rounded-lg border border-border/50 bg-black"
         />
       )}
-      {isAudio && <audio src={output.url} controls className="w-full" />}
+      {isAudio && (
+        <div className="rounded-lg border border-border/50 bg-black/40 p-3">
+          <audio src={output.url} controls preload="metadata" className="w-full" />
+        </div>
+      )}
       {isImage && (
          
         <img

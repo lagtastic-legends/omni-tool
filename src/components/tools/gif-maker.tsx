@@ -283,7 +283,7 @@ export function GifMaker() {
           error={error}
           passNames={["palette", "render"]}
         />
-        {output && <OutputCard output={output} badge="gif forged" badgeTone="neon" />}
+        {output && <OutputCard output={output} badge="gif forged" badgeTone="neon" onClear={reset} />}
         {!output && phase === "idle" && (
           <div className="grid min-h-40 place-items-center rounded-xl border border-dashed border-border/60">
             <p className="font-mono text-[11px] text-muted-foreground/70">

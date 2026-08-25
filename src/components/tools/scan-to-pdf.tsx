@@ -283,6 +283,7 @@ export function ScanToPdf() {
         {output && (
           <OutputCard
             output={output}
+            onClear={reset}
             badge={`${pageCount} scanned page${pageCount === 1 ? "" : "s"}`}
             badgeTone="neon"
             extra={

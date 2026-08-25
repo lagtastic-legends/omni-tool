@@ -528,6 +528,10 @@ function QrGenerator() {
         {output && (
           <OutputCard
             output={output}
+            onClear={() => {
+              if (output) URL.revokeObjectURL(output.url);
+              setOutput(null);
+            }}
             badge={`${size}px · ECC ${ecc}`}
             badgeTone="neon"
             extra={
