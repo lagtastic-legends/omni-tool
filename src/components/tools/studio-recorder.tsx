@@ -397,8 +397,8 @@ export function StudioRecorder() {
     if (!Capacitor.isNativePlatform() && "documentPictureInPicture" in window) {
       try {
         const pip = await (window as any).documentPictureInPicture.requestWindow({
-          width: 320,
-          height: 100,
+          width: 400,
+          height: 120,
         });
         pipWindowRef.current = pip;
 
@@ -414,18 +414,66 @@ export function StudioRecorder() {
     darkMode: "class",
     theme: {
       extend: {
-        "colors": {
-          "primary": "#c2652a",
-          "on-primary": "#ffffff",
-          "error": "#c0392b",
-          "on-surface": "#3a302a",
-          "on-surface-variant": "#605850",
+        colors: {
+          "on-secondary": "#ffffff",
+          "on-primary-fixed": "#401a08",
+          "primary-container": "#e08850",
+          "on-tertiary": "#ffffff",
           "outline-variant": "#d8d0c8",
-          "background": "#faf5ee",
-          "surface-container-high": "#ece6dc"
+          "surface-dim": "#dcd6cc",
+          "inverse-surface": "#3a302a",
+          "surface-bright": "#faf5ee",
+          "inverse-on-surface": "#faf5ee",
+          "primary-fixed": "#fbe8d8",
+          "on-surface-variant": "#605850",
+          "surface-container-high": "#ece6dc",
+          "on-background": "#3a302a",
+          "surface-container": "#f2ece4",
+          "secondary-fixed": "#eae2da",
+          "on-secondary-container": "#605850",
+          "on-error": "#ffffff",
+          "error-container": "#fce4e0",
+          "on-tertiary-fixed-variant": "#6e3030",
+          "on-primary-container": "#fbe8d8",
+          outline: "#9a9088",
+          "surface-tint": "#c2652a",
+          "surface-container-highest": "#e6e0d6",
+          "on-tertiary-fixed": "#2e1515",
+          "tertiary-fixed": "#fce0e0",
+          "on-tertiary-container": "#3a2020",
+          "secondary-fixed-dim": "#cec6be",
+          "primary-fixed-dim": "#f0a878",
+          error: "#c0392b",
+          "inverse-primary": "#f0a878",
+          secondary: "#78706a",
+          tertiary: "#8c3c3c",
+          "on-surface": "#3a302a",
+          primary: "#c2652a",
+          surface: "#faf5ee",
+          "on-primary": "#ffffff",
+          "on-secondary-fixed": "#2a2420",
+          "tertiary-container": "#d47070",
+          "surface-variant": "#ece6dc",
+          "on-error-container": "#7a1a10",
+          "on-secondary-fixed-variant": "#504840",
+          background: "#faf5ee",
+          "surface-container-lowest": "#ffffff",
+          "surface-container-low": "#f6f0e8",
+          "secondary-container": "#eae2da",
+          "tertiary-fixed-dim": "#e8a0a0",
+          "on-primary-fixed-variant": "#8a4518"
         },
-        "fontFamily": {
-          "body": ["Manrope", "sans-serif"]
+        borderRadius: {
+          DEFAULT: "0.25rem",
+          lg: "0.5rem",
+          xl: "0.75rem",
+          full: "9999px"
+        },
+        fontFamily: {
+          headline: ["EB Garamond", "serif"],
+          display: ["EB Garamond", "serif"],
+          body: ["Manrope", "sans-serif"],
+          label: ["Manrope", "sans-serif"]
         }
       }
     }
@@ -435,26 +483,23 @@ export function StudioRecorder() {
   .pulse-dot { animation: pulse 2s infinite; }
   @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
   .glass-panel { background: rgba(250, 245, 238, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(216, 208, 200, 0.6); }
-</style>
-        `;
+</style>`;
         pip.document.body.className = "bg-background min-h-screen flex items-center justify-center p-4";
-        pip.document.body.innerHTML = `
-<!-- Screen Recording Control Overlay -->
+        pip.document.body.innerHTML = `<!-- Screen Recording Control Overlay -->
 <div class="glass-panel shadow-[0_2px_16px_rgba(58,48,42,0.08)] rounded-full px-6 py-3 flex items-center gap-6 max-w-sm mx-auto transition-all duration-300 ease-in-out hover:shadow-[0_4px_24px_rgba(58,48,42,0.12)]">
 <div class="flex items-center gap-3 border-r border-outline-variant/60 pr-6">
-<div class="w-3 h-3 bg-error rounded-full pulse-dot shadow-[0_0_8px_rgba(192,57,43,0.4)]" id="pip-rec-indicator"></div>
-<span class="font-body text-on-surface text-lg font-medium tracking-wide tabular-nums" id="pip-time">00:00:00</span>
+<div id="pip-rec-indicator" class="w-3 h-3 bg-error rounded-full pulse-dot shadow-[0_0_8px_rgba(192,57,43,0.4)]"></div>
+<span id="pip-time" class="font-body text-on-surface text-lg font-medium tracking-wide tabular-nums">00:00:00</span>
 </div>
 <div class="flex items-center gap-4">
 <button id="pip-pause" aria-label="Pause Recording" class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
-<span class="material-symbols-outlined text-[22px]" id="pip-pause-icon">pause</span>
+<span id="pip-pause-icon" class="material-symbols-outlined text-[22px]">pause</span>
 </button>
 <button id="pip-stop" aria-label="Stop Recording" class="w-12 h-12 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-sm hover:opacity-90 hover:shadow-md transition-all active:scale-95 focus:outline-none focus:ring-4 focus:ring-primary/30">
 <span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">stop</span>
 </button>
 </div>
-</div>
-        `;
+</div>`;
 
         pip.document.getElementById("pip-stop").onclick = () => {
           finalizeRecording();
