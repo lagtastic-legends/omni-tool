@@ -86,6 +86,7 @@ export function AuthGateway() {
                     alt=""
                     className="size-12 rounded-full border border-pulse/40"
                       onError={() => setImgError(true)}
+                      referrerPolicy="no-referrer"
                     
                   />
                 ) : (

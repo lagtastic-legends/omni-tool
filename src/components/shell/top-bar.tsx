@@ -93,6 +93,7 @@ export function TopBar() {
                     alt=""
                     className="size-4 rounded-full"
                       onError={() => setImgError(true)}
+                      referrerPolicy="no-referrer"
                     
                   />
                 ) : (
