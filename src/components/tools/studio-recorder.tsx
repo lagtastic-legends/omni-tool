@@ -52,13 +52,13 @@ const MODE_META: Record<
   webcam: {
     label: "Web Camera",
     icon: Camera,
-    mime: ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", `"video/webm`", `"video/mp4`"],
+    mime: ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm", "video/mp4"],
     hint: "camera + microphone picture-in-picture vlog takes",
   },
   screen: {
     label: "Screen",
     icon: Monitor,
-    mime: ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", `"video/webm`", `"video/mp4`"],
+    mime: ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm", "video/mp4"],
     hint: "full screen, window or tab — you pick when it starts",
   },
 };
@@ -774,6 +774,7 @@ export function StudioRecorder() {
     </div>
   );
 }
+
 
 
 
