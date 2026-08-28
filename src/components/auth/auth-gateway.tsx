@@ -87,7 +87,7 @@ export function AuthGateway() {
                     alt=""
                     className="size-12 rounded-full border border-pulse/40"
                     onError={() => setImgError(true)}
-                    referrerPolicy={isNative ? undefined : "no-referrer"}
+                    referrerPolicy="no-referrer"
                   />
                 ) : (
                   <div className="grid size-12 place-items-center rounded-full border border-pulse/40 bg-pulse/10 font-display text-lg font-bold text-pulse">
