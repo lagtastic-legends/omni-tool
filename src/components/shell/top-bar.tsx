@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { LogOut, ShieldAlert } from "lucide-react";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
@@ -35,6 +36,7 @@ const STATE_META: Record<
 export function TopBar() {
   const { state, capabilities } = useFFmpegEngine();
   const { mode, user, signOut } = useAuth();
+  const [imgError, setImgError] = useState(false);
   const meta = STATE_META[state];;
 
   return (
@@ -84,12 +86,13 @@ export function TopBar() {
                 className="flex items-center gap-2 rounded-full border border-pulse/30 bg-pulse/10 px-2.5 py-1.5"
                 title={user.email ?? "authenticated"}
               >
-                {user.photoURL ? (
+                {user.photoURL && !imgError ? (
                    
                   <img
                     src={user.photoURL}
                     alt=""
                     className="size-4 rounded-full"
+                      onError={() => setImgError(true)}
                     referrerPolicy="no-referrer"
                   />
                 ) : (

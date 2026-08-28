@@ -9,6 +9,7 @@
  * gate up in minutes.
  */
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Fingerprint,
@@ -79,11 +80,12 @@ export function AuthGateway() {
               className="space-y-4"
             >
               <div className="flex items-center gap-4 rounded-xl border border-pulse/30 bg-pulse/5 p-4">
-                {user.photoURL ? (
+                {user.photoURL && !imgError ? (
                   <img
                     src={user.photoURL}
                     alt=""
                     className="size-12 rounded-full border border-pulse/40"
+                      onError={() => setImgError(true)}
                     referrerPolicy="no-referrer"
                   />
                 ) : (
