@@ -413,7 +413,6 @@ export function StudioRecorder() {
     }
 
     if (recorderRef.current && recorderRef.current.state !== "inactive") {
-      recorderRef.current.onstop = null;
       recorderRef.current.stop();
     }
     setRecording(false);
@@ -774,6 +773,7 @@ export function StudioRecorder() {
     </div>
   );
 }
+
 
 
 

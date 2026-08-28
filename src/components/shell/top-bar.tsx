@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion } from "framer-motion";
 import { LogOut, ShieldAlert } from "lucide-react";
@@ -71,7 +71,7 @@ export function TopBar() {
           {mode === "unconfigured" ? (
             <div
               className="hidden items-center gap-1.5 rounded-full border border-amber-400/40 bg-amber-500/10 px-2.5 py-1.5 md:flex"
-              title="Firebase credentials not detected â€” the security gate is disengaged"
+              title="Firebase credentials not detected — the security gate is disengaged"
             >
               <ShieldAlert className="size-3 text-amber-300" />
               <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-amber-300">
@@ -81,7 +81,7 @@ export function TopBar() {
           ) : user ? (
             <div className="flex items-center gap-2">
               <div
-                className="hidden items-center gap-2 rounded-full border border-pulse/30 bg-pulse/10 px-2.5 py-1.5 md:flex"
+                className="flex items-center gap-2 rounded-full border border-pulse/30 bg-pulse/10 px-2.5 py-1.5"
                 title={user.email ?? "authenticated"}
               >
                 {user.photoURL ? (
@@ -115,8 +115,8 @@ export function TopBar() {
             className="hidden items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3 py-1.5 md:flex"
             title={
               capabilities.crossOriginIsolated
-                ? "Cross-origin isolation is active â€” SharedArrayBuffer available"
-                : "Not isolated â€” single-threaded WASM core in use (still fully functional)"
+                ? "Cross-origin isolation is active — SharedArrayBuffer available"
+                : "Not isolated — single-threaded WASM core in use (still fully functional)"
             }
           >
             <span
@@ -163,3 +163,4 @@ export function TopBar() {
       </motion.header>
   );
 }
+
