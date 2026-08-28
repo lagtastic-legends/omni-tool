@@ -93,7 +93,7 @@ export function TopBar() {
                     alt=""
                     className="size-4 rounded-full"
                       onError={() => setImgError(true)}
-                    referrerPolicy="no-referrer"
+                    
                   />
                 ) : (
                   <span className="grid size-4 place-items-center rounded-full bg-pulse/30 font-mono text-[9px] font-bold text-pulse">
