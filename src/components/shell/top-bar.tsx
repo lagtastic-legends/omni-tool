@@ -35,7 +35,7 @@ const STATE_META: Record<
 
 export function TopBar() {
   const { state, capabilities } = useFFmpegEngine();
-  const { mode, user, signOut } = useAuth();
+  const { mode, user, signOut, isNative } = useAuth();
   const [imgError, setImgError] = useState(false);
   const meta = STATE_META[state];;
 
@@ -93,7 +93,7 @@ export function TopBar() {
                     alt=""
                     className="size-4 rounded-full"
                       onError={() => setImgError(true)}
-                      referrerPolicy="no-referrer"
+                      referrerPolicy={isNative ? undefined : "no-referrer"}
                     
                   />
                 ) : (

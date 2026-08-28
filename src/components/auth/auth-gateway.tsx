@@ -47,6 +47,7 @@ function GoogleMark({ className }: { className?: string }) {
 export function AuthGateway() {
   const { mode, user, busy, error, isNative, signInWithGoogle, signOut } =
     useAuth();
+  const [imgError, setImgError] = useState(false);
 
   const configured = mode === "configured";
 
@@ -85,9 +86,8 @@ export function AuthGateway() {
                     src={user.photoURL}
                     alt=""
                     className="size-12 rounded-full border border-pulse/40"
-                      onError={() => setImgError(true)}
-                      referrerPolicy="no-referrer"
-                    
+                    onError={() => setImgError(true)}
+                    referrerPolicy={isNative ? undefined : "no-referrer"}
                   />
                 ) : (
                   <div className="grid size-12 place-items-center rounded-full border border-pulse/40 bg-pulse/10 font-display text-lg font-bold text-pulse">
