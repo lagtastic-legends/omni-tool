@@ -106,7 +106,7 @@ export function RingtoneMaker() {
   const output = outputs[0] ?? null;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
       {/* -------------------------------------------------- input + settings */}
       <div className="space-y-5">
         <DropZone
@@ -129,7 +129,7 @@ export function RingtoneMaker() {
 
         <ParamPanel title="precision cut">
           <div className="space-y-2">
-            <div className="flex items-center justify-between font-mono text-[10px]">
+            <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] md:text-xs lg:text-[13px]">
               <span className="uppercase tracking-[0.14em] text-muted-foreground">start</span>
               <span className="font-semibold text-neon">{start.toFixed(1)}s</span>
             </div>
@@ -144,7 +144,7 @@ export function RingtoneMaker() {
             />
           </div>
           <div className="space-y-2">
-            <div className="flex items-center justify-between font-mono text-[10px]">
+            <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] md:text-xs lg:text-[13px]">
               <span className="uppercase tracking-[0.14em] text-muted-foreground">end</span>
               <span className="font-semibold text-neon">{end.toFixed(1)}s</span>
             </div>
@@ -158,7 +158,7 @@ export function RingtoneMaker() {
               aria-label="Ringtone end time"
             />
           </div>
-          <div className="flex items-center justify-between border-t border-border/50 pt-2.5 font-mono text-[10px]">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-2.5 font-mono text-[10px] md:text-xs lg:text-[13px]">
             <span className="text-muted-foreground">clip {clipLength.toFixed(1)}s</span>
             {duration > 0 && !valid && <span className="text-amber-300">need ≥ 0.3s</span>}
             {clipLength > 40 && <span className="text-amber-300">over iOS 40s limit</span>}
@@ -240,7 +240,7 @@ export function RingtoneMaker() {
         )}
         {!output && phase === "idle" && (
           <div className="grid min-h-40 place-items-center rounded-xl border border-dashed border-border/60">
-            <p className="font-mono text-[11px] text-muted-foreground/70">
+            <p className="font-mono text-[11px] md:text-xs lg:text-[13px] text-muted-foreground/70">
               output lands here
             </p>
           </div>

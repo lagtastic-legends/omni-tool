@@ -17,6 +17,29 @@ import type { JobOutput } from "@/hooks/use-media-job";
 /* Shared types + constants                                            */
 /* ------------------------------------------------------------------ */
 
+/** Helper to robustly read Blobs/Files in all browser environments (especially Capacitor/Mobile). */
+async function readAsArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
+  if (typeof blob.arrayBuffer === "function") {
+    try {
+      return await blob.arrayBuffer();
+    } catch (err) {
+      // Fallback for weird WebKit issues
+    }
+  }
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (reader.result instanceof ArrayBuffer) {
+        resolve(reader.result);
+      } else {
+        reject(new Error("Failed to read as ArrayBuffer"));
+      }
+    };
+    reader.onerror = () => reject(reader.error || new Error("FileReader error"));
+    reader.readAsArrayBuffer(blob);
+  });
+}
+
 export type PageSize = "a4" | "letter" | "fit";
 
 export const PAGE_DIMS: Record<Exclude<PageSize, "fit">, [number, number]> = {
@@ -61,7 +84,7 @@ export async function buildImagePdf(
   const margin = MARGIN_PTS[opts.margin];
 
   for (const { file, bitmap } of images) {
-    const bytes = new Uint8Array(await file.arrayBuffer());
+    const bytes = new Uint8Array(await readAsArrayBuffer(file));
     const isJpg =
       file.type === "image/jpeg" ||
       /\.jpe?g$/i.test(file.name);
@@ -281,7 +304,7 @@ export async function lockPdf(
   file: File,
   opts: LockOptions,
 ): Promise<{ blob: Blob; pageCount: number }> {
-  const bytes = new Uint8Array(await file.arrayBuffer());
+  const bytes = new Uint8Array(await readAsArrayBuffer(file));
   const doc = await PDFDocument.load(bytes, { ignoreEncryption: true });
   await doc.encrypt({
     userPassword: opts.userPassword,
@@ -305,7 +328,7 @@ export async function lockPdf(
 
 /** Quick client-side check: does this byte stream carry an /Encrypt dict? */
 export async function pdfHasEncrypt(blob: Blob): Promise<boolean> {
-  const buf = new Uint8Array(await blob.arrayBuffer());
+  const buf = new Uint8Array(await readAsArrayBuffer(blob));
   let s = "";
   const CHUNK = 0x8000;
   for (let i = 0; i < buf.length; i += CHUNK) {

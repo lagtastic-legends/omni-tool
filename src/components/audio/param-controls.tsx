@@ -45,11 +45,11 @@ export function ParamSlider({
 }: ParamSliderProps) {
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="font-mono text-[10px] md:text-xs lg:text-[13px] uppercase tracking-[0.18em] text-muted-foreground">
           {label}
         </p>
-        <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-primary">
+        <span className="rounded-full border border-primary/40 bg-primary/10 px-2 py-0.5 font-mono text-[10px] md:text-xs lg:text-[13px] font-semibold text-primary">
           {display ? display(value) : String(value)}
         </span>
       </div>
@@ -63,7 +63,7 @@ export function ParamSlider({
         aria-label={label}
       />
       {(hintLeft || hintRight) && (
-        <div className="flex justify-between font-mono text-[9px] text-muted-foreground/70">
+        <div className="flex justify-between font-mono text-[9px] md:text-[10px] text-muted-foreground/70">
           <span>{hintLeft}</span>
           <span>{hintRight}</span>
         </div>
@@ -85,7 +85,7 @@ interface ParamSelectProps {
 export function ParamSelect({ label, value, options, onChange, disabled }: ParamSelectProps) {
   return (
     <div className="space-y-1.5">
-      <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+      <p className="font-mono text-[10px] md:text-xs lg:text-[13px] uppercase tracking-[0.18em] text-muted-foreground">
         {label}
       </p>
       <Select value={value} onValueChange={onChange} disabled={disabled}>
@@ -116,12 +116,12 @@ interface ParamToggleProps {
 
 export function ParamToggle({ label, checked, onChange, disabled, hint }: ParamToggleProps) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/40 px-4 py-3">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/40 px-4 py-3">
       <div>
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+        <p className="font-mono text-[10px] md:text-xs lg:text-[13px] uppercase tracking-[0.18em] text-muted-foreground">
           {label}
         </p>
-        {hint && <p className="mt-1 font-mono text-[9px] text-muted-foreground/70">{hint}</p>}
+        {hint && <p className="mt-1 font-mono text-[9px] md:text-[10px] text-muted-foreground/70">{hint}</p>}
       </div>
       <Switch checked={checked} onCheckedChange={onChange} disabled={disabled} aria-label={label} />
     </div>
@@ -135,7 +135,7 @@ export function ParamPanel({ title, children }: { title?: string; children: Reac
   return (
     <div className="space-y-4 rounded-xl border border-border/60 bg-card/40 p-4">
       {title && (
-        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-neon/90">
+        <p className="font-mono text-[10px] md:text-xs lg:text-[13px] font-semibold uppercase tracking-[0.22em] text-neon/90">
           {title}
         </p>
       )}

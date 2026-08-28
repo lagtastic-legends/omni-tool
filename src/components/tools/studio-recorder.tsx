@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
+import { LocalNotifications } from '@capacitor/local-notifications';
 import { OmniRecorder } from "@/lib/native-recorder";
 import { OutputCard } from "@/components/media/output-card";
 import fixWebmDuration from "fix-webm-duration";
@@ -643,7 +644,7 @@ export function StudioRecorder() {
   const Icon = meta.icon;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
       {/* ------------------------------------------------------- input column */}
       <div className="space-y-5">
         {/* mode tabs */}
@@ -682,7 +683,7 @@ export function StudioRecorder() {
 
         {/* stage */}
         <div className="space-y-3 rounded-xl border border-border/60 bg-card/40 p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-neon/90">
               <Icon className="size-3.5" />
               {meta.label} stage
@@ -947,5 +948,6 @@ export function StudioRecorder() {
     </div>
   );
 }
+
 
 

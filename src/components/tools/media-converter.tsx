@@ -163,7 +163,7 @@ export function MediaConverter() {
   const output = outputs[0] ?? null;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
       {/* -------------------------------------------------- input + settings */}
       <div className="space-y-5">
         <DropZone
@@ -197,7 +197,7 @@ export function MediaConverter() {
         </Tabs>
 
         {/* format selectors */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               Target format

@@ -45,6 +45,14 @@ export function ScanToPdf() {
 
   const busy = status === "working";
 
+  const reset = () => {
+    if (output) URL.revokeObjectURL(output.url);
+    setOutput(null);
+    setStatus("idle");
+    setPageCount(0);
+    setError(null);
+  };
+
   /* Camera lifecycle ------------------------------------------------------ */
   useEffect(() => {
     return () => {
@@ -160,12 +168,12 @@ export function ScanToPdf() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
       {/* ------------------------------------------------------- input column */}
       <div className="space-y-5">
         {/* camera capture surface */}
         <div className="space-y-3 rounded-xl border border-border/60 bg-card/40 p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-neon/90">
               <Camera className="size-3.5" />
               capture station

@@ -80,7 +80,7 @@ export function EqualizerTool() {
                 key={p.name}
                 onClick={() => applyPreset(i)}
                 disabled={busy}
-                className="shrink-0 rounded-full border border-border/70 bg-background/50 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground disabled:opacity-40"
+                className="shrink-0 rounded-full border border-border/70 bg-background/50 px-2.5 py-1 font-mono text-[9px] md:text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground disabled:opacity-40"
               >
                 {p.name}
               </button>

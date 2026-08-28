@@ -26,7 +26,7 @@ export function PageOptions({
   fixedPageSize,
 }: PageOptionsProps) {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       <ParamSelect
         label="Page size"
         value={pageSize}

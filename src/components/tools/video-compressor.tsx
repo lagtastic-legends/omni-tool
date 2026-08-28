@@ -108,7 +108,7 @@ export function VideoCompressor() {
   }, [file, output]);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
       {/* -------------------------------------------------- input + settings */}
       <div className="space-y-5">
         <DropZone
@@ -131,7 +131,7 @@ export function VideoCompressor() {
 
         {/* CRF slider */}
         <div className="space-y-2.5 rounded-xl border border-border/60 bg-card/40 p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               Compression strength
             </p>
@@ -154,7 +154,7 @@ export function VideoCompressor() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               Resolution cap

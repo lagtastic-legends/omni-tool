@@ -63,7 +63,19 @@ public class OmniScreenRecorder {
         this.listener = l;
     }
 
+        private MediaProjection.Callback projectionCallback = new MediaProjection.Callback() {
+        @Override
+        public void onStop() {
+            super.onStop();
+            // Stopped via System UI
+            stop();
+        }
+    };
+
     public void start() {
+        if (mediaProjection != null) {
+            mediaProjection.registerCallback(projectionCallback, null);
+        }
         try {
             muxer = new MediaMuxer(outputPath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4);
             prepareVideoEncoder();
@@ -283,3 +295,4 @@ public class OmniScreenRecorder {
         mediaProjection.stop();
     }
 }
+

@@ -88,7 +88,7 @@ export function VideoMute() {
   const output = outputs[0] ?? null;
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
       {/* -------------------------------------------------- input + settings */}
       <div className="space-y-5">
         <DropZone

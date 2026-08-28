@@ -50,7 +50,7 @@ export function AuthGateway() {
   const configured = mode === "configured";
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
       {/* ------------------------------------------------------ session side */}
       <div className="space-y-5">
         <div className="panel-hud scanlines space-y-5 rounded-2xl p-6">

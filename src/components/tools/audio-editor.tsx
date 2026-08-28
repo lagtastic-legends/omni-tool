@@ -116,11 +116,11 @@ export function AudioEditor() {
     <div className="space-y-6">
       {/* projection strip ------------------------------------------------ */}
       <div className="panel-hud flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl px-4 py-3">
-        <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.2em] text-neon">
+        <p className="flex items-center gap-2 font-mono text-[10px] md:text-xs lg:text-[13px] uppercase tracking-[0.2em] text-neon">
           <Scissors className="size-3.5" />
           timeline projection
         </p>
-        <div className="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] text-muted-foreground">
+        <div className="flex flex-wrap gap-x-5 gap-y-1 font-mono text-[11px] md:text-xs lg:text-[13px] text-muted-foreground">
           <span>
             out length{" "}
             <span className="font-semibold text-foreground">
@@ -144,7 +144,7 @@ export function AudioEditor() {
           ) : null}
         </div>
         <span
-          className={`ml-auto rounded-full border px-2.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] ${
+          className={`mt-2 w-full text-center sm:w-auto sm:mt-0 sm:ml-auto rounded-full border px-2.5 py-0.5 font-mono text-[9px] md:text-[10px] uppercase tracking-[0.14em] ${
             dirty
               ? "border-primary/40 bg-primary/10 text-primary"
               : "border-border/60 text-muted-foreground"
@@ -154,7 +154,7 @@ export function AudioEditor() {
         </span>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
         {/* ------------------------------------------------ input + params */}
         <div className="space-y-5">
           <DropZone
@@ -177,8 +177,8 @@ export function AudioEditor() {
 
           {/* trim */}
           <ParamPanel title="trim">
-            <div className="flex items-center justify-between">
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="font-mono text-[10px] md:text-xs lg:text-[13px] uppercase tracking-[0.18em] text-muted-foreground">
                 enable cut range
               </p>
               <Switch checked={trimEnabled} onCheckedChange={setTrimEnabled} disabled={busy} aria-label="Enable trim" />
@@ -186,7 +186,7 @@ export function AudioEditor() {
             {trimEnabled && (
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between font-mono text-[10px]">
+                  <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] md:text-xs lg:text-[13px]">
                     <span className="uppercase tracking-[0.14em] text-muted-foreground">start</span>
                     <span className="font-semibold text-neon">{start.toFixed(1)}s</span>
                   </div>
@@ -201,7 +201,7 @@ export function AudioEditor() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between font-mono text-[10px]">
+                  <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] md:text-xs lg:text-[13px]">
                     <span className="uppercase tracking-[0.14em] text-muted-foreground">end</span>
                     <span className="font-semibold text-neon">{end.toFixed(1)}s</span>
                   </div>
@@ -215,7 +215,7 @@ export function AudioEditor() {
                     aria-label="Edit end time"
                   />
                 </div>
-                <p className="font-mono text-[10px] text-muted-foreground">
+                <p className="font-mono text-[10px] md:text-xs lg:text-[13px] text-muted-foreground">
                   selection {(Math.max(end - start, 0)).toFixed(1)}s of{" "}
                   {duration.toFixed(1)}s
                 </p>
@@ -225,8 +225,8 @@ export function AudioEditor() {
 
           {/* transform */}
           <ParamPanel title="transform">
-            <div className="flex items-center justify-between">
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="font-mono text-[10px] md:text-xs lg:text-[13px] uppercase tracking-[0.18em] text-muted-foreground">
                 reverse playback
               </p>
               <Switch checked={reverse} onCheckedChange={setReverse} disabled={busy} aria-label="Reverse" />
@@ -257,8 +257,8 @@ export function AudioEditor() {
               disabled={busy || normalize}
               display={(v) => `${v > 0 ? "+" : ""}${v} dB`}
             />
-            <div className="flex items-center justify-between">
-              <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="font-mono text-[10px] md:text-xs lg:text-[13px] uppercase tracking-[0.18em] text-muted-foreground">
                 loudness normalize
               </p>
               <Switch checked={normalize} onCheckedChange={setNormalize} disabled={busy} aria-label="Normalize" />
@@ -287,7 +287,7 @@ export function AudioEditor() {
               disabled={busy}
               display={(v) => `${v.toFixed(1)}s`}
             />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <ParamSelect
                 label="Output format"
                 value={format}
@@ -342,13 +342,13 @@ export function AudioEditor() {
           {output && <OutputCard output={output} badge="edited" badgeTone="neon" onClear={reset} />}
           {!output && phase === "idle" && (
             <div className="grid min-h-40 place-items-center rounded-xl border border-dashed border-border/60">
-              <p className="font-mono text-[11px] text-muted-foreground/70">
+              <p className="font-mono text-[11px] md:text-xs lg:text-[13px] text-muted-foreground/70">
                 output lands here
               </p>
             </div>
           )}
           {phase === "done" && (
-            <p className="rounded-lg border border-border/60 bg-card/40 px-3 py-2 font-mono text-[10px] leading-relaxed text-muted-foreground">
+            <p className="rounded-lg border border-border/60 bg-card/40 px-3 py-2 font-mono text-[10px] md:text-xs lg:text-[13px] leading-relaxed text-muted-foreground">
               final length {projection.finalLengthSec.toFixed(1)}s ·{" "}
               {format.toUpperCase()} · trimmed, transformed and faded in a
               single pass.

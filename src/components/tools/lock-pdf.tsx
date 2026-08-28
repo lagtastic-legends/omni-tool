@@ -40,6 +40,14 @@ export function LockPdf() {
   const busy = status === "working";
   const strong = userPassword.length >= 6;
 
+  const reset = () => {
+    if (output) URL.revokeObjectURL(output.url);
+    setOutput(null);
+    setStatus("idle");
+    setPageCount(0);
+    setError(null);
+  };
+
   const acceptFile = (f: File) => {
     if (!/\.pdf$/i.test(f.name) && f.type !== "application/pdf") {
       toast({
@@ -91,7 +99,7 @@ export function LockPdf() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
       {/* ------------------------------------------------------- input column */}
       <div className="space-y-5">
         <DropZone

@@ -124,7 +124,7 @@ export function GifMaker() {
   );
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
       {/* -------------------------------------------------- input + settings */}
       <div className="space-y-5">
         <DropZone
@@ -168,7 +168,7 @@ export function GifMaker() {
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between font-mono text-[10px]">
+            <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[10px]">
               <span className="uppercase tracking-[0.14em] text-muted-foreground">start</span>
               <span className="font-semibold text-neon">{start.toFixed(1)}s</span>
             </div>
@@ -186,7 +186,7 @@ export function GifMaker() {
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center justify-between font-mono text-[10px]">
+            <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-[10px]">
               <span className="uppercase tracking-[0.14em] text-muted-foreground">end</span>
               <span className="font-semibold text-neon">{end.toFixed(1)}s</span>
             </div>
@@ -203,7 +203,7 @@ export function GifMaker() {
             />
           </div>
 
-          <div className="flex items-center justify-between border-t border-border/50 pt-2.5 font-mono text-[10px]">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/50 pt-2.5 font-mono text-[10px]">
             <span className="text-muted-foreground">
               clip {clipLength.toFixed(1)}s · ~{estFrames} frames @ {fps}fps
             </span>

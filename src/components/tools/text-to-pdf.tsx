@@ -39,6 +39,14 @@ export function TextToPdf() {
   const busy = status === "working";
   const words = useMemo(() => (text.trim() ? text.trim().split(/\s+/).length : 0), [text]);
 
+  const reset = () => {
+    if (output) URL.revokeObjectURL(output.url);
+    setOutput(null);
+    setStatus("idle");
+    setPageCount(0);
+    setError(null);
+  };
+
   const compile = async () => {
     if (!text.trim()) return;
     setStatus("working");
@@ -64,7 +72,7 @@ export function TextToPdf() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
       {/* ------------------------------------------------------- input column */}
       <div className="space-y-5">
         <div className="space-y-1.5">
@@ -82,7 +90,7 @@ export function TextToPdf() {
         </div>
 
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               Body text
             </p>

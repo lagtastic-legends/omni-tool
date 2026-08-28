@@ -82,7 +82,7 @@ export function StereoPanner() {
           <button
             onClick={() => setBalance(0)}
             disabled={busy}
-            className="w-fit rounded-full border border-border/70 bg-background/50 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground disabled:opacity-40"
+            className="w-fit rounded-full border border-border/70 bg-background/50 px-3 py-1.5 font-mono text-[10px] md:text-xs lg:text-[13px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground disabled:opacity-40"
           >
             snap to center
           </button>

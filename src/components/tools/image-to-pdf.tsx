@@ -44,6 +44,14 @@ export function ImageToPdf() {
     };
   }, []);  
 
+  const reset = () => {
+    if (output) URL.revokeObjectURL(output.url);
+    setOutput(null);
+    setStatus("idle");
+    setPageCount(0);
+    setError(null);
+  };
+
   const addFiles = (files: File[]) => {
     setImages((prev) => [
       ...prev,
@@ -108,7 +116,7 @@ export function ImageToPdf() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
       {/* ------------------------------------------------------- input column */}
       <div className="space-y-5">
         <ImageQueue

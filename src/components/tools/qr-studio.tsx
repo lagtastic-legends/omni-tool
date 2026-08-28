@@ -201,7 +201,7 @@ function QrScanner() {
 
       {/* viewfinder */}
       <div className="space-y-3 rounded-xl border border-border/60 bg-card/40 p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="flex items-center gap-2 font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-neon/90">
             <ScanLine className="size-3.5" />
             viewfinder
@@ -279,7 +279,7 @@ function QrScanner() {
             animate={{ opacity: 1, y: 0 }}
             className="panel-hud space-y-3 rounded-xl p-4"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-neon">
                 decoded · {formatClock(lastResult.ts)}
               </p>
@@ -315,7 +315,7 @@ function QrScanner() {
       {/* history */}
       {history.length > 1 && (
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
               scan history
             </p>
@@ -416,10 +416,10 @@ function QrGenerator() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
       <div className="space-y-5">
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
               Payload
             </p>
@@ -459,7 +459,7 @@ function QrGenerator() {
               { value: "H", label: "H · 30% — survives damage" },
             ]}
           />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
                 Modules

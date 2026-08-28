@@ -118,7 +118,7 @@ export function AudioWorkbench({
     });
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
       {/* ------------------------------------------------ left: intake + params */}
       <div className="space-y-5">
         <DropZone
@@ -137,7 +137,7 @@ export function AudioWorkbench({
         {controls}
 
         {showFormatBar && (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ParamSelect
               label="Output format"
               value={format}
@@ -167,7 +167,7 @@ export function AudioWorkbench({
         )}
 
         {note && (
-          <p className="rounded-lg border border-border/60 bg-card/40 px-3 py-2 font-mono text-[10px] leading-relaxed text-muted-foreground">
+          <p className="rounded-lg border border-border/60 bg-card/40 px-3 py-2 font-mono text-[10px] md:text-xs lg:text-[13px] leading-relaxed text-muted-foreground">
             <Headphones className="mr-1.5 inline size-3 translate-y-0.5 text-neon/80" />
             {note}
           </p>
@@ -191,7 +191,7 @@ export function AudioWorkbench({
         {output && <OutputCard output={output} badge={badge} badgeTone={badgeTone} onClear={onClear} />}
         {!output && job.phase === "idle" && (
           <div className="grid min-h-40 place-items-center rounded-xl border border-dashed border-border/60">
-            <p className="font-mono text-[11px] text-muted-foreground/70">
+            <p className="font-mono text-[11px] md:text-xs lg:text-[13px] text-muted-foreground/70">
               output lands here
             </p>
           </div>

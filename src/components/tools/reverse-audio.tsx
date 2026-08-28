@@ -67,7 +67,7 @@ export function ReverseAudio() {
       runIcon={<Rewind className="size-4" />}
       controls={
         <ParamPanel title="operation">
-          <p className="font-mono text-[11px] leading-relaxed text-muted-foreground">
+          <p className="font-mono text-[11px] md:text-xs lg:text-[13px] leading-relaxed text-muted-foreground">
             The entire waveform is mirrored back-to-front — every transient,
             every reverb tail. The output keeps the source channels and
             container metadata is rebuilt fresh.
