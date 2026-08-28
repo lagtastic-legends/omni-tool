@@ -50,7 +50,7 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
           className="flex w-fit min-h-11 items-center gap-2 rounded-xl border border-border/70 bg-card/50 px-4 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" />
-            back
+            back from {tool.name}
         </motion.button>
 
         <div className="flex flex-1 items-center gap-4">
@@ -128,5 +128,7 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
     </div>
   );
 }
+
+
 
 
