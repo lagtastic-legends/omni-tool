@@ -64,8 +64,8 @@ export function AuthGateway() {
               <h2 className="font-display text-lg font-bold tracking-wide text-foreground">
                 Identity
               </h2>
-              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                google sign-in · {isNative ? "native android" : "web popup"}
+              <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground" suppressHydrationWarning>
+                google sign-in &middot; {isNative ? "native android" : "web popup"}
               </p>
             </div>
           </div>

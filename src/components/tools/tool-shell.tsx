@@ -33,7 +33,7 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
     );
   }
 
-  const accent = ACCENT_STYLES[tool.accent];
+  const accent = tool.accent ? ACCENT_STYLES[tool.accent] : ACCENT_STYLES.violet;
   const Icon = tool.icon;
   /* Document/imaging tools run without the wasm engine. */
   const requiresEngine = tool.requiresEngine !== false;
