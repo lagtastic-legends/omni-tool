@@ -84,7 +84,7 @@ function ToolView({ toolId }: { toolId: string }) {
           onClick={resetNav}
           className="mt-2 min-h-11 rounded-xl border border-border/70 bg-card/50 px-5 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground hover:border-primary/40 hover:text-foreground"
         >
-          back to dashboard
+          back
         </button>
       </div>
     );
@@ -148,3 +148,4 @@ export function AppShell() {
     </div>
   );
 }
+
