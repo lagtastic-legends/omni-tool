@@ -27,8 +27,7 @@ import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import {
   GoogleAuthProvider,
   onAuthStateChanged,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   signInWithCredential,
   signOut as webSignOut,
   type User,
@@ -119,12 +118,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
       
-      try {
-        await getRedirectResult(auth);
-      } catch (err) {
-        console.error("Redirect sign-in error:", err);
-      }
-
       unsubscribeWeb = onAuthStateChanged(auth, (u) => {
         setUser(u ? toAuthUser(u) : null);
       });
@@ -165,7 +158,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setError("Firebase is not configured on this deployment.");
         return;
       }
-      await signInWithRedirect(auth, new GoogleAuthProvider());
+      await signInWithPopup(auth, new GoogleAuthProvider());
     } catch (err) {
       const message =
         err instanceof Error ? err.message : String(err ?? "sign-in failed");
