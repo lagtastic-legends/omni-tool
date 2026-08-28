@@ -52,13 +52,13 @@ const MODE_META: Record<
   webcam: {
     label: "Web Camera",
     icon: Camera,
-    mime: ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"],
+    mime: ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", `"video/webm`", `"video/mp4`"],
     hint: "camera + microphone picture-in-picture vlog takes",
   },
   screen: {
     label: "Screen",
     icon: Monitor,
-    mime: ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"],
+    mime: ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", `"video/webm`", `"video/mp4`"],
     hint: "full screen, window or tab — you pick when it starts",
   },
 };
@@ -221,58 +221,32 @@ export function StudioRecorder() {
   /* acquisition                                                          */
   /* ------------------------------------------------------------------ */
   const acquireStream = useCallback(async (m: RecorderMode): Promise<MediaStream> => {
+    if (!navigator.mediaDevices) {
+      throw new Error("MediaDevices API not available (requires HTTPS or localhost).");
+    }
     if (m === "screen") {
-      const md = navigator.mediaDevices as MediaDevices & {
-        getDisplayMedia?: (c: MediaStreamConstraints) => Promise<MediaStream>;
-      };
+      const md = navigator.mediaDevices as any;
       if (!md.getDisplayMedia) throw new Error("Screen capture unsupported in this browser.");
-      const is4k = screenQuality === "4k";
-      const is720 = screenQuality === "720p";
-      const idealW = is4k ? 3840 : is720 ? 1280 : 1920;
-      const idealH = is4k ? 2160 : is720 ? 720 : 1080;
       return md.getDisplayMedia({
         video: {
-          width: { ideal: idealW },
-          height: { ideal: idealH },
-          frameRate: { ideal: screenFps, max: screenFps },
+          width: { ideal: screenQuality === "4k" ? 3840 : screenQuality === "720p" ? 1280 : 1920 },
+          frameRate: { ideal: screenFps }
         },
-        audio: {
-          echoCancellation: false,
-          noiseSuppression: false,
-          autoGainControl: false,
-          sampleRate: 48000,
-          channelCount: 2,
-        },
-        surfaceSwitching: "include",
-        systemAudio: "include",
-        selfBrowserSurface: "exclude",
-      } as MediaStreamConstraints & { surfaceSwitching?: string; systemAudio?: string; selfBrowserSurface?: string });
+        audio: true
+      });
     }
     if (m === "mic") {
       return navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          sampleRate: 48000,
-          channelCount: 2,
-        },
+        audio: true,
         video: false,
       });
     }
-    const isNative = Capacitor.isNativePlatform();
     return navigator.mediaDevices.getUserMedia({
       video: {
-        width: { ideal: isNative ? 1280 : 1920 },
-        height: { ideal: isNative ? 720 : 1080 },
+        width: { ideal: Capacitor.isNativePlatform() ? 1280 : 1920 },
         facingMode: cameraFacing,
-        frameRate: { ideal: 30 },
       },
-      audio: {
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-      },
+      audio: true,
     });
   }, [screenQuality, screenFps, cameraFacing]);
 
@@ -285,160 +259,6 @@ export function StudioRecorder() {
         return;
       }
       
-      // Auto-open PiP for screen recording on web
-      if (m === "screen") {
-        if (!Capacitor.isNativePlatform() && "documentPictureInPicture" in window) {
-      try {
-        const pip = await (window as any).documentPictureInPicture.requestWindow({
-          width: 400,
-          height: 120,
-        });
-        pipWindowRef.current = pip;
-
-        
-        pip.document.head.innerHTML = `
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Omni Tool - Recording</title>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
-<style>
-  .pulse-dot { animation: pulse 2s infinite; }
-  @keyframes pulse { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1); } }
-  .glass-panel { background: rgba(250, 245, 238, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(216, 208, 200, 0.6); }
-  
-  /* Fallback visibility until Tailwind loads */
-  body { background: transparent; padding: 1rem; }
-</style>`;
-
-        // Inject Tailwind config
-        const twConfig = pip.document.createElement("script");
-        twConfig.textContent = `
-  tailwind.config = {
-    darkMode: "class",
-    theme: {
-      extend: {
-        colors: {
-          "on-secondary": "#ffffff",
-          "on-primary-fixed": "#401a08",
-          "primary-container": "#e08850",
-          "on-tertiary": "#ffffff",
-          "outline-variant": "#d8d0c8",
-          "surface-dim": "#dcd6cc",
-          "inverse-surface": "#3a302a",
-          "surface-bright": "#faf5ee",
-          "inverse-on-surface": "#faf5ee",
-          "primary-fixed": "#fbe8d8",
-          "on-surface-variant": "#605850",
-          "surface-container-high": "#ece6dc",
-          "on-background": "#3a302a",
-          "surface-container": "#f2ece4",
-          "secondary-fixed": "#eae2da",
-          "on-secondary-container": "#605850",
-          "on-error": "#ffffff",
-          "error-container": "#fce4e0",
-          "on-tertiary-fixed-variant": "#6e3030",
-          "on-primary-container": "#fbe8d8",
-          outline: "#9a9088",
-          "surface-tint": "#c2652a",
-          "surface-container-highest": "#e6e0d6",
-          "on-tertiary-fixed": "#2e1515",
-          "tertiary-fixed": "#fce0e0",
-          "on-tertiary-container": "#3a2020",
-          "secondary-fixed-dim": "#cec6be",
-          "primary-fixed-dim": "#f0a878",
-          error: "#c0392b",
-          "inverse-primary": "#f0a878",
-          secondary: "#78706a",
-          tertiary: "#8c3c3c",
-          "on-surface": "#3a302a",
-          primary: "#c2652a",
-          surface: "#faf5ee",
-          "on-primary": "#ffffff",
-          "on-secondary-fixed": "#2a2420",
-          "tertiary-container": "#d47070",
-          "surface-variant": "#ece6dc",
-          "on-error-container": "#7a1a10",
-          "on-secondary-fixed-variant": "#504840",
-          background: "#faf5ee",
-          "surface-container-lowest": "#ffffff",
-          "surface-container-low": "#f6f0e8",
-          "secondary-container": "#eae2da",
-          "tertiary-fixed-dim": "#e8a0a0",
-          "on-primary-fixed-variant": "#8a4518"
-        },
-        borderRadius: {
-          DEFAULT: "0.25rem",
-          lg: "0.5rem",
-          xl: "0.75rem",
-          full: "9999px"
-        },
-        fontFamily: {
-          headline: ["EB Garamond", "serif"],
-          display: ["EB Garamond", "serif"],
-          body: ["Manrope", "sans-serif"],
-          label: ["Manrope", "sans-serif"]
-        }
-      }
-    }
-  };
-        `;
-        pip.document.head.appendChild(twConfig);
-
-        // Load Tailwind CDN dynamically so it executes
-        const twScript = pip.document.createElement("script");
-        twScript.src = "https://cdn.tailwindcss.com?plugins=forms,container-queries";
-        pip.document.head.appendChild(twScript);
-        
-        // Also copy styles from parent as fallback
-        [...document.styleSheets].forEach((styleSheet) => {
-          try {
-            const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
-            const style = pip.document.createElement('style');
-            style.textContent = cssRules;
-            pip.document.head.appendChild(style);
-          } catch (e) {
-            // Ignore cross-origin stylesheet errors
-          }
-        });
-
-        pip.document.body.className = "bg-background min-h-screen flex items-center justify-center p-4";
-        pip.document.body.innerHTML = `<!-- Screen Recording Control Overlay -->
-<div class="glass-panel shadow-[0_2px_16px_rgba(58,48,42,0.08)] rounded-full px-5 py-2.5 flex items-center gap-5 max-w-sm mx-auto transition-all duration-300 ease-in-out hover:shadow-[0_4px_24px_rgba(58,48,42,0.12)]">
-<div class="flex items-center gap-3 border-r border-outline-variant/60 pr-5">
-<div id="pip-rec-indicator" class="w-2.5 h-2.5 bg-[#e08850] rounded-full pulse-dot"></div>
-<span id="pip-time" class="font-body text-on-surface text-[17px] font-medium tracking-wide tabular-nums mt-0.5">00:00:00</span>
-</div>
-<div class="flex items-center gap-2">
-<button id="pip-pause" aria-label="Pause Recording" class="w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
-<span id="pip-pause-icon" class="material-symbols-outlined text-[20px]">pause</span>
-</button>
-<button id="pip-stop" aria-label="Stop Recording" class="w-11 h-11 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-sm hover:opacity-90 hover:shadow-md transition-all active:scale-95 focus:outline-none focus:ring-4 focus:ring-primary/30 mx-1">
-<span class="material-symbols-outlined text-[22px]" style="font-variation-settings: 'FILL' 1;">stop</span>
-</button>
-<button id="pip-settings" aria-label="Settings" class="w-9 h-9 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
-<span class="material-symbols-outlined text-[20px]">settings</span>
-</button>
-</div>
-</div>`;
-
-        pip.document.getElementById("pip-stop").onclick = () => {
-          finalizeRecording();
-          pip.close();
-        };
-
-        pip.document.getElementById("pip-pause").onclick = () => {
-          togglePause();
-        };
-
-        pip.addEventListener("pagehide", () => {
-          pipWindowRef.current = null;
-        });
-      } catch (err) {
-        console.warn("PiP failed", err);
-      }
-    }
-      }
       const stream = await acquireStream(m);
       streamRef.current = stream;
       if (videoRef.current && stream.getVideoTracks().length > 0) {
@@ -509,7 +329,13 @@ export function StudioRecorder() {
     } else {
       options.audioBitsPerSecond = 192_000;
     }
-    const recorder = new MediaRecorder(stream, options);
+    let recorder: MediaRecorder;
+      try {
+        recorder = new MediaRecorder(stream, options);
+      } catch (err) {
+        console.warn('Failed with options, trying default:', err);
+        recorder = new MediaRecorder(stream);
+      }
     chunksRef.current = [];
     recorder.ondataavailable = (e) => {
       if (e.data.size > 0) chunksRef.current.push(e.data);
@@ -948,6 +774,9 @@ export function StudioRecorder() {
     </div>
   );
 }
+
+
+
 
 
 
