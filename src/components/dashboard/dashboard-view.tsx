@@ -11,7 +11,6 @@ import { useEffect } from "react";
 import { Capacitor } from "@capacitor/core";
 import { OmniRecorder } from "@/lib/native-recorder";
 import { EngineBootPanel } from "@/components/engine/engine-boot-panel";
-import { SystemStatusHUD } from "@/components/engine/system-status-hud";
 import { ToolGrid } from "@/components/dashboard/tool-grid";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { formatBytes } from "@/lib/format";
@@ -122,7 +121,7 @@ export function DashboardView() {
         initial="hidden"
         animate="show"
         custom={0.3}
-        className="grid grid-cols-2 gap-3 lg:grid-cols-4"
+        className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:grid-cols-4"
       >
         <StatChip
           icon={Boxes}
@@ -159,10 +158,7 @@ export function DashboardView() {
         <EngineBootPanel />
       </motion.div>
 
-      {/* system probes ---------------------------------------------------- */}
-      <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0.45}>
-        <SystemStatusHUD />
-      </motion.div>
+      
 
       {/* recent vault strip ----------------------------------------------- */}
       {recent.length > 0 && (
@@ -232,3 +228,5 @@ export function DashboardView() {
     </div>
   );
 }
+
+
