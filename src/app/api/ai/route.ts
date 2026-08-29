@@ -10,11 +10,17 @@ Keep your valid answers concise and friendly, matching a Dark Sci-Fi aesthetic.`
 
 export async function POST(req: Request) {
   try {
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    };
+
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
         { error: "Internal Server Error: API key missing" },
-        { status: 500 }
+        { status: 500, headers: corsHeaders }
       );
     }
 
@@ -46,13 +52,14 @@ export async function POST(req: Request) {
       const errorData = await response.text();
       return NextResponse.json(
         { error: `Google API Error: ${errorData}` },
-        { status: response.status }
+        { status: response.status, headers: corsHeaders }
       );
     }
 
     if (isStream && response.body) {
       return new Response(response.body, {
         headers: {
+          ...corsHeaders,
           "Content-Type": "text/event-stream",
           "Cache-Control": "no-cache",
           "Connection": "keep-alive",
@@ -61,13 +68,24 @@ export async function POST(req: Request) {
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+    return NextResponse.json(data, { headers: corsHeaders });
 
   } catch (error: any) {
     console.error("AI API Error:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500, headers: { "Access-Control-Allow-Origin": "*" } }
     );
   }
+}
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
+  });
 }

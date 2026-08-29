@@ -12,8 +12,8 @@ export const generateAiResponse = async (messages: ChatMessage[]) => {
       parts: [{ text: msg.content }]
     }));
 
-    // For Capacitor, this must be changed to the absolute URL of the hosted backend (e.g. https://your-domain.com/api/ai)
-    const response = await fetch("https://omni-tool-3m7ppzpwi-lagtastic-legends.vercel.app/api/ai", {
+    // For Capacitor, this must be changed to the absolute URL of the hosted backend
+    const response = await fetch("https://omni-tool-two.vercel.app/api/ai", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -41,8 +41,8 @@ export const streamAiResponse = async function* (messages: ChatMessage[]) {
       parts: [{ text: msg.content }]
     }));
 
-    // For Capacitor, this must be changed to the absolute URL of the hosted backend (e.g. https://your-domain.com/api/ai?stream=true)
-    const response = await fetch("https://omni-tool-3m7ppzpwi-lagtastic-legends.vercel.app/api/ai?stream=true", {
+    // For Capacitor, this must be changed to the absolute URL of the hosted backend
+    const response = await fetch("https://omni-tool-two.vercel.app/api/ai?stream=true", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

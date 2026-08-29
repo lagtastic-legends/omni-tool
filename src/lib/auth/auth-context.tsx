@@ -61,7 +61,7 @@ function toAuthUser(user: User | any): AuthUser {
     uid: user.uid,
     displayName: user.displayName || user.displayName,
     email: user.email,
-    photoURL: user.photoUrl || user.photoURL,
+    photoURL: user.imageUrl || user.photoUrl || user.photoURL,
     providerId: user.providerData?.[0]?.providerId ?? "google.com",
   };
 }
@@ -146,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             uid: u.uid,
             displayName: u.displayName ?? null,
             email: u.email ?? null,
-            photoURL: u.photoUrl ?? null,
+            photoURL: (u as any).imageUrl ?? u.photoUrl ?? null,
             providerId: "google.com",
           });
         }
