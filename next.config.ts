@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
-  output: "export" as const,
+  output: isMobileExport ? "export" : "standalone",
   images: { unoptimized: true },
   trailingSlash: true,
   async headers() {
