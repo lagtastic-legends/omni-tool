@@ -51,10 +51,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <head>
-        <link rel="prefetch" href="https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd/ffmpeg-core.wasm" as="fetch" crossOrigin="anonymous" />
-        <link rel="prefetch" href="https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js" as="script" crossOrigin="anonymous" />
-      </head>
+      <head />
       <body
         className={`${orbitron.variable} ${spaceGrotesk.variable} ${geistMono.variable} antialiased bg-background text-foreground min-h-screen pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]`}
       >
