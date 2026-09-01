@@ -59,7 +59,12 @@ export async function loadFirebaseConfig(): Promise<FirebaseClientConfig | null>
     let config = configFromEnv();
     if (!config) {
       try {
-        const res = await fetch(CONFIG_URL);
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1000);
+        
+        const res = await fetch(CONFIG_URL, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
         if (res.ok) {
           const json = (await res.json()) as Partial<FirebaseClientConfig>;
           if (json.apiKey && json.authDomain && json.projectId && json.appId) {
@@ -67,7 +72,7 @@ export async function loadFirebaseConfig(): Promise<FirebaseClientConfig | null>
           }
         }
       } catch {
-        /* no runtime config file — open mode */
+        /* no runtime config file or fetch timed out — open mode */
       }
     }
     cachedConfig = config ?? null;
