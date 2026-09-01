@@ -158,7 +158,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setError("Firebase is not configured on this deployment.");
         return;
       }
-      await signInWithPopup(auth, new GoogleAuthProvider());
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
+      await signInWithPopup(auth, provider);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : String(err ?? "sign-in failed");
