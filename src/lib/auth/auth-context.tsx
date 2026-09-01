@@ -28,6 +28,7 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged,
   signInWithPopup,
+  signInWithRedirect,
   signInWithCredential,
   signOut as webSignOut,
   type User,
@@ -162,7 +163,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       provider.setCustomParameters({
         prompt: 'select_account'
       });
-      await signInWithPopup(auth, provider);
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (err: any) {
+        if (err.code === "auth/popup-blocked") {
+          const auth = getFirebaseAuth();
+          if (auth) {
+            const provider = new GoogleAuthProvider();
+            provider.setCustomParameters({ prompt: 'select_account' });
+            await signInWithRedirect(auth, provider);
+            return;
+          }
+        }
+        const message =
+          err instanceof Error ? err.message : String(err ?? "sign-in failed");
+        setError(message);
+      }
     } catch (err) {
       const message =
         err instanceof Error ? err.message : String(err ?? "sign-in failed");
