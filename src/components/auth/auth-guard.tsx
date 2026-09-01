@@ -55,15 +55,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   }, [mode, user, isNative, signInWithIdToken]);
 
   const handleSignInClick = () => {
-    if (!isNative && (window as any).google) {
-      (window as any).google.accounts.id.prompt((notification: any) => {
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          void signInWithGoogle();
-        }
-      });
-    } else {
-      void signInWithGoogle();
-    }
+    void signInWithGoogle();
   };
 
   /* probe splash --------------------------------------------------------- */
