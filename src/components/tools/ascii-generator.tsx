@@ -35,7 +35,7 @@ export function AsciiGenerator() {
   const generateAscii = (img: HTMLImageElement, res: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return;
 
     const width = res;
@@ -47,24 +47,44 @@ export function AsciiGenerator() {
 
     ctx.drawImage(img, 0, 0, width, height);
     const imageData = ctx.getImageData(0, 0, width, height);
-    const data = imageData.data;
 
-    let ascii = "";
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const offset = (y * width + x) * 4;
-        const r = data[offset];
-        const g = data[offset + 1];
-        const b = data[offset + 2];
-
-        const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-        const charIndex = Math.floor((luminance / 255) * (ASCII_CHARS.length - 1));
-        ascii += ASCII_CHARS[charIndex];
+    // Create inline web worker
+    const workerCode = `
+      self.onmessage = function(e) {
+        const { imageData, width, height, chars } = e.data;
+        const data = imageData.data;
+        let ascii = "";
+        for (let y = 0; y < height; y++) {
+          for (let x = 0; x < width; x++) {
+            const offset = (y * width + x) * 4;
+            const r = data[offset];
+            const g = data[offset + 1];
+            const b = data[offset + 2];
+            const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+            const charIndex = Math.floor((luminance / 255) * (chars.length - 1));
+            ascii += chars[charIndex];
+          }
+          ascii += "\\n";
+        }
+        self.postMessage(ascii);
       }
-      ascii += "\n";
-    }
-    setAsciiArt(ascii);
-    setIsProcessing(false);
+    `;
+
+    const blob = new Blob([workerCode], { type: 'application/javascript' });
+    const worker = new Worker(URL.createObjectURL(blob));
+
+    worker.onmessage = (e) => {
+      setAsciiArt(e.data);
+      setIsProcessing(false);
+      worker.terminate();
+    };
+
+    worker.postMessage({
+      imageData,
+      width,
+      height,
+      chars: ASCII_CHARS
+    });
   };
 
   useEffect(() => {
