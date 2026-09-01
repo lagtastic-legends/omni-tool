@@ -258,7 +258,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     icon: Eraser,
     phase: 4,
     status: "online",
-    accent: "red",
+    accent: "fuchsia",
     requiresEngine: true,
   },
   {
