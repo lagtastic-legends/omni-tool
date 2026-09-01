@@ -250,6 +250,17 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     requiresEngine: false,
   },
   {
+    id: "watermark-remover",
+    name: "Watermark Eraser",
+    description: "Visually erase AI logos/watermarks using spatial interpolation.",
+    category: "imaging",
+    icon: Eraser,
+    phase: 4,
+    status: "online",
+    accent: "red",
+    requiresEngine: true,
+  },
+  {
     id: "ascii-generator",
     name: "ASCII Generator",
     description: "Convert images to ASCII text art instantly.",

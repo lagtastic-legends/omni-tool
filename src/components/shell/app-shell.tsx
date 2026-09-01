@@ -31,6 +31,7 @@ import { StudioRecorder } from "@/components/tools/studio-recorder";
 import { TextToPdf } from "@/components/tools/text-to-pdf";
 import { PaletteExtractor } from "@/components/tools/palette-extractor";
 import { AsciiGenerator } from "@/components/tools/ascii-generator";
+import { WatermarkRemover } from "@/components/tools/watermark-remover";
 import { QrStudio } from "@/components/tools/qr-studio";
 import { ToolShell } from "@/components/tools/tool-shell";
 import { VaultView } from "@/components/vault/vault-view";
@@ -63,6 +64,7 @@ const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "scan-to-pdf": ScanToPdf,
   "palette-extractor": PaletteExtractor,
   "ascii-generator": AsciiGenerator,
+  "watermark-remover": WatermarkRemover,
   vault: VaultView,
   "studio-recorder": StudioRecorder,
   "qr-studio": QrStudio,
