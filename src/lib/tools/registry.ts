@@ -249,6 +249,17 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     accent: "emerald",
     requiresEngine: false,
   },
+  {
+    id: "ascii-generator",
+    name: "ASCII Generator",
+    description: "Convert images to ASCII text art instantly.",
+    category: "imaging",
+    icon: FileImage,
+    phase: 4,
+    status: "online",
+    accent: "amber",
+    requiresEngine: false,
+  },
 
   /* ---------------- PHASE 5 — Vault, Recorder & Dashboard ----------- */
   {

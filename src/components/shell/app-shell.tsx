@@ -30,6 +30,7 @@ import { StereoPanner } from "@/components/tools/stereo-panner";
 import { StudioRecorder } from "@/components/tools/studio-recorder";
 import { TextToPdf } from "@/components/tools/text-to-pdf";
 import { PaletteExtractor } from "@/components/tools/palette-extractor";
+import { AsciiGenerator } from "@/components/tools/ascii-generator";
 import { QrStudio } from "@/components/tools/qr-studio";
 import { ToolShell } from "@/components/tools/tool-shell";
 import { VaultView } from "@/components/vault/vault-view";
@@ -61,6 +62,7 @@ const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "lock-pdf": LockPdf,
   "scan-to-pdf": ScanToPdf,
   "palette-extractor": PaletteExtractor,
+  "ascii-generator": AsciiGenerator,
   vault: VaultView,
   "studio-recorder": StudioRecorder,
   "qr-studio": QrStudio,
