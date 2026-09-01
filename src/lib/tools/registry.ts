@@ -23,6 +23,7 @@ import {
   Vault,
   Volume2,
   VolumeX,
+  Eraser,
   type LucideIcon,
 } from "lucide-react";
 import type { ToolCategory, ToolMeta } from "@/types/omni";

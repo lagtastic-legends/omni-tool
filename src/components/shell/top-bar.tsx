@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { LogOut, ShieldAlert } from "lucide-react";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { useAuth } from "@/lib/auth/auth-context";
+import { SearchPalette } from "@/components/shell/search-palette";
 import type { EngineState } from "@/types/omni";
 
 const STATE_META: Record<
@@ -162,9 +163,10 @@ export function TopBar() {
             </span>
           </div>
 
-          </div>
+          <SearchPalette />
         </div>
-      </motion.header>
+      </div>
+    </motion.header>
   );
 }
 
