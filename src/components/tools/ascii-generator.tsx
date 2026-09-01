@@ -12,7 +12,11 @@ export function AsciiGenerator() {
   const [activeTab, setActiveTab] = useState<"generator" | "archive">("generator");
   const [activeCategory, setActiveCategory] = useState<AsciiCategory | null>(null);
   
+  const [originalImageSrc, setOriginalImageSrc] = useState<string | null>(null);
   const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [removeBgEnabled, setRemoveBgEnabled] = useState(false);
+  const [isRemovingBg, setIsRemovingBg] = useState(false);
+  
   const [asciiArt, setAsciiArt] = useState<string>("");
   const [resolution, setResolution] = useState<number>(100);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -31,10 +35,34 @@ export function AsciiGenerator() {
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      setImageSrc(event.target?.result as string);
+      const src = event.target?.result as string;
+      setOriginalImageSrc(src);
+      if (!removeBgEnabled) setImageSrc(src);
     };
     reader.readAsDataURL(file);
   };
+
+  useEffect(() => {
+    if (!originalImageSrc) return;
+
+    if (removeBgEnabled) {
+      setIsRemovingBg(true);
+      import("@imgly/background-removal").then(({ removeBackground }) => {
+        removeBackground(originalImageSrc).then((blob) => {
+          const url = URL.createObjectURL(blob);
+          setImageSrc(url);
+          setIsRemovingBg(false);
+        }).catch((err) => {
+          console.error(err);
+          toast({ title: "AI Error", description: "Failed to remove background.", variant: "destructive" });
+          setImageSrc(originalImageSrc);
+          setIsRemovingBg(false);
+        });
+      });
+    } else {
+      setImageSrc(originalImageSrc);
+    }
+  }, [originalImageSrc, removeBgEnabled]);
 
   const generateAscii = (img: HTMLImageElement, res: number) => {
     const canvas = canvasRef.current;
@@ -64,9 +92,15 @@ export function AsciiGenerator() {
             const r = data[offset];
             const g = data[offset + 1];
             const b = data[offset + 2];
-            const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
-            const charIndex = Math.floor((luminance / 255) * (chars.length - 1));
-            ascii += chars[charIndex];
+            const a = data[offset + 3];
+            
+            if (a < 128) {
+              ascii += " ";
+            } else {
+              const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+              const charIndex = Math.floor((luminance / 255) * (chars.length - 1));
+              ascii += chars[charIndex];
+            }
           }
           ascii += "\\n";
         }
@@ -175,6 +209,25 @@ export function AsciiGenerator() {
                   <Upload className="size-4" /> UPLOAD IMAGE
                 </button>
                 
+                <div className="flex flex-col gap-2 rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-3 sm:max-w-[200px]">
+                  <label className="flex justify-between font-mono text-[10px] uppercase tracking-widest text-on-surface-variant">
+                    <span>AI Subject Only</span>
+                    <span className="font-bold text-primary">{removeBgEnabled ? "ON" : "OFF"}</span>
+                  </label>
+                  <button
+                    onClick={() => setRemoveBgEnabled(!removeBgEnabled)}
+                    disabled={!originalImageSrc || isRemovingBg}
+                    className={cn(
+                      "flex h-7 items-center justify-center rounded-md border font-mono text-[10px] font-bold tracking-widest transition-colors",
+                      removeBgEnabled 
+                        ? "border-primary bg-primary/20 text-primary hover:bg-primary/30" 
+                        : "border-outline-variant/50 bg-transparent text-on-surface hover:bg-surface-container"
+                    )}
+                  >
+                    {isRemovingBg ? "PROCESSING..." : "TOGGLE BG"}
+                  </button>
+                </div>
+
                 <div className="flex flex-1 flex-col gap-2 rounded-xl border border-outline-variant/30 bg-surface-container-lowest p-3 sm:max-w-[200px]">
                   <label className="flex justify-between font-mono text-[10px] uppercase tracking-widest text-on-surface-variant">
                     <span>Resolution</span>
@@ -186,7 +239,7 @@ export function AsciiGenerator() {
                     max="200"
                     value={resolution}
                     onChange={(e) => setResolution(Number(e.target.value))}
-                    disabled={!imageSrc || isProcessing}
+                    disabled={!imageSrc || isProcessing || isRemovingBg}
                     className="accent-primary"
                   />
                 </div>
@@ -218,7 +271,7 @@ export function AsciiGenerator() {
                 <div className="relative flex-1 overflow-auto rounded-xl border border-outline-variant/60 bg-black p-4 shadow-inner">
                   <pre className={cn(
                     "font-mono text-[8px] leading-[8px] text-white/90",
-                    isProcessing && "opacity-50"
+                    (isProcessing || isRemovingBg) && "opacity-50"
                   )}>
                     {asciiArt}
                   </pre>
