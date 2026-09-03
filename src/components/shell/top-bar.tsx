@@ -6,6 +6,7 @@ import { LogOut, ShieldAlert } from "lucide-react";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { useAuth } from "@/lib/auth/auth-context";
 import { SearchPalette } from "@/components/shell/search-palette";
+import { ThemeToggle } from "@/components/shell/theme-toggle";
 import type { EngineState } from "@/types/omni";
 
 const STATE_META: Record<
@@ -163,6 +164,7 @@ export function TopBar() {
             </span>
           </div>
 
+          <ThemeToggle />
           <SearchPalette />
         </div>
       </div>

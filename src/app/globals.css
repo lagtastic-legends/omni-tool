@@ -109,6 +109,92 @@
 }
 
 /* ------------------------------------------------------------------ */
+/* Terracotta Studio Theme (Warm Paper & Terracotta)                   */
+/* ------------------------------------------------------------------ */
+
+[data-theme="terracotta"] {
+  color-scheme: light;
+
+  --background: #FAF5EE;
+  --foreground: #3A302A;
+
+  --card: #F3ECE0;
+  --card-foreground: #3A302A;
+
+  --popover: #FAF5EE;
+  --popover-foreground: #3A302A;
+
+  --primary: #C2652A;
+  --primary-foreground: #FAF5EE;
+
+  --secondary: #EDE4D6;
+  --secondary-foreground: #3A302A;
+
+  --muted: #EAE0D2;
+  --muted-foreground: #7C6E63;
+
+  --accent: #E4D5C2;
+  --accent-foreground: #3A302A;
+
+  --destructive: #8C3C3C;
+
+  --border: #E0D4C3;
+  --input: #E0D4C3;
+  --ring: #C2652A;
+
+  --chart-1: #C2652A;
+  --chart-2: #8C3C3C;
+  --chart-3: #A35C2B;
+  --chart-4: #D98B54;
+  --chart-5: #6A5649;
+
+  --sidebar: #FAF5EE;
+  --sidebar-foreground: #3A302A;
+  --sidebar-primary: #C2652A;
+  --sidebar-primary-foreground: #FAF5EE;
+  --sidebar-accent: #EDE4D6;
+  --sidebar-accent-foreground: #3A302A;
+  --sidebar-border: #E0D4C3;
+  --sidebar-ring: #C2652A;
+
+  /* Theme Accents */
+  --neon: #C2652A;
+  --plasma: #8C3C3C;
+  --pulse: #A35C2B;
+  --abyss: #FAF5EE;
+
+  /* Fonts */
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-eb-garamond), serif;
+}
+
+[data-theme="terracotta"] .panel-hud {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.7) 0%,
+      rgba(255, 255, 255, 0.2) 100%
+    ),
+    #F3ECE0;
+  border: 1px solid #E0D4C3;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 4px 20px -2px rgba(58, 48, 42, 0.05);
+}
+
+[data-theme="terracotta"] .bg-hud-grid {
+  background-image:
+    linear-gradient(rgba(194, 101, 42, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(194, 101, 42, 0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+[data-theme="terracotta"] ::selection {
+  background: rgba(194, 101, 42, 0.25);
+  color: #3A302A;
+}
+
+/* ------------------------------------------------------------------ */
 /* Base                                                                */
 /* ------------------------------------------------------------------ */
 

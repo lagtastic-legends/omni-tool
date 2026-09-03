@@ -1,7 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Orbitron, Space_Grotesk } from "next/font/google";
+import { EB_Garamond, Geist_Mono, Manrope, Orbitron, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+
+const ebGaramond = EB_Garamond({
+  variable: "--font-eb-garamond",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const manrope = Manrope({
+  variable: "--font-manrope",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
 
 const orbitron = Orbitron({
   variable: "--font-orbitron",
@@ -51,9 +63,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <head />
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var p = localStorage.getItem('omni_theme_preference');
+                var t = p ? JSON.parse(p).state?.theme : null;
+                if (t === 'terracotta') {
+                  document.documentElement.setAttribute('data-theme', 'terracotta');
+                  document.documentElement.classList.remove('dark');
+                  document.documentElement.classList.add('light');
+                  document.documentElement.style.colorScheme = 'light';
+                }
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body
-        className={`${orbitron.variable} ${spaceGrotesk.variable} ${geistMono.variable} antialiased bg-background text-foreground min-h-screen pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]`}
+        className={`${orbitron.variable} ${spaceGrotesk.variable} ${geistMono.variable} ${ebGaramond.variable} ${manrope.variable} antialiased bg-background text-foreground min-h-screen pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]`}
       >
         {children}
         <Toaster />
