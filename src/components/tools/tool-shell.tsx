@@ -43,14 +43,15 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
       {/* header ---------------------------------------------------------- */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <motion.button
-          onClick={reset}
+          type="button"
+          onClick={() => reset()}
           whileHover={{ x: -3 }}
           whileTap={{ scale: 0.96 }}
           aria-label="Back to dashboard"
           className="flex w-fit min-h-11 items-center gap-2 rounded-xl border border-border/70 bg-card/50 px-4 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" />
-            back from {tool.name}
+            back
         </motion.button>
 
         <div className="flex flex-1 items-center gap-4">
