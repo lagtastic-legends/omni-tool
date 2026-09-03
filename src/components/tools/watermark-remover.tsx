@@ -18,6 +18,8 @@ import {
   Zap,
   Split,
   ChevronRight,
+  Crosshair,
+  Wand2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -25,11 +27,13 @@ import { formatBytes } from "@/lib/format";
 import { useVault } from "@/lib/vault/vault-context";
 import {
   detectAiWatermark,
-  eraseWatermarkFromCanvas,
+  detectWatermarkAtPoint,
+  generativeEraseWatermark,
   createRegionThumbnail,
   type WatermarkZone,
   type DetectedWatermark,
-  type BoundingBox,
+  type InpaintMode,
+  type InpaintCoverage,
 } from "@/lib/imaging/ai-watermark";
 
 export function WatermarkRemover() {
@@ -40,9 +44,12 @@ export function WatermarkRemover() {
   const [originalSrc, setOriginalSrc] = useState<string | null>(null);
   const [cleanedSrc, setCleanedSrc] = useState<string | null>(null);
   const [cleanedBlob, setCleanedBlob] = useState<Blob | null>(null);
+  const [imageDimensions, setImageDimensions] = useState<{ w: number; h: number } | null>(null);
 
   const [detection, setDetection] = useState<DetectedWatermark | null>(null);
   const [selectedZone, setSelectedZone] = useState<WatermarkZone>("auto");
+  const [inpaintMode, setInpaintMode] = useState<InpaintMode>("generative");
+  const [coverage, setCoverage] = useState<InpaintCoverage>("balanced");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [processingTimeMs, setProcessingTimeMs] = useState<number | null>(null);
@@ -58,12 +65,19 @@ export function WatermarkRemover() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const imageElementRef = useRef<HTMLImageElement>(null);
 
   /**
-   * Automatically scans and erases the watermark from the image
+   * Executes AI detection and Generative Background/Subject Inpainting
    */
-  const processImageAuto = useCallback(
-    async (file: File, zone: WatermarkZone = "auto") => {
+  const processImageCore = useCallback(
+    async (
+      file: File,
+      zone: WatermarkZone = "auto",
+      customPoint?: { x: number; y: number },
+      currentMode: InpaintMode = inpaintMode,
+      currentCoverage: InpaintCoverage = coverage
+    ) => {
       setIsProcessing(true);
       setIsScanning(true);
       setVaultState("idle");
@@ -81,15 +95,22 @@ export function WatermarkRemover() {
           img.src = url;
         });
 
-        // 1. AI Automatic Detection
-        const detected = detectAiWatermark(img, zone);
+        setImageDimensions({ w: img.naturalWidth, h: img.naturalHeight });
+
+        // 1. Target Detection
+        let detected: DetectedWatermark;
+        if (customPoint) {
+          detected = detectWatermarkAtPoint(img, customPoint.x, customPoint.y, 40);
+        } else {
+          detected = detectAiWatermark(img, zone);
+        }
         setDetection(detected);
 
-        // Brief delay for visual HUD scanning state
-        await new Promise((r) => setTimeout(r, 220));
+        // Visual scan feedback
+        await new Promise((r) => setTimeout(r, 180));
         setIsScanning(false);
 
-        // 2. High-precision Inpainting
+        // 2. Generative Inpainting Engine (Samsung Galaxy S26 Ultra style)
         const workCanvas = document.createElement("canvas");
         workCanvas.width = img.naturalWidth;
         workCanvas.height = img.naturalHeight;
@@ -98,16 +119,17 @@ export function WatermarkRemover() {
 
         ctx.drawImage(img, 0, 0);
 
-        // Capture original zoomed thumbnail of the watermark area before erasing
+        // Capture original zoomed thumbnail
         const originalThumb = createRegionThumbnail(workCanvas, detected.box, 16);
 
-        // Run Content-Aware Inpainting
-        eraseWatermarkFromCanvas(workCanvas, detected.box, {
-          padding: 8,
+        // Run Generative Background & Subject Inpainting
+        generativeEraseWatermark(workCanvas, detected.box, {
+          mode: currentMode,
+          coverage: currentCoverage,
           grainMatch: true,
         });
 
-        // Capture cleaned thumbnail of the repaired area
+        // Capture cleaned thumbnail
         const cleanedThumb = createRegionThumbnail(workCanvas, detected.box, 16);
 
         detected.originalThumbnail = originalThumb;
@@ -133,8 +155,8 @@ export function WatermarkRemover() {
         setProcessingTimeMs(elapsed);
 
         toast({
-          title: "AI Watermark Erased",
-          description: `${detected.label} automatically removed in ${elapsed}ms.`,
+          title: "Generative Eraser Complete",
+          description: `${detected.label} erased and background matching photo generated in ${elapsed}ms.`,
         });
       } catch (err: any) {
         console.error("AI Watermark error:", err);
@@ -148,7 +170,7 @@ export function WatermarkRemover() {
         setIsScanning(false);
       }
     },
-    [toast]
+    [toast, inpaintMode, coverage]
   );
 
   const handleFile = (file: File) => {
@@ -161,7 +183,7 @@ export function WatermarkRemover() {
       return;
     }
     setImageFile(file);
-    processImageAuto(file, selectedZone);
+    processImageCore(file, selectedZone);
   };
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -189,8 +211,36 @@ export function WatermarkRemover() {
   const handleZoneChange = (zone: WatermarkZone) => {
     setSelectedZone(zone);
     if (imageFile) {
-      processImageAuto(imageFile, zone);
+      processImageCore(imageFile, zone, undefined, inpaintMode, coverage);
     }
+  };
+
+  const handleCoverageChange = (cov: InpaintCoverage) => {
+    setCoverage(cov);
+    if (imageFile) {
+      processImageCore(imageFile, selectedZone, undefined, inpaintMode, cov);
+    }
+  };
+
+  /**
+   * Tap-To-Erase (Samsung Galaxy Object Eraser interaction)
+   * Allows user to click/tap anywhere on the image to pinpoint custom watermark/logo
+   */
+  const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (viewMode === "compare") return; // Keep comparison slider active in compare mode
+    if (!imageFile || !imageDimensions || !imageElementRef.current) return;
+
+    const rect = imageElementRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    if (clickX < 0 || clickX > rect.width || clickY < 0 || clickY > rect.height) return;
+
+    const naturalX = Math.round((clickX / rect.width) * imageDimensions.w);
+    const naturalY = Math.round((clickY / rect.height) * imageDimensions.h);
+
+    setSelectedZone("custom");
+    processImageCore(imageFile, "custom", { x: naturalX, y: naturalY }, inpaintMode, coverage);
   };
 
   const handleDownload = () => {
@@ -219,9 +269,10 @@ export function WatermarkRemover() {
     setDetection(null);
     setVaultState("idle");
     setProcessingTimeMs(null);
+    setSelectedZone("auto");
   };
 
-  // Slider pointer events for Before/After split
+  // Slider events for Before/After split
   const updateSliderFromEvent = (clientX: number) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -265,17 +316,22 @@ export function WatermarkRemover() {
             : "border-outline-variant/60 bg-surface-container-low"
         )}
       >
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <div className="grid size-10 place-items-center rounded-xl border border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-400 shadow-sm">
-              <Sparkles className="size-5" />
+            <div className="grid size-11 place-items-center rounded-xl border border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-400 shadow-sm">
+              <Wand2 className="size-6" />
             </div>
             <div>
-              <h2 className="flex items-center gap-2 font-display text-lg font-bold text-on-surface">
-                AI Automatic Watermark Eraser
-              </h2>
+              <div className="flex items-center gap-2">
+                <h2 className="font-display text-lg font-bold text-on-surface">
+                  Generative AI Watermark Eraser
+                </h2>
+                <span className="rounded-full border border-fuchsia-500/40 bg-fuchsia-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-fuchsia-300">
+                  Galaxy S26 Ultra Logic
+                </span>
+              </div>
               <p className="font-body text-xs text-on-surface-variant">
-                100% on-device AI automatically detects & erases DALL-E, Bing, & AI generator logos.
+                Auto-detects watermarks and generatively reconstructs photo-matching background & subject texture.
               </p>
             </div>
           </div>
@@ -367,12 +423,17 @@ export function WatermarkRemover() {
               {isDragOver ? "Drop image here to erase" : "Drag & drop image here"}
             </p>
             <p className="font-body text-xs text-on-surface-variant/80">
-              Drop any DALL-E, Midjourney, Bing, or AI generated image to erase watermarks instantly
+              Drop any DALL-E, Midjourney, Bing, Meta AI, or AI image to auto-detect & generatively reconstruct
             </p>
           </div>
-          <span className="rounded-full border border-outline-variant/50 bg-surface-container-highest px-4 py-1.5 font-mono text-[11px] uppercase tracking-wider text-on-surface-variant">
-            Zero clicks · 100% On-Device AI
-          </span>
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <span className="rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-fuchsia-300">
+              Generative Subject Synthesis
+            </span>
+            <span className="rounded-full border border-outline-variant/50 bg-surface-container-highest px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-on-surface-variant">
+              100% On-Device · Works in Web & APK
+            </span>
+          </div>
         </div>
       )}
 
@@ -380,9 +441,9 @@ export function WatermarkRemover() {
       {imageFile && (originalSrc || cleanedSrc) && (
         <div className="flex flex-1 flex-col gap-4">
           {/* Controls Bar & View Switcher */}
-          <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+          <div className="flex flex-col gap-3 rounded-xl border border-outline-variant/50 bg-surface-container-low p-3 sm:flex-row sm:items-center sm:justify-between">
             {/* View Mode Selector */}
-            <div className="flex items-center gap-1 rounded-xl border border-outline-variant/60 bg-surface-container-low p-1 text-xs">
+            <div className="flex items-center gap-1 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-1 text-xs">
               <button
                 onClick={() => setViewMode("compare")}
                 className={cn(
@@ -418,43 +479,87 @@ export function WatermarkRemover() {
               </button>
             </div>
 
-            {/* AI Zone Selector (Override if needed) */}
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-[11px] text-on-surface-variant">Target Zone:</span>
-              <div className="flex items-center gap-1 rounded-xl border border-outline-variant/60 bg-surface-container-low p-1 text-xs">
-                {(
-                  [
-                    { id: "auto", label: "Auto (Smart AI)" },
-                    { id: "bottom-right", label: "Bottom-Right" },
-                    { id: "bottom-left", label: "Bottom-Left" },
-                    { id: "top-right", label: "Top-Right" },
-                  ] as const
-                ).map((z) => (
-                  <button
-                    key={z.id}
-                    disabled={isProcessing}
-                    onClick={() => handleZoneChange(z.id)}
-                    className={cn(
-                      "rounded-lg px-2.5 py-1 font-mono text-[11px] transition-colors disabled:opacity-50",
-                      selectedZone === z.id
-                        ? "bg-fuchsia-600 text-white font-semibold"
-                        : "text-on-surface-variant hover:text-on-surface"
-                    )}
-                  >
-                    {z.label}
-                  </button>
-                ))}
+            {/* Generative Coverage & AI Zone Controls */}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono text-[10px] uppercase text-on-surface-variant">Zone:</span>
+                <div className="flex items-center gap-1 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-1 text-xs">
+                  {(
+                    [
+                      { id: "auto", label: "✨ Auto" },
+                      { id: "bottom-right", label: "↘ BR" },
+                      { id: "bottom-left", label: "↙ BL" },
+                      { id: "top-right", label: "↗ TR" },
+                      { id: "bottom-banner", label: "Banner" },
+                    ] as const
+                  ).map((z) => (
+                    <button
+                      key={z.id}
+                      disabled={isProcessing}
+                      onClick={() => handleZoneChange(z.id)}
+                      className={cn(
+                        "rounded-lg px-2.5 py-1 font-mono text-[11px] transition-colors disabled:opacity-50",
+                        selectedZone === z.id
+                          ? "bg-fuchsia-600 text-white font-semibold shadow-sm"
+                          : "text-on-surface-variant hover:text-on-surface"
+                      )}
+                    >
+                      {z.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono text-[10px] uppercase text-on-surface-variant">Coverage:</span>
+                <div className="flex items-center gap-1 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-1 text-xs">
+                  {(
+                    [
+                      { id: "tight", label: "Tight" },
+                      { id: "balanced", label: "Balanced" },
+                      { id: "expand", label: "Expand" },
+                    ] as const
+                  ).map((c) => (
+                    <button
+                      key={c.id}
+                      disabled={isProcessing}
+                      onClick={() => handleCoverageChange(c.id)}
+                      className={cn(
+                        "rounded-lg px-2 py-1 font-mono text-[10px] transition-colors disabled:opacity-50",
+                        coverage === c.id
+                          ? "bg-fuchsia-500/30 text-fuchsia-300 font-semibold"
+                          : "text-on-surface-variant hover:text-on-surface"
+                      )}
+                    >
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
+          </div>
+
+          {/* Interactive Tap Hint */}
+          <div className="flex items-center justify-between px-2 text-[11px] text-on-surface-variant font-mono">
+            <span className="flex items-center gap-1.5">
+              <Crosshair className="size-3.5 text-fuchsia-400" />
+              Tip: Tap or click anywhere on the photo to pinpoint & erase custom watermarks/objects
+            </span>
+            {imageDimensions && (
+              <span className="opacity-70">
+                {imageDimensions.w} × {imageDimensions.h} px
+              </span>
+            )}
           </div>
 
           {/* Main Visual Display */}
           <div
             ref={containerRef}
+            onClick={handleImageClick}
             onPointerDown={viewMode === "compare" ? handlePointerDown : undefined}
             className={cn(
-              "relative flex flex-1 select-none items-center justify-center overflow-hidden rounded-2xl border border-outline-variant/60 bg-black/60 p-2 shadow-2xl min-h-[420px]",
-              viewMode === "compare" ? "cursor-ew-resize" : ""
+              "relative flex flex-1 select-none items-center justify-center overflow-hidden rounded-2xl border border-outline-variant/60 bg-black/70 p-2 shadow-2xl min-h-[440px]",
+              viewMode === "compare" ? "cursor-ew-resize" : "cursor-crosshair"
             )}
           >
             {/* AI Radar / Scanner Overlay when processing */}
@@ -464,7 +569,7 @@ export function WatermarkRemover() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-black/70 backdrop-blur-sm"
+                  className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-black/75 backdrop-blur-md"
                 >
                   <div className="relative grid size-16 place-items-center">
                     <span className="absolute inset-0 animate-ping rounded-full bg-fuchsia-500/20" />
@@ -472,10 +577,10 @@ export function WatermarkRemover() {
                   </div>
                   <div className="text-center">
                     <p className="font-headline text-sm font-bold text-white tracking-wide">
-                      AI SCANNING & ERASING WATERMARK…
+                      GENERATIVE AI RECONSTRUCTING BACKGROUND…
                     </p>
                     <p className="mt-1 font-mono text-xs text-fuchsia-300">
-                      Detecting logo contours & applying content-aware inpainting
+                      Analyzing surrounding photo texture, structural lines & gradient continuity
                     </p>
                   </div>
                 </motion.div>
@@ -485,6 +590,7 @@ export function WatermarkRemover() {
             {/* 1. Cleaned Mode */}
             {viewMode === "cleaned" && cleanedSrc && (
               <img
+                ref={imageElementRef}
                 src={cleanedSrc}
                 alt="Cleaned Result"
                 className="max-h-[68vh] max-w-full rounded-xl border border-outline-variant/30 object-contain shadow-2xl"
@@ -495,6 +601,7 @@ export function WatermarkRemover() {
             {viewMode === "original" && originalSrc && (
               <div className="relative">
                 <img
+                  ref={imageElementRef}
                   src={originalSrc}
                   alt="Original Image"
                   className="max-h-[68vh] max-w-full rounded-xl border border-outline-variant/30 object-contain shadow-2xl"
@@ -510,8 +617,9 @@ export function WatermarkRemover() {
             {/* 3. Interactive Split Comparison Mode */}
             {viewMode === "compare" && originalSrc && cleanedSrc && (
               <div className="relative max-h-[68vh] max-w-full overflow-hidden rounded-xl border border-outline-variant/30 shadow-2xl">
-                {/* Cleaned Image (Base) */}
+                {/* Cleaned Image (Base Layer) */}
                 <img
+                  ref={imageElementRef}
                   src={cleanedSrc}
                   alt="Cleaned"
                   className="max-h-[68vh] w-auto max-w-full object-contain pointer-events-none"
@@ -527,13 +635,13 @@ export function WatermarkRemover() {
                     alt="Original"
                     className="max-h-[68vh] w-auto max-w-none object-contain"
                   />
-                  <div className="absolute top-3 left-3 rounded-md bg-black/70 px-2 py-0.5 font-mono text-[10px] font-semibold text-white/90 backdrop-blur-sm">
+                  <div className="absolute top-3 left-3 rounded-md bg-black/75 px-2 py-0.5 font-mono text-[10px] font-semibold text-white/90 backdrop-blur-sm">
                     BEFORE (ORIGINAL)
                   </div>
                 </div>
 
-                <div className="absolute top-3 right-3 rounded-md bg-fuchsia-600/80 px-2 py-0.5 font-mono text-[10px] font-semibold text-white backdrop-blur-sm pointer-events-none">
-                  AFTER (AI ERASED)
+                <div className="absolute top-3 right-3 rounded-md bg-fuchsia-600/85 px-2 py-0.5 font-mono text-[10px] font-semibold text-white backdrop-blur-sm pointer-events-none">
+                  AFTER (GENERATIVE ERASED)
                 </div>
 
                 {/* Slider Handle Line */}
@@ -560,7 +668,7 @@ export function WatermarkRemover() {
                   </span>
                 </div>
                 <p className="font-body text-[11px] text-on-surface-variant">
-                  Close-up view of the watermark before and after on-device content-aware inpainting.
+                  Close-up view of the photo-matching generative background synthesis.
                 </p>
               </div>
 
@@ -589,7 +697,7 @@ export function WatermarkRemover() {
                     />
                   </div>
                   <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-400 font-semibold">
-                    Cleaned
+                    Synthesized
                   </span>
                 </div>
               </div>
