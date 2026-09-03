@@ -53,31 +53,31 @@ function StatChip({
   return (
     <div
       className={cn(
-        "panel-hud flex items-center gap-3 rounded-xl px-4 py-3",
-        isNative && "gap-2.5 px-3 py-2.5"
+        "panel-hud flex items-center gap-2.5 sm:gap-3 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3",
+        isNative && "gap-2 sm:gap-2.5 md:gap-3 px-2.5 py-2 sm:px-3 sm:py-2.5 md:px-4 md:py-3"
       )}
     >
       <div
         className={cn(
-          `grid size-9 shrink-0 place-items-center rounded-lg border ${tone}`,
-          isNative && "size-8"
+          `grid size-8 sm:size-9 shrink-0 place-items-center rounded-lg border ${tone}`,
+          isNative && "size-7 sm:size-8 md:size-9"
         )}
       >
-        <Icon className="size-4" strokeWidth={1.75} />
+        <Icon className="size-3.5 sm:size-4" strokeWidth={1.75} />
       </div>
       <div className="min-w-0 flex-1">
         <p
           className={cn(
-            "font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground truncate",
-            isNative && "tracking-[0.12em]"
+            "font-mono text-[8.5px] sm:text-[9px] uppercase tracking-[0.12em] sm:tracking-[0.18em] text-muted-foreground truncate",
+            isNative && "tracking-[0.08em] sm:tracking-[0.12em]"
           )}
         >
           {label}
         </p>
         <p
           className={cn(
-            "truncate font-mono text-sm font-semibold text-foreground",
-            isNative && "text-xs font-bold"
+            "truncate font-mono text-xs sm:text-sm font-semibold text-foreground",
+            isNative && "text-[11px] sm:text-xs md:text-sm font-bold"
           )}
         >
           {value}
@@ -195,8 +195,8 @@ export function DashboardView() {
         custom={0.3}
         className={cn(
           isNative
-            ? "grid grid-cols-2 gap-2.5"
-            : "grid grid-cols-1 sm:grid-cols-2 gap-3 lg:grid-cols-4"
+            ? "grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5 md:gap-3"
+            : "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 lg:grid-cols-4"
         )}
       >
         <StatChip

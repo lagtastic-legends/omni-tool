@@ -48,29 +48,29 @@ export function TopBar() {
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
       className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl"
     >
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-2 sm:gap-3 px-3 sm:px-6">
         {/* Brand */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
             <motion.div
               initial={{ rotate: -90, opacity: 0 }}
               animate={{ rotate: 0, opacity: 1 }}
               transition={{ type: "spring", stiffness: 260, damping: 18 }}
-              className="relative grid size-10 place-items-center rounded-xl border border-primary/40 overflow-hidden glow-box-violet"
+              className="relative grid size-9 sm:size-10 place-items-center rounded-xl border border-primary/40 overflow-hidden glow-box-violet"
             >
               <img src="/logo.jpg" alt="Omni Tool" className="w-full h-full object-cover" />
             </motion.div>
           <div className="flex flex-col leading-none">
-            <span className="font-display text-sm font-bold tracking-[0.32em] text-foreground">
+            <span className="font-display text-xs sm:text-sm font-bold tracking-[0.24em] sm:tracking-[0.32em] text-foreground">
               OMNI&nbsp;TOOL
             </span>
-            <span className="mt-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+            <span className="mt-0.5 hidden font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground sm:block">
               client-side media suite
             </span>
           </div>
         </div>
 
         {/* Status cluster */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           {/* auth state chip */}
           {mode === "unconfigured" ? (
             <div
@@ -85,9 +85,10 @@ export function TopBar() {
           ) : null}
 
           <div
-            className="flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3 py-1.5"
+            className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-border/70 bg-card/60 px-2.5 sm:px-3 py-1.5"
             role="status"
             aria-live="polite"
+            title={`Engine Status: ${meta.label}`}
           >
             <motion.span
               animate={
@@ -105,7 +106,7 @@ export function TopBar() {
               }`}
             />
             <span
-              className={`font-mono text-[10px] font-medium uppercase tracking-[0.18em] ${meta.textClass}`}
+              className={`hidden sm:inline font-mono text-[10px] font-medium uppercase tracking-[0.18em] ${meta.textClass}`}
             >
               {meta.label}
             </span>
@@ -115,9 +116,9 @@ export function TopBar() {
           <SearchPalette />
 
           {user ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <div
-                className="flex items-center gap-2 rounded-full border border-pulse/30 bg-pulse/10 px-2.5 py-1.5"
+                className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-pulse/30 bg-pulse/10 px-2 sm:px-2.5 py-1 sm:py-1.5"
                 title={user.email ?? "authenticated"}
               >
                 {user.photoURL && !imgError ? (
@@ -133,7 +134,7 @@ export function TopBar() {
                     {(user.displayName ?? user.email ?? "?").charAt(0).toUpperCase()}
                   </span>
                 )}
-                <span className="max-w-24 truncate font-mono text-[10px] text-pulse">
+                <span className="hidden xs:inline sm:inline max-w-16 sm:max-w-24 truncate font-mono text-[10px] text-pulse">
                   {(user.displayName ?? user.email ?? "user").split(" ")[0]}
                 </span>
               </div>
@@ -141,7 +142,7 @@ export function TopBar() {
                 onClick={() => void signOut()}
                 aria-label="Sign out"
                 title="Sign out"
-                className="grid size-8 place-items-center rounded-lg border border-border/70 text-muted-foreground transition-colors hover:border-red-400/40 hover:text-red-300"
+                className="grid size-7 sm:size-8 place-items-center rounded-lg border border-border/70 text-muted-foreground transition-colors hover:border-red-400/40 hover:text-red-300"
               >
                 <LogOut className="size-3.5" />
               </button>

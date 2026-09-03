@@ -41,7 +41,7 @@ export function StickyMobileCta() {
         exit={{ y: 80, opacity: 0 }}
         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
         aria-label="Mobile Quick Actions"
-        className="fixed bottom-0 left-0 right-0 z-30 sm:hidden border-t border-border/80 bg-background/85 backdrop-blur-xl px-4 pt-2.5 pb-[calc(env(safe-area-inset-bottom)+0.6rem)] shadow-[0_-8px_24px_rgba(0,0,0,0.35)]"
+        className="fixed bottom-0 left-0 right-0 z-30 sm:hidden border-t border-border/80 bg-background/85 backdrop-blur-xl px-3 sm:px-4 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.6rem)] pl-[calc(env(safe-area-inset-left)+0.75rem)] pr-[calc(env(safe-area-inset-right)+0.75rem)] shadow-[0_-8px_24px_rgba(0,0,0,0.35)]"
       >
         <div className="mx-auto flex max-w-md items-center justify-between gap-2">
           {/* Quick Tool Explorer CTA */}

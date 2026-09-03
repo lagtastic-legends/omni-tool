@@ -41,30 +41,30 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
   return (
     <div className="space-y-6">
       {/* header ---------------------------------------------------------- */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
         <motion.button
           type="button"
           onClick={() => reset()}
           whileHover={{ x: -3 }}
           whileTap={{ scale: 0.96 }}
           aria-label="Back to dashboard"
-          className="flex w-fit min-h-11 items-center gap-2 rounded-xl border border-border/70 bg-card/50 px-4 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          className="flex w-fit min-h-10 sm:min-h-11 items-center gap-1.5 sm:gap-2 rounded-xl border border-border/70 bg-card/50 px-3 sm:px-4 font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" />
-            back
+          back
         </motion.button>
 
-        <div className="flex flex-1 items-center gap-4">
+        <div className="flex flex-1 items-center gap-3 sm:gap-4">
           <div
-            className={`grid size-12 shrink-0 place-items-center rounded-xl border ${accent.tile}`}
+            className={`grid size-10 sm:size-12 shrink-0 place-items-center rounded-xl border ${accent.tile}`}
           >
-            <Icon className="size-6" strokeWidth={1.75} />
+            <Icon className="size-5 sm:size-6" strokeWidth={1.75} />
           </div>
           <div className="min-w-0">
-            <h1 className="font-display text-xl font-bold tracking-wide text-foreground sm:text-2xl">
+            <h1 className="font-display text-lg sm:text-xl md:text-2xl font-bold tracking-wide text-foreground">
               {tool.name}
             </h1>
-            <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm">
+            <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm line-clamp-2 sm:line-clamp-none">
               {tool.description}
             </p>
           </div>
