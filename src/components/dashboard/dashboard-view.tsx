@@ -7,7 +7,7 @@
 
 import { motion } from "framer-motion";
 import { Activity, Boxes, Database, FileAudio, FileImage, FileText, FileVideo, Files, Timer } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { OmniRecorder } from "@/lib/native-recorder";
 import { EngineBootPanel } from "@/components/engine/engine-boot-panel";
@@ -17,6 +17,7 @@ import { formatBytes } from "@/lib/format";
 import { useNavStore } from "@/lib/navigation/nav-store";
 import { getOnlineTools, TOOL_REGISTRY } from "@/lib/tools/registry";
 import { useVault } from "@/lib/vault/vault-context";
+import { cn } from "@/lib/utils";
 import type { VaultKind } from "@/lib/vault/vault-db";
 
 const fadeUp = {
@@ -41,20 +42,46 @@ function StatChip({
   label,
   value,
   tone,
+  isNative,
 }: {
   icon: typeof Activity;
   label: string;
   value: string;
   tone: string;
+  isNative?: boolean;
 }) {
   return (
-    <div className="panel-hud flex items-center gap-3 rounded-xl px-4 py-3">
-      <div className={`grid size-9 shrink-0 place-items-center rounded-lg border ${tone}`}>
+    <div
+      className={cn(
+        "panel-hud flex items-center gap-3 rounded-xl px-4 py-3",
+        isNative && "gap-2.5 px-3 py-2.5"
+      )}
+    >
+      <div
+        className={cn(
+          `grid size-9 shrink-0 place-items-center rounded-lg border ${tone}`,
+          isNative && "size-8"
+        )}
+      >
         <Icon className="size-4" strokeWidth={1.75} />
       </div>
-      <div className="min-w-0">
-        <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">{label}</p>
-        <p className="truncate font-mono text-sm font-semibold text-foreground">{value}</p>
+      <div className="min-w-0 flex-1">
+        <p
+          className={cn(
+            "font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground truncate",
+            isNative && "tracking-[0.12em]"
+          )}
+        >
+          {label}
+        </p>
+        <p
+          className={cn(
+            "truncate font-mono text-sm font-semibold text-foreground",
+            isNative && "text-xs font-bold"
+          )}
+        >
+          {value}
+        </p>
       </div>
     </div>
   );
@@ -64,6 +91,18 @@ export function DashboardView() {
   const { state, bootMs } = useFFmpegEngine();
   const { items, totalBytes } = useVault();
   const navigate = useNavStore((s) => s.navigate);
+
+  const [isNative, setIsNative] = useState(() => {
+    if (process.env.NEXT_PUBLIC_MOBILE_EXPORT === "1") return true;
+    if (typeof window !== "undefined") return Capacitor.isNativePlatform?.() === true;
+    return false;
+  });
+
+  useEffect(() => {
+    if (Capacitor.isNativePlatform?.()) {
+      setIsNative(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (Capacitor.isNativePlatform()) {
@@ -121,19 +160,25 @@ export function DashboardView() {
         initial="hidden"
         animate="show"
         custom={0.3}
-        className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:grid-cols-4"
+        className={cn(
+          isNative
+            ? "grid grid-cols-2 gap-2.5"
+            : "grid grid-cols-1 sm:grid-cols-2 gap-3 lg:grid-cols-4"
+        )}
       >
         <StatChip
           icon={Boxes}
           label="live modules"
           value={`${onlineCount} / ${TOOL_REGISTRY.length}`}
           tone="border-primary/30 bg-primary/10 text-primary"
+          isNative={isNative}
         />
         <StatChip
           icon={Database}
           label="vaulted files"
           value={items.length === 0 ? "empty" : `${items.length} · ${formatBytes(totalBytes)}`}
           tone="border-neon/30 bg-neon/10 text-neon"
+          isNative={isNative}
         />
         <StatChip
           icon={Activity}
@@ -144,12 +189,14 @@ export function DashboardView() {
               ? "border-pulse/30 bg-pulse/10 text-pulse"
               : "border-amber-400/30 bg-amber-500/10 text-amber-300"
           }
+          isNative={isNative}
         />
         <StatChip
           icon={Timer}
           label="last boot"
           value={bootMs !== null ? `${(bootMs / 1000).toFixed(2)} s` : "—"}
           tone="border-plasma/30 bg-plasma/10 text-plasma"
+          isNative={isNative}
         />
       </motion.div>
 

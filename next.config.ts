@@ -22,6 +22,9 @@ const COOP_COEP_HEADERS = [
 
 const isMobileExport = process.env.MOBILE_EXPORT === "1";
 const nextConfig: NextConfig = {
+  env: {
+    NEXT_PUBLIC_MOBILE_EXPORT: process.env.MOBILE_EXPORT || "",
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
