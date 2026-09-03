@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { EB_Garamond, Geist_Mono, Manrope, Orbitron, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { CookieBanner } from "@/components/shell/cookie-banner";
+import { AnalyticsProvider } from "@/components/shell/analytics-provider";
 
 const ebGaramond = EB_Garamond({
   variable: "--font-eb-garamond",
@@ -144,7 +146,9 @@ export default function RootLayout({
       <body
         className={`${orbitron.variable} ${spaceGrotesk.variable} ${geistMono.variable} ${ebGaramond.variable} ${manrope.variable} antialiased bg-background text-foreground min-h-screen pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]`}
       >
+        <AnalyticsProvider />
         {children}
+        <CookieBanner />
         <Toaster />
       </body>
     </html>
