@@ -84,7 +84,7 @@ export function AuthGateway() {
                 {user.photoURL && !imgError ? (
                   <img
                     src={user.photoURL}
-                    alt=""
+                    alt={user.displayName ? `${user.displayName}'s profile avatar` : "User profile avatar"}
                     className="size-12 rounded-full border border-pulse/40"
                     onError={() => setImgError(true)}
                     referrerPolicy="no-referrer"

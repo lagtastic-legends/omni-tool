@@ -123,7 +123,7 @@ export function TopBar() {
                 {user.photoURL && !imgError ? (
                   <img
                     src={user.photoURL}
-                    alt=""
+                    alt={user.displayName ? `${user.displayName}'s profile avatar` : "User profile avatar"}
                     className="size-4 rounded-full"
                     onError={() => setImgError(true)}
                     referrerPolicy="no-referrer"
