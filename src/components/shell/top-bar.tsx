@@ -36,10 +36,10 @@ const STATE_META: Record<
 };
 
 export function TopBar() {
-  const { state, capabilities } = useFFmpegEngine();
+  const { state } = useFFmpegEngine();
   const { mode, user, signOut, isNative } = useAuth();
   const [imgError, setImgError] = useState(false);
-  const meta = STATE_META[state];;
+  const meta = STATE_META[state];
 
   return (
     <motion.header
@@ -82,60 +82,7 @@ export function TopBar() {
                 open mode
               </span>
             </div>
-          ) : user ? (
-            <div className="flex items-center gap-2">
-              <div
-                className="flex items-center gap-2 rounded-full border border-pulse/30 bg-pulse/10 px-2.5 py-1.5"
-                title={user.email ?? "authenticated"}
-              >
-                {user.photoURL && !imgError ? (
-                   
-                  <img
-                    src={user.photoURL}
-                    alt=""
-                    className="size-4 rounded-full"
-                      onError={() => setImgError(true)}
-                      referrerPolicy="no-referrer"
-                    
-                  />
-                ) : (
-                  <span className="grid size-4 place-items-center rounded-full bg-pulse/30 font-mono text-[9px] font-bold text-pulse">
-                    {(user.displayName ?? user.email ?? "?").charAt(0).toUpperCase()}
-                  </span>
-                )}
-                <span className="max-w-24 truncate font-mono text-[10px] text-pulse">
-                  {(user.displayName ?? user.email ?? "user").split(" ")[0]}
-                </span>
-              </div>
-              <button
-                onClick={() => void signOut()}
-                aria-label="Sign out"
-                title="Sign out"
-                className="grid size-8 place-items-center rounded-lg border border-border/70 text-muted-foreground transition-colors hover:border-red-400/40 hover:text-red-300"
-              >
-                <LogOut className="size-3.5" />
-              </button>
-            </div>
           ) : null}
-          <div
-            className="hidden items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3 py-1.5 md:flex"
-            title={
-              capabilities.crossOriginIsolated
-                ? "Cross-origin isolation is active — SharedArrayBuffer available"
-                : "Not isolated — single-threaded WASM core in use (still fully functional)"
-            }
-          >
-            <span
-              className={`size-1.5 rounded-full ${
-                capabilities.crossOriginIsolated
-                  ? "bg-neon shadow-[0_0_8px_oklch(0.82_0.12_205/0.9)]"
-                  : "bg-muted-foreground/60"
-              }`}
-            />
-            <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-              {capabilities.crossOriginIsolated ? "COI locked" : "COI open"}
-            </span>
-          </div>
 
           <div
             className="flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3 py-1.5"
@@ -166,6 +113,40 @@ export function TopBar() {
 
           <ThemeToggle />
           <SearchPalette />
+
+          {user ? (
+            <div className="flex items-center gap-2">
+              <div
+                className="flex items-center gap-2 rounded-full border border-pulse/30 bg-pulse/10 px-2.5 py-1.5"
+                title={user.email ?? "authenticated"}
+              >
+                {user.photoURL && !imgError ? (
+                  <img
+                    src={user.photoURL}
+                    alt=""
+                    className="size-4 rounded-full"
+                    onError={() => setImgError(true)}
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <span className="grid size-4 place-items-center rounded-full bg-pulse/30 font-mono text-[9px] font-bold text-pulse">
+                    {(user.displayName ?? user.email ?? "?").charAt(0).toUpperCase()}
+                  </span>
+                )}
+                <span className="max-w-24 truncate font-mono text-[10px] text-pulse">
+                  {(user.displayName ?? user.email ?? "user").split(" ")[0]}
+                </span>
+              </div>
+              <button
+                onClick={() => void signOut()}
+                aria-label="Sign out"
+                title="Sign out"
+                className="grid size-8 place-items-center rounded-lg border border-border/70 text-muted-foreground transition-colors hover:border-red-400/40 hover:text-red-300"
+              >
+                <LogOut className="size-3.5" />
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
     </motion.header>
