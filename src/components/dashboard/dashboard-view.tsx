@@ -6,7 +6,7 @@
  */
 
 import { motion } from "framer-motion";
-import { Activity, Boxes, Database, FileAudio, FileImage, FileText, FileVideo, Files, Timer } from "lucide-react";
+import { Activity, ArrowDown, Boxes, Database, FileAudio, FileImage, FileText, FileVideo, Files, Sparkles, Timer } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { OmniRecorder } from "@/lib/native-recorder";
@@ -116,7 +116,7 @@ export function DashboardView() {
   return (
     <div className="flex flex-col gap-10">
       {/* hero ------------------------------------------------------------ */}
-      <section className="space-y-5 text-center">
+      <section className="space-y-5 text-center pt-2 sm:pt-4">
         <motion.p
           variants={fadeUp}
           initial="hidden"
@@ -132,7 +132,7 @@ export function DashboardView() {
           initial="hidden"
           animate="show"
           custom={0.15}
-          className="font-display text-4xl font-black uppercase leading-[1.05] tracking-tight text-foreground sm:text-6xl"
+          className="font-display text-3xl sm:text-5xl lg:text-6xl font-black uppercase leading-[1.05] tracking-tight text-foreground"
         >
           One toolkit.
           <br />
@@ -146,12 +146,45 @@ export function DashboardView() {
           initial="hidden"
           animate="show"
           custom={0.25}
-          className="mx-auto max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base"
+          className="mx-auto max-w-xl text-xs sm:text-sm md:text-base leading-relaxed text-muted-foreground px-2"
         >
           Convert video, engineer audio, forge documents, capture your screen and
           vault the results — all processed locally by a WebAssembly engine that
           never ships a byte to a server.
         </motion.p>
+
+        {/* Above-the-fold Primary CTAs */}
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          custom={0.28}
+          className="mx-auto flex flex-wrap items-center justify-center gap-3 pt-2"
+        >
+          <button
+            type="button"
+            onClick={() => {
+              const el = document.getElementById("tool-matrix");
+              if (el) {
+                el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }
+            }}
+            className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 sm:px-8 font-display text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
+          >
+            <Sparkles className="size-4" />
+            <span>Explore Toolkit</span>
+            <ArrowDown className="size-3.5 opacity-70" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate("vault")}
+            className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-border/80 bg-card/60 px-5 sm:px-6 font-mono text-xs font-semibold text-foreground backdrop-blur-md transition-all duration-200 hover:border-primary/40 hover:bg-card/80 active:scale-[0.98]"
+          >
+            <Database className="size-4 text-neon" />
+            <span>Open Vault</span>
+          </button>
+        </motion.div>
       </section>
 
       {/* suite stats ------------------------------------------------------ */}
@@ -269,7 +302,7 @@ export function DashboardView() {
       )}
 
       {/* tool matrix ------------------------------------------------------ */}
-      <motion.div variants={fadeUp} initial="hidden" animate="show" custom={0.55}>
+      <motion.div id="tool-matrix" variants={fadeUp} initial="hidden" animate="show" custom={0.55}>
         <ToolGrid />
       </motion.div>
     </div>

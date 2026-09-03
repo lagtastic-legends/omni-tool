@@ -12,6 +12,7 @@ import { AuthGuard } from "@/components/auth/auth-guard";
 import { AuroraBackground } from "@/components/shell/aurora-background";
 import { AppFooter } from "@/components/shell/footer";
 import { TopBar } from "@/components/shell/top-bar";
+import { StickyMobileCta } from "@/components/shell/sticky-mobile-cta";
 import AskOmni from "@/components/AskOmni";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 import { GifMaker } from "@/components/tools/gif-maker";
@@ -148,6 +149,7 @@ export function AppShell() {
         </AnimatePresence>
       </main>
 
+      <StickyMobileCta />
       <AppFooter />
     </div>
   );
