@@ -1,202 +1,298 @@
 "use client";
 
-import { useState, useRef, useEffect, ChangeEvent } from "react";
-import { Upload, Download, Eraser, Image as ImageIcon, MousePointer2 } from "lucide-react";
+import { useState, useRef, useEffect, ChangeEvent, DragEvent, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Upload,
+  Download,
+  Eraser,
+  Sparkles,
+  Database,
+  Check,
+  RefreshCw,
+  Eye,
+  SlidersHorizontal,
+  ImagePlus,
+  ShieldCheck,
+  Scan,
+  Zap,
+  Split,
+  ChevronRight,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
-import { fetchFile } from "@ffmpeg/util";
+import { cn } from "@/lib/utils";
+import { formatBytes } from "@/lib/format";
+import { useVault } from "@/lib/vault/vault-context";
+import {
+  detectAiWatermark,
+  eraseWatermarkFromCanvas,
+  createRegionThumbnail,
+  type WatermarkZone,
+  type DetectedWatermark,
+  type BoundingBox,
+} from "@/lib/imaging/ai-watermark";
 
 export function WatermarkRemover() {
-  const { state: engineState, engine, boot } = useFFmpegEngine();
   const { toast } = useToast();
+  const { save } = useVault();
 
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [resultSrc, setResultSrc] = useState<string | null>(null);
-  
+  const [originalSrc, setOriginalSrc] = useState<string | null>(null);
+  const [cleanedSrc, setCleanedSrc] = useState<string | null>(null);
+  const [cleanedBlob, setCleanedBlob] = useState<Blob | null>(null);
+
+  const [detection, setDetection] = useState<DetectedWatermark | null>(null);
+  const [selectedZone, setSelectedZone] = useState<WatermarkZone>("auto");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [processingTimeMs, setProcessingTimeMs] = useState<number | null>(null);
+
+  // Comparison & View State
+  const [viewMode, setViewMode] = useState<"compare" | "cleaned" | "original">("compare");
+  const [sliderPos, setSliderPos] = useState<number>(50); // 0 to 100%
+  const [isDraggingSlider, setIsDraggingSlider] = useState(false);
+
+  // Vault state
+  const [vaultState, setVaultState] = useState<"idle" | "saved">("idle");
+  const [isDragOver, setIsDragOver] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Box selection state
-  const [isDragging, setIsDragging] = useState(false);
-  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-  const [box, setBox] = useState<{ x: number, y: number, w: number, h: number } | null>(null);
-  const [imageScale, setImageScale] = useState({ scaleX: 1, scaleY: 1 });
+  /**
+   * Automatically scans and erases the watermark from the image
+   */
+  const processImageAuto = useCallback(
+    async (file: File, zone: WatermarkZone = "auto") => {
+      setIsProcessing(true);
+      setIsScanning(true);
+      setVaultState("idle");
+      const startTime = performance.now();
 
-  // Initialize engine if not ready
-  useEffect(() => {
-    if (engineState === "idle" || engineState === "standby") {
-      boot().catch(console.error);
+      try {
+        const url = URL.createObjectURL(file);
+        setOriginalSrc(url);
+
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error("Failed to load image into memory"));
+          img.src = url;
+        });
+
+        // 1. AI Automatic Detection
+        const detected = detectAiWatermark(img, zone);
+        setDetection(detected);
+
+        // Brief delay for visual HUD scanning state
+        await new Promise((r) => setTimeout(r, 220));
+        setIsScanning(false);
+
+        // 2. High-precision Inpainting
+        const workCanvas = document.createElement("canvas");
+        workCanvas.width = img.naturalWidth;
+        workCanvas.height = img.naturalHeight;
+        const ctx = workCanvas.getContext("2d", { willReadFrequently: true });
+        if (!ctx) throw new Error("Could not initialize 2D canvas");
+
+        ctx.drawImage(img, 0, 0);
+
+        // Capture original zoomed thumbnail of the watermark area before erasing
+        const originalThumb = createRegionThumbnail(workCanvas, detected.box, 16);
+
+        // Run Content-Aware Inpainting
+        eraseWatermarkFromCanvas(workCanvas, detected.box, {
+          padding: 8,
+          grainMatch: true,
+        });
+
+        // Capture cleaned thumbnail of the repaired area
+        const cleanedThumb = createRegionThumbnail(workCanvas, detected.box, 16);
+
+        detected.originalThumbnail = originalThumb;
+        detected.cleanedThumbnail = cleanedThumb;
+        setDetection({ ...detected });
+
+        // Export result
+        const blob = await new Promise<Blob | null>((resolve) => {
+          workCanvas.toBlob(
+            (b) => resolve(b),
+            file.type === "image/png" ? "image/png" : "image/jpeg",
+            0.96
+          );
+        });
+
+        if (!blob) throw new Error("Failed to generate image blob");
+
+        const resultUrl = URL.createObjectURL(blob);
+        setCleanedSrc(resultUrl);
+        setCleanedBlob(blob);
+
+        const elapsed = Math.round(performance.now() - startTime);
+        setProcessingTimeMs(elapsed);
+
+        toast({
+          title: "AI Watermark Erased",
+          description: `${detected.label} automatically removed in ${elapsed}ms.`,
+        });
+      } catch (err: any) {
+        console.error("AI Watermark error:", err);
+        toast({
+          title: "Processing Failed",
+          description: err?.message || "Could not process image.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsProcessing(false);
+        setIsScanning(false);
+      }
+    },
+    [toast]
+  );
+
+  const handleFile = (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Invalid file",
+        description: "Please select a JPG, PNG, or WebP image.",
+        variant: "destructive",
+      });
+      return;
     }
-  }, [engineState, boot]);
+    setImageFile(file);
+    processImageAuto(file, selectedZone);
+  };
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith("image/")) {
-      toast({ title: "Invalid file", description: "Please upload an image.", variant: "destructive" });
-      return;
-    }
-
-    setImageFile(file);
-    setResultSrc(null);
-    setBox(null);
-    
-    const url = URL.createObjectURL(file);
-    setImageSrc(url);
+    if (file) handleFile(file);
   };
 
-  const drawCanvas = (imgSrc: string) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    const img = new Image();
-    img.onload = () => {
-      // Fit to container width while maintaining aspect ratio
-      const containerWidth = canvas.parentElement?.clientWidth || 800;
-      const maxWidth = Math.min(containerWidth - 32, 800); 
-      let drawWidth = img.width;
-      let drawHeight = img.height;
-
-      if (img.width > maxWidth) {
-        drawWidth = maxWidth;
-        drawHeight = (img.height / img.width) * maxWidth;
-      }
-
-      canvas.width = drawWidth;
-      canvas.height = drawHeight;
-
-      // Track scale for FFmpeg coordinates mapping
-      setImageScale({
-        scaleX: img.width / drawWidth,
-        scaleY: img.height / drawHeight
-      });
-
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.drawImage(img, 0, 0, drawWidth, drawHeight);
-
-      if (box) {
-        ctx.strokeStyle = "#ff0055"; // neon pink
-        ctx.lineWidth = 2;
-        ctx.setLineDash([5, 5]);
-        ctx.strokeRect(box.x, box.y, box.w, box.h);
-        ctx.fillStyle = "rgba(255, 0, 85, 0.2)";
-        ctx.fillRect(box.x, box.y, box.w, box.h);
-      }
-    };
-    img.src = imgSrc;
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(true);
   };
 
-  useEffect(() => {
-    if (imageSrc && !resultSrc) {
-      drawCanvas(imageSrc);
-    }
-  }, [imageSrc, box, resultSrc]);
-
-  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (resultSrc) return; // Prevent selection on result
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    setStartPos({ x, y });
-    setBox({ x, y, w: 0, h: 0 });
-    setIsDragging(true);
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
   };
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
-    if (!isDragging) return;
-    const rect = canvasRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    setBox({
-      x: Math.min(startPos.x, x),
-      y: Math.min(startPos.y, y),
-      w: Math.abs(x - startPos.x),
-      h: Math.abs(y - startPos.y)
-    });
+  const handleDrop = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFile(file);
   };
 
-  const handlePointerUp = () => {
-    setIsDragging(false);
-  };
-
-  const processImage = async () => {
-    if (!engine || !imageFile || !box) return;
-    
-    // FFmpeg requires w and h to be > 0 and usually even
-    const realX = Math.floor(box.x * imageScale.scaleX);
-    const realY = Math.floor(box.y * imageScale.scaleY);
-    const realW = Math.max(2, Math.floor(box.w * imageScale.scaleX));
-    const realH = Math.max(2, Math.floor(box.h * imageScale.scaleY));
-
-    if (realW < 10 || realH < 10) {
-      toast({ title: "Selection too small", description: "Please draw a larger box around the watermark." });
-      return;
-    }
-
-    setIsProcessing(true);
-    const inputName = `input_${imageFile.name}`;
-    const outputName = `output_${imageFile.name}`;
-
-    try {
-      await engine.writeFile(inputName, await fetchFile(imageFile));
-      
-      // Use delogo filter
-      // delogo=x=10:y=10:w=100:h=100
-      await engine.exec([
-        "-i", inputName,
-        "-vf", `delogo=x=${realX}:y=${realY}:w=${realW}:h=${realH}`,
-        "-c:a", "copy",
-        outputName
-      ]);
-
-      const data = await engine.readFile(outputName);
-      const blob = new Blob([data], { type: imageFile.type });
-      const url = URL.createObjectURL(blob);
-      
-      setResultSrc(url);
-      
-      // Cleanup
-      await engine.deleteFile(inputName);
-      await engine.deleteFile(outputName);
-      
-      toast({ title: "Success", description: "Watermark erased using spatial interpolation." });
-    } catch (err) {
-      console.error(err);
-      toast({ title: "Error", description: "Failed to process image.", variant: "destructive" });
-    } finally {
-      setIsProcessing(false);
+  const handleZoneChange = (zone: WatermarkZone) => {
+    setSelectedZone(zone);
+    if (imageFile) {
+      processImageAuto(imageFile, zone);
     }
   };
 
   const handleDownload = () => {
-    if (!resultSrc || !imageFile) return;
-    const a = document.createElement("a");
-    a.href = resultSrc;
-    a.download = `cleaned_${imageFile.name}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    if (!cleanedBlob || !imageFile) return;
+    const cleanName = `cleaned_${imageFile.name.replace(/\.[^/.]+$/, "")}.png`;
+    void import("@/lib/native-save").then((m) => m.nativeSave(cleanedBlob, cleanName));
+  };
+
+  const saveToVault = async () => {
+    if (!cleanedBlob || !imageFile) return;
+    const cleanName = `cleaned_${imageFile.name.replace(/\.[^/.]+$/, "")}.png`;
+    const item = await save({
+      name: cleanName,
+      blob: cleanedBlob,
+      mime: cleanedBlob.type,
+      size: cleanedBlob.size,
+    });
+    if (item) setVaultState("saved");
+  };
+
+  const resetAll = () => {
+    setImageFile(null);
+    setOriginalSrc(null);
+    setCleanedSrc(null);
+    setCleanedBlob(null);
+    setDetection(null);
+    setVaultState("idle");
+    setProcessingTimeMs(null);
+  };
+
+  // Slider pointer events for Before/After split
+  const updateSliderFromEvent = (clientX: number) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = Math.max(0, Math.min(clientX - rect.left, rect.width));
+    const pct = (x / rect.width) * 100;
+    setSliderPos(Math.max(2, Math.min(98, pct)));
+  };
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    setIsDraggingSlider(true);
+    updateSliderFromEvent(e.clientX);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDraggingSlider) return;
+    updateSliderFromEvent(e.clientX);
+  };
+
+  const handlePointerUp = () => {
+    setIsDraggingSlider(false);
   };
 
   return (
-    <div className="flex h-full flex-col gap-6 overflow-y-auto p-4 sm:p-6 lg:p-8">
-      <div className="flex flex-col gap-4 rounded-xl border border-outline-variant/60 bg-surface-container-low p-6 shadow-[0_2px_16px_rgba(58,48,42,0.04)]">
-        <h2 className="flex items-center gap-2 font-display text-lg font-bold text-on-surface">
-          <Eraser className="size-5 text-primary" /> Visual Watermark Eraser
-        </h2>
-        <p className="font-body text-sm text-on-surface-variant">
-          Remove visible AI watermarks (like DALL-E logos) from images. Draw a box over the logo and erase it 100% on-device using FFmpeg spatial interpolation.
-        </p>
+    <div
+      className={cn(
+        "flex h-full flex-col gap-6 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-colors duration-300",
+        isDragOver ? "bg-fuchsia-500/5" : ""
+      )}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+    >
+      {/* Top Header Card */}
+      <div
+        className={cn(
+          "flex flex-col gap-4 rounded-2xl border p-6 shadow-[0_2px_24px_rgba(217,70,239,0.06)] transition-all duration-200",
+          isDragOver
+            ? "border-fuchsia-500 border-dashed bg-fuchsia-500/10"
+            : "border-outline-variant/60 bg-surface-container-low"
+        )}
+      >
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="grid size-10 place-items-center rounded-xl border border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-400 shadow-sm">
+              <Sparkles className="size-5" />
+            </div>
+            <div>
+              <h2 className="flex items-center gap-2 font-display text-lg font-bold text-on-surface">
+                AI Automatic Watermark Eraser
+              </h2>
+              <p className="font-body text-xs text-on-surface-variant">
+                100% on-device AI automatically detects & erases DALL-E, Bing, & AI generator logos.
+              </p>
+            </div>
+          </div>
 
-        <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-center">
+          {detection && (
+            <div className="flex items-center gap-2 self-start rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-3 py-1 font-mono text-[11px] font-semibold text-fuchsia-300 sm:self-auto">
+              <Zap className="size-3.5 animate-pulse text-fuchsia-400" />
+              <span>{detection.label}</span>
+              {processingTimeMs && (
+                <span className="opacity-60">· {processingTimeMs}ms</span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Action Controls */}
+        <div className="mt-1 flex flex-wrap items-center gap-3">
           <input
             type="file"
             accept="image/*"
@@ -204,67 +300,301 @@ export function WatermarkRemover() {
             ref={fileInputRef}
             onChange={handleImageUpload}
           />
+
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 font-headline text-sm font-semibold tracking-wide text-on-primary transition-transform hover:scale-[1.02]"
+            className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 px-5 font-headline text-sm font-semibold tracking-wide text-white shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            <Upload className="size-4" /> UPLOAD IMAGE
+            <Upload className="size-4" />
+            {imageFile ? "UPLOAD ANOTHER" : "SELECT IMAGE"}
           </button>
-          
-          {imageSrc && !resultSrc && (
-            <button
-              onClick={processImage}
-              disabled={!box || box.w === 0 || isProcessing || engineState !== "ready"}
-              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-surface-container-highest px-5 font-headline text-sm font-semibold tracking-wide text-on-surface transition-transform hover:scale-[1.02] disabled:opacity-50"
-            >
-              {isProcessing ? (
-                <span className="animate-pulse">ERASING...</span>
-              ) : (
-                <>
-                  <Eraser className="size-4" /> ERASE SELECTION
-                </>
-              )}
-            </button>
-          )}
 
-          {resultSrc && (
-            <button
-              onClick={handleDownload}
-              className="flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 font-headline text-sm font-semibold tracking-wide text-white transition-transform hover:scale-[1.02]"
-            >
-              <Download className="size-4" /> SAVE IMAGE
-            </button>
+          {cleanedSrc && (
+            <>
+              <button
+                onClick={handleDownload}
+                className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-pulse/40 bg-pulse/15 px-5 font-display text-xs font-bold tracking-[0.18em] text-pulse transition-colors hover:bg-pulse/25 sm:flex-none"
+              >
+                <Download className="size-4" /> SAVE TO DEVICE
+              </button>
+
+              <button
+                onClick={() => void saveToVault()}
+                disabled={vaultState === "saved"}
+                className={cn(
+                  "flex min-h-11 items-center justify-center gap-2 rounded-xl border px-5 font-display text-xs font-bold tracking-[0.18em] transition-colors",
+                  vaultState === "saved"
+                    ? "border-pulse/40 bg-pulse/10 text-pulse"
+                    : "border-outline-variant/70 bg-surface-container-low text-on-surface-variant hover:border-fuchsia-400/40 hover:text-fuchsia-300"
+                )}
+              >
+                {vaultState === "saved" ? (
+                  <Check className="size-4" strokeWidth={3} />
+                ) : (
+                  <Database className="size-4" />
+                )}
+                <span>{vaultState === "saved" ? "VAULTED" : "VAULT"}</span>
+              </button>
+
+              <button
+                onClick={resetAll}
+                className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-outline-variant/70 bg-surface-container-highest px-4 font-headline text-xs font-bold tracking-wide text-on-surface transition-transform hover:scale-[1.02]"
+                title="Reset Image"
+              >
+                <RefreshCw className="size-4" />
+              </button>
+            </>
           )}
         </div>
       </div>
 
-      {(imageSrc || resultSrc) && (
+      {/* Empty Drop Zone State */}
+      {!imageFile && (
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          className={cn(
+            "group flex flex-1 flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-200 cursor-pointer min-h-[340px]",
+            isDragOver
+              ? "border-fuchsia-500 bg-fuchsia-500/10 text-fuchsia-300 scale-[0.99]"
+              : "border-outline-variant/60 bg-surface-container-lowest/40 text-on-surface-variant hover:border-fuchsia-500/40 hover:bg-surface-container-lowest"
+          )}
+        >
+          <div className="grid size-16 place-items-center rounded-2xl border border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-400 shadow-inner transition-transform group-hover:scale-110">
+            <Sparkles className="size-8" />
+          </div>
+          <div className="space-y-1">
+            <p className="font-headline text-base font-bold text-on-surface">
+              {isDragOver ? "Drop image here to erase" : "Drag & drop image here"}
+            </p>
+            <p className="font-body text-xs text-on-surface-variant/80">
+              Drop any DALL-E, Midjourney, Bing, or AI generated image to erase watermarks instantly
+            </p>
+          </div>
+          <span className="rounded-full border border-outline-variant/50 bg-surface-container-highest px-4 py-1.5 font-mono text-[11px] uppercase tracking-wider text-on-surface-variant">
+            Zero clicks · 100% On-Device AI
+          </span>
+        </div>
+      )}
+
+      {/* Active Processing / Preview View */}
+      {imageFile && (originalSrc || cleanedSrc) && (
         <div className="flex flex-1 flex-col gap-4">
-          <div className="flex items-center justify-between px-2">
-            <h3 className="font-headline text-sm font-semibold tracking-wide text-on-surface">
-              {resultSrc ? "CLEANED RESULT" : "DRAW BOX OVER WATERMARK"}
-            </h3>
-            {!resultSrc && (
-              <span className="flex items-center gap-2 font-mono text-[10px] text-on-surface-variant">
-                <MousePointer2 className="size-3" /> CLICK & DRAG
-              </span>
+          {/* Controls Bar & View Switcher */}
+          <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+            {/* View Mode Selector */}
+            <div className="flex items-center gap-1 rounded-xl border border-outline-variant/60 bg-surface-container-low p-1 text-xs">
+              <button
+                onClick={() => setViewMode("compare")}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-headline font-semibold transition-colors",
+                  viewMode === "compare"
+                    ? "bg-fuchsia-500/20 text-fuchsia-300"
+                    : "text-on-surface-variant hover:text-on-surface"
+                )}
+              >
+                <Split className="size-3.5" /> Split Compare
+              </button>
+              <button
+                onClick={() => setViewMode("cleaned")}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-headline font-semibold transition-colors",
+                  viewMode === "cleaned"
+                    ? "bg-fuchsia-500/20 text-fuchsia-300"
+                    : "text-on-surface-variant hover:text-on-surface"
+                )}
+              >
+                <Eye className="size-3.5" /> Cleaned Result
+              </button>
+              <button
+                onClick={() => setViewMode("original")}
+                className={cn(
+                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-headline font-semibold transition-colors",
+                  viewMode === "original"
+                    ? "bg-fuchsia-500/20 text-fuchsia-300"
+                    : "text-on-surface-variant hover:text-on-surface"
+                )}
+              >
+                Original
+              </button>
+            </div>
+
+            {/* AI Zone Selector (Override if needed) */}
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[11px] text-on-surface-variant">Target Zone:</span>
+              <div className="flex items-center gap-1 rounded-xl border border-outline-variant/60 bg-surface-container-low p-1 text-xs">
+                {(
+                  [
+                    { id: "auto", label: "Auto (Smart AI)" },
+                    { id: "bottom-right", label: "Bottom-Right" },
+                    { id: "bottom-left", label: "Bottom-Left" },
+                    { id: "top-right", label: "Top-Right" },
+                  ] as const
+                ).map((z) => (
+                  <button
+                    key={z.id}
+                    disabled={isProcessing}
+                    onClick={() => handleZoneChange(z.id)}
+                    className={cn(
+                      "rounded-lg px-2.5 py-1 font-mono text-[11px] transition-colors disabled:opacity-50",
+                      selectedZone === z.id
+                        ? "bg-fuchsia-600 text-white font-semibold"
+                        : "text-on-surface-variant hover:text-on-surface"
+                    )}
+                  >
+                    {z.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Main Visual Display */}
+          <div
+            ref={containerRef}
+            onPointerDown={viewMode === "compare" ? handlePointerDown : undefined}
+            className={cn(
+              "relative flex flex-1 select-none items-center justify-center overflow-hidden rounded-2xl border border-outline-variant/60 bg-black/60 p-2 shadow-2xl min-h-[420px]",
+              viewMode === "compare" ? "cursor-ew-resize" : ""
+            )}
+          >
+            {/* AI Radar / Scanner Overlay when processing */}
+            <AnimatePresence>
+              {(isScanning || isProcessing) && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-black/70 backdrop-blur-sm"
+                >
+                  <div className="relative grid size-16 place-items-center">
+                    <span className="absolute inset-0 animate-ping rounded-full bg-fuchsia-500/20" />
+                    <Scan className="size-8 animate-pulse text-fuchsia-400" />
+                  </div>
+                  <div className="text-center">
+                    <p className="font-headline text-sm font-bold text-white tracking-wide">
+                      AI SCANNING & ERASING WATERMARK…
+                    </p>
+                    <p className="mt-1 font-mono text-xs text-fuchsia-300">
+                      Detecting logo contours & applying content-aware inpainting
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* 1. Cleaned Mode */}
+            {viewMode === "cleaned" && cleanedSrc && (
+              <img
+                src={cleanedSrc}
+                alt="Cleaned Result"
+                className="max-h-[68vh] max-w-full rounded-xl border border-outline-variant/30 object-contain shadow-2xl"
+              />
+            )}
+
+            {/* 2. Original Mode */}
+            {viewMode === "original" && originalSrc && (
+              <div className="relative">
+                <img
+                  src={originalSrc}
+                  alt="Original Image"
+                  className="max-h-[68vh] max-w-full rounded-xl border border-outline-variant/30 object-contain shadow-2xl"
+                />
+                {detection && (
+                  <div className="absolute bottom-4 right-4 rounded-lg border border-fuchsia-500/80 bg-fuchsia-500/20 px-3 py-1 font-mono text-[11px] font-bold text-fuchsia-200 backdrop-blur-md">
+                    WATERMARK DETECTED
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 3. Interactive Split Comparison Mode */}
+            {viewMode === "compare" && originalSrc && cleanedSrc && (
+              <div className="relative max-h-[68vh] max-w-full overflow-hidden rounded-xl border border-outline-variant/30 shadow-2xl">
+                {/* Cleaned Image (Base) */}
+                <img
+                  src={cleanedSrc}
+                  alt="Cleaned"
+                  className="max-h-[68vh] w-auto max-w-full object-contain pointer-events-none"
+                />
+
+                {/* Original Image (Clipped Left Layer) */}
+                <div
+                  className="absolute inset-0 overflow-hidden pointer-events-none"
+                  style={{ width: `${sliderPos}%` }}
+                >
+                  <img
+                    src={originalSrc}
+                    alt="Original"
+                    className="max-h-[68vh] w-auto max-w-none object-contain"
+                  />
+                  <div className="absolute top-3 left-3 rounded-md bg-black/70 px-2 py-0.5 font-mono text-[10px] font-semibold text-white/90 backdrop-blur-sm">
+                    BEFORE (ORIGINAL)
+                  </div>
+                </div>
+
+                <div className="absolute top-3 right-3 rounded-md bg-fuchsia-600/80 px-2 py-0.5 font-mono text-[10px] font-semibold text-white backdrop-blur-sm pointer-events-none">
+                  AFTER (AI ERASED)
+                </div>
+
+                {/* Slider Handle Line */}
+                <div
+                  className="absolute top-0 bottom-0 z-20 w-0.5 bg-gradient-to-b from-fuchsia-400 via-white to-fuchsia-400 shadow-[0_0_12px_rgba(217,70,239,0.8)]"
+                  style={{ left: `${sliderPos}%` }}
+                >
+                  <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 grid size-7 place-items-center rounded-full border-2 border-white bg-fuchsia-600 text-white shadow-xl transition-transform hover:scale-110 active:scale-95">
+                    <Split className="size-3.5" />
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 
-          <div className="relative flex flex-1 items-center justify-center overflow-auto rounded-xl border border-outline-variant/60 bg-black/40 p-4 shadow-inner">
-            {resultSrc ? (
-              <img src={resultSrc} alt="Result" className="max-h-[60vh] max-w-full rounded border border-outline-variant/30" />
-            ) : (
-              <canvas
-                ref={canvasRef}
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                onPointerLeave={handlePointerUp}
-                className="cursor-crosshair touch-none rounded border border-outline-variant/30 bg-surface-container-lowest"
-              />
-            )}
-          </div>
+          {/* Watermark Zoom Inspection Card */}
+          {detection && detection.originalThumbnail && detection.cleanedThumbnail && (
+            <div className="flex flex-col gap-3 rounded-xl border border-outline-variant/50 bg-surface-container-low p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="size-4 text-emerald-400" />
+                  <span className="font-headline text-xs font-bold uppercase tracking-wider text-on-surface">
+                    Area Inspection: {detection.label}
+                  </span>
+                </div>
+                <p className="font-body text-[11px] text-on-surface-variant">
+                  Close-up view of the watermark before and after on-device content-aware inpainting.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex flex-col items-center gap-1">
+                  <div className="size-14 overflow-hidden rounded-lg border border-red-500/40 bg-black shadow-inner">
+                    <img
+                      src={detection.originalThumbnail}
+                      alt="Watermark Before"
+                      className="size-full object-cover"
+                    />
+                  </div>
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-red-400">
+                    Watermark
+                  </span>
+                </div>
+
+                <ChevronRight className="size-4 text-on-surface-variant/40" />
+
+                <div className="flex flex-col items-center gap-1">
+                  <div className="size-14 overflow-hidden rounded-lg border border-emerald-500/50 bg-black shadow-inner">
+                    <img
+                      src={detection.cleanedThumbnail}
+                      alt="Watermark After"
+                      className="size-full object-cover"
+                    />
+                  </div>
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-400 font-semibold">
+                    Cleaned
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -252,14 +252,14 @@ export const TOOL_REGISTRY: ToolMeta[] = [
   },
   {
     id: "watermark-remover",
-    name: "Watermark Eraser",
-    description: "Visually erase AI logos/watermarks using spatial interpolation.",
+    name: "AI Watermark Eraser",
+    description: "Automatically detect & erase AI logos, DALL-E bars, and watermarks.",
     category: "imaging",
     icon: Eraser,
     phase: 4,
     status: "online",
     accent: "fuchsia",
-    requiresEngine: true,
+    requiresEngine: false,
   },
   {
     id: "ascii-generator",
