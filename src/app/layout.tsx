@@ -32,21 +32,81 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OMNI TOOL — Client-Side Media Suite",
+  metadataBase: new URL("https://omnitool.app"),
+  title: {
+    default: "OMNI TOOL — Client-Side Media Suite",
+    template: "%s | OMNI TOOL",
+  },
   description:
-    "A heavy-duty utility suite that converts, compresses and engineers media 100% on-device with WebAssembly. Video, audio, documents, imaging — zero uploads.",
+    "Heavy-duty client-side media engineering suite. Convert video, edit audio, forge documents, record screens, and erase watermarks 100% on-device with WebAssembly. Zero file uploads.",
+  applicationName: "OMNI TOOL",
   keywords: [
     "Omni Tool",
     "ffmpeg.wasm",
     "client-side media",
     "video converter",
     "audio editor",
-    "WebAssembly",
+    "watermark eraser",
+    "screen recorder",
+    "WebAssembly media suite",
+    "offline video compressor",
+    "private audio editor",
   ],
-  authors: [{ name: "Omni Tool" }],
-  icons: {
-    icon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2 28 9v14L16 30 4 23V9z' fill='%23a855f7'/%3E%3Ccircle cx='16' cy='16' r='4.5' fill='%23090709'/%3E%3Ccircle cx='16' cy='16' r='1.8' fill='%236ee7ff'/%3E%3C/svg%3E",
+  authors: [{ name: "Omni Tool Team", url: "https://omnitool.app" }],
+  creator: "Omni Tool",
+  publisher: "Omni Tool",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
   },
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "OMNI TOOL — Client-Side Media Suite",
+    description:
+      "Convert video, edit audio, forge documents, capture your screen and vault the results — 100% locally with WebAssembly. Zero uploads.",
+    url: "https://omnitool.app",
+    siteName: "OMNI TOOL",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "/logo.jpg",
+        width: 1200,
+        height: 630,
+        alt: "OMNI TOOL — 100% On-Device WebAssembly Media Suite",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "OMNI TOOL — Client-Side Media Suite",
+    description:
+      "Heavy-duty utility suite powered by WebAssembly. Zero file uploads, total privacy.",
+    images: ["/logo.jpg"],
+    creator: "@omnitool",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  icons: {
+    icon: [
+      { url: "/logo.svg", type: "image/svg+xml" },
+      { url: "/logo.jpg" },
+    ],
+    apple: [{ url: "/logo.jpg" }],
+  },
+  manifest: "/manifest.webmanifest",
 };
 
 export const viewport: Viewport = {
