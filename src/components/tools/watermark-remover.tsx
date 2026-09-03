@@ -20,6 +20,8 @@ import {
   ChevronRight,
   Crosshair,
   Wand2,
+  Maximize2,
+  Hand,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -32,7 +34,6 @@ import {
   createRegionThumbnail,
   type WatermarkZone,
   type DetectedWatermark,
-  type InpaintMode,
   type InpaintCoverage,
 } from "@/lib/imaging/ai-watermark";
 
@@ -48,16 +49,19 @@ export function WatermarkRemover() {
 
   const [detection, setDetection] = useState<DetectedWatermark | null>(null);
   const [selectedZone, setSelectedZone] = useState<WatermarkZone>("auto");
-  const [inpaintMode, setInpaintMode] = useState<InpaintMode>("generative");
   const [coverage, setCoverage] = useState<InpaintCoverage>("balanced");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [processingTimeMs, setProcessingTimeMs] = useState<number | null>(null);
 
-  // Comparison & View State
-  const [viewMode, setViewMode] = useState<"compare" | "cleaned" | "original">("compare");
-  const [sliderPos, setSliderPos] = useState<number>(50); // 0 to 100%
+  // Comparison & Mobile "Hold to Compare" State
+  const [viewMode, setViewMode] = useState<"compare" | "cleaned" | "original">("cleaned");
+  const [isHoldingOriginal, setIsHoldingOriginal] = useState(false);
+  const [sliderPos, setSliderPos] = useState<number>(50);
   const [isDraggingSlider, setIsDraggingSlider] = useState(false);
+
+  // Tap ripple effect indicator
+  const [tapRipple, setTapRipple] = useState<{ x: number; y: number } | null>(null);
 
   // Vault state
   const [vaultState, setVaultState] = useState<"idle" | "saved">("idle");
@@ -75,7 +79,6 @@ export function WatermarkRemover() {
       file: File,
       zone: WatermarkZone = "auto",
       customPoint?: { x: number; y: number },
-      currentMode: InpaintMode = inpaintMode,
       currentCoverage: InpaintCoverage = coverage
     ) => {
       setIsProcessing(true);
@@ -100,14 +103,14 @@ export function WatermarkRemover() {
         // 1. Target Detection
         let detected: DetectedWatermark;
         if (customPoint) {
-          detected = detectWatermarkAtPoint(img, customPoint.x, customPoint.y, 40);
+          detected = detectWatermarkAtPoint(img, customPoint.x, customPoint.y, 44);
         } else {
           detected = detectAiWatermark(img, zone);
         }
         setDetection(detected);
 
         // Visual scan feedback
-        await new Promise((r) => setTimeout(r, 180));
+        await new Promise((r) => setTimeout(r, 160));
         setIsScanning(false);
 
         // 2. Generative Inpainting Engine (Samsung Galaxy S26 Ultra style)
@@ -124,7 +127,6 @@ export function WatermarkRemover() {
 
         // Run Generative Background & Subject Inpainting
         generativeEraseWatermark(workCanvas, detected.box, {
-          mode: currentMode,
           coverage: currentCoverage,
           grainMatch: true,
         });
@@ -155,8 +157,8 @@ export function WatermarkRemover() {
         setProcessingTimeMs(elapsed);
 
         toast({
-          title: "Generative Eraser Complete",
-          description: `${detected.label} erased and background matching photo generated in ${elapsed}ms.`,
+          title: "Generative AI Erased",
+          description: `${detected.label} removed & background reconstructed in ${elapsed}ms.`,
         });
       } catch (err: any) {
         console.error("AI Watermark error:", err);
@@ -170,7 +172,7 @@ export function WatermarkRemover() {
         setIsScanning(false);
       }
     },
-    [toast, inpaintMode, coverage]
+    [toast, coverage]
   );
 
   const handleFile = (file: File) => {
@@ -211,23 +213,22 @@ export function WatermarkRemover() {
   const handleZoneChange = (zone: WatermarkZone) => {
     setSelectedZone(zone);
     if (imageFile) {
-      processImageCore(imageFile, zone, undefined, inpaintMode, coverage);
+      processImageCore(imageFile, zone, undefined, coverage);
     }
   };
 
   const handleCoverageChange = (cov: InpaintCoverage) => {
     setCoverage(cov);
     if (imageFile) {
-      processImageCore(imageFile, selectedZone, undefined, inpaintMode, cov);
+      processImageCore(imageFile, selectedZone, undefined, cov);
     }
   };
 
   /**
-   * Tap-To-Erase (Samsung Galaxy Object Eraser interaction)
-   * Allows user to click/tap anywhere on the image to pinpoint custom watermark/logo
+   * Direct Tap-To-Erase on Mobile / Desktop Preview
    */
   const handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (viewMode === "compare") return; // Keep comparison slider active in compare mode
+    if (viewMode === "compare") return;
     if (!imageFile || !imageDimensions || !imageElementRef.current) return;
 
     const rect = imageElementRef.current.getBoundingClientRect();
@@ -236,11 +237,15 @@ export function WatermarkRemover() {
 
     if (clickX < 0 || clickX > rect.width || clickY < 0 || clickY > rect.height) return;
 
+    // Show ripple feedback
+    setTapRipple({ x: e.clientX - (containerRef.current?.getBoundingClientRect().left || 0), y: e.clientY - (containerRef.current?.getBoundingClientRect().top || 0) });
+    setTimeout(() => setTapRipple(null), 600);
+
     const naturalX = Math.round((clickX / rect.width) * imageDimensions.w);
     const naturalY = Math.round((clickY / rect.height) * imageDimensions.h);
 
     setSelectedZone("custom");
-    processImageCore(imageFile, "custom", { x: naturalX, y: naturalY }, inpaintMode, coverage);
+    processImageCore(imageFile, "custom", { x: naturalX, y: naturalY }, coverage);
   };
 
   const handleDownload = () => {
@@ -272,7 +277,7 @@ export function WatermarkRemover() {
     setSelectedZone("auto");
   };
 
-  // Slider events for Before/After split
+  // Slider controls for Split Compare
   const updateSliderFromEvent = (clientX: number) => {
     if (!containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
@@ -298,7 +303,7 @@ export function WatermarkRemover() {
   return (
     <div
       className={cn(
-        "flex h-full flex-col gap-6 overflow-y-auto p-4 sm:p-6 lg:p-8 transition-colors duration-300",
+        "flex h-full flex-col gap-4 overflow-y-auto p-2 sm:p-6 lg:p-8 transition-colors duration-300",
         isDragOver ? "bg-fuchsia-500/5" : ""
       )}
       onDragOver={handleDragOver}
@@ -307,48 +312,46 @@ export function WatermarkRemover() {
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
     >
-      {/* Top Header Card */}
+      {/* Header Card (Compact on mobile when image loaded) */}
       <div
         className={cn(
-          "flex flex-col gap-4 rounded-2xl border p-6 shadow-[0_2px_24px_rgba(217,70,239,0.06)] transition-all duration-200",
+          "flex flex-col gap-3 rounded-2xl border p-4 sm:p-6 shadow-[0_2px_24px_rgba(217,70,239,0.06)] transition-all duration-200",
           isDragOver
             ? "border-fuchsia-500 border-dashed bg-fuchsia-500/10"
             : "border-outline-variant/60 bg-surface-container-low"
         )}
       >
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <div className="grid size-11 place-items-center rounded-xl border border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-400 shadow-sm">
-              <Wand2 className="size-6" />
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="grid size-9 sm:size-10 place-items-center rounded-xl border border-fuchsia-500/30 bg-fuchsia-500/10 text-fuchsia-400 shadow-sm shrink-0">
+              <Wand2 className="size-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-display text-lg font-bold text-on-surface">
-                  Generative AI Watermark Eraser
+                <h2 className="font-display text-base sm:text-lg font-bold text-on-surface">
+                  AI Watermark Eraser
                 </h2>
-                <span className="rounded-full border border-fuchsia-500/40 bg-fuchsia-500/20 px-2 py-0.5 font-mono text-[10px] font-bold text-fuchsia-300">
-                  Galaxy S26 Ultra Logic
+                <span className="rounded-full border border-fuchsia-500/40 bg-fuchsia-500/20 px-2 py-0.5 font-mono text-[9px] sm:text-[10px] font-bold text-fuchsia-300">
+                  Galaxy AI Logic
                 </span>
               </div>
-              <p className="font-body text-xs text-on-surface-variant">
-                Auto-detects watermarks and generatively reconstructs photo-matching background & subject texture.
+              <p className="font-body text-[11px] sm:text-xs text-on-surface-variant line-clamp-1">
+                Auto-detects watermarks & reconstructs matching photo background
               </p>
             </div>
           </div>
 
           {detection && (
-            <div className="flex items-center gap-2 self-start rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-3 py-1 font-mono text-[11px] font-semibold text-fuchsia-300 sm:self-auto">
-              <Zap className="size-3.5 animate-pulse text-fuchsia-400" />
-              <span>{detection.label}</span>
-              {processingTimeMs && (
-                <span className="opacity-60">· {processingTimeMs}ms</span>
-              )}
+            <div className="flex items-center gap-1.5 self-start rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-2.5 py-1 font-mono text-[10px] sm:text-[11px] font-semibold text-fuchsia-300 sm:self-auto">
+              <Zap className="size-3 text-fuchsia-400 animate-pulse shrink-0" />
+              <span className="truncate max-w-[220px]">{detection.label}</span>
+              {processingTimeMs && <span className="opacity-60">· {processingTimeMs}ms</span>}
             </div>
           )}
         </div>
 
         {/* Action Controls */}
-        <div className="mt-1 flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 pt-1">
           <input
             type="file"
             accept="image/*"
@@ -359,9 +362,9 @@ export function WatermarkRemover() {
 
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 px-5 font-headline text-sm font-semibold tracking-wide text-white shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            className="flex min-h-10 sm:min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 px-4 sm:px-5 font-headline text-xs sm:text-sm font-semibold tracking-wide text-white shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
-            <Upload className="size-4" />
+            <Upload className="size-3.5 sm:size-4" />
             {imageFile ? "UPLOAD ANOTHER" : "SELECT IMAGE"}
           </button>
 
@@ -369,35 +372,35 @@ export function WatermarkRemover() {
             <>
               <button
                 onClick={handleDownload}
-                className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-pulse/40 bg-pulse/15 px-5 font-display text-xs font-bold tracking-[0.18em] text-pulse transition-colors hover:bg-pulse/25 sm:flex-none"
+                className="flex min-h-10 sm:min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-pulse/40 bg-pulse/15 px-3 sm:px-5 font-display text-[11px] sm:text-xs font-bold tracking-[0.14em] text-pulse transition-colors hover:bg-pulse/25 sm:flex-none"
               >
-                <Download className="size-4" /> SAVE TO DEVICE
+                <Download className="size-3.5 sm:size-4" /> SAVE TO DEVICE
               </button>
 
               <button
                 onClick={() => void saveToVault()}
                 disabled={vaultState === "saved"}
                 className={cn(
-                  "flex min-h-11 items-center justify-center gap-2 rounded-xl border px-5 font-display text-xs font-bold tracking-[0.18em] transition-colors",
+                  "flex min-h-10 sm:min-h-11 items-center justify-center gap-2 rounded-xl border px-3 sm:px-5 font-display text-[11px] sm:text-xs font-bold tracking-[0.14em] transition-colors",
                   vaultState === "saved"
                     ? "border-pulse/40 bg-pulse/10 text-pulse"
                     : "border-outline-variant/70 bg-surface-container-low text-on-surface-variant hover:border-fuchsia-400/40 hover:text-fuchsia-300"
                 )}
               >
                 {vaultState === "saved" ? (
-                  <Check className="size-4" strokeWidth={3} />
+                  <Check className="size-3.5 sm:size-4" strokeWidth={3} />
                 ) : (
-                  <Database className="size-4" />
+                  <Database className="size-3.5 sm:size-4" />
                 )}
                 <span>{vaultState === "saved" ? "VAULTED" : "VAULT"}</span>
               </button>
 
               <button
                 onClick={resetAll}
-                className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-outline-variant/70 bg-surface-container-highest px-4 font-headline text-xs font-bold tracking-wide text-on-surface transition-transform hover:scale-[1.02]"
+                className="flex min-h-10 sm:min-h-11 items-center justify-center rounded-xl border border-outline-variant/70 bg-surface-container-highest px-3 font-headline text-xs font-bold text-on-surface transition-transform hover:scale-[1.02]"
                 title="Reset Image"
               >
-                <RefreshCw className="size-4" />
+                <RefreshCw className="size-3.5" />
               </button>
             </>
           )}
@@ -409,67 +412,67 @@ export function WatermarkRemover() {
         <div
           onClick={() => fileInputRef.current?.click()}
           className={cn(
-            "group flex flex-1 flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed p-10 text-center transition-all duration-200 cursor-pointer min-h-[340px]",
+            "group flex flex-1 flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed p-8 sm:p-12 text-center transition-all duration-200 cursor-pointer min-h-[320px]",
             isDragOver
               ? "border-fuchsia-500 bg-fuchsia-500/10 text-fuchsia-300 scale-[0.99]"
               : "border-outline-variant/60 bg-surface-container-lowest/40 text-on-surface-variant hover:border-fuchsia-500/40 hover:bg-surface-container-lowest"
           )}
         >
-          <div className="grid size-16 place-items-center rounded-2xl border border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-400 shadow-inner transition-transform group-hover:scale-110">
-            <Sparkles className="size-8" />
+          <div className="grid size-14 sm:size-16 place-items-center rounded-2xl border border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-400 shadow-inner transition-transform group-hover:scale-110">
+            <Sparkles className="size-7 sm:size-8" />
           </div>
           <div className="space-y-1">
-            <p className="font-headline text-base font-bold text-on-surface">
-              {isDragOver ? "Drop image here to erase" : "Drag & drop image here"}
+            <p className="font-headline text-sm sm:text-base font-bold text-on-surface">
+              {isDragOver ? "Drop image to erase" : "Drag & drop image here"}
             </p>
-            <p className="font-body text-xs text-on-surface-variant/80">
-              Drop any DALL-E, Midjourney, Bing, Meta AI, or AI image to auto-detect & generatively reconstruct
+            <p className="font-body text-xs text-on-surface-variant/80 max-w-sm">
+              Works with DALL-E, Midjourney, Bing, Meta AI, or any ✦ AI logo. Generatively restores the photo background.
             </p>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
             <span className="rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-fuchsia-300">
               Generative Subject Synthesis
             </span>
             <span className="rounded-full border border-outline-variant/50 bg-surface-container-highest px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-on-surface-variant">
-              100% On-Device · Works in Web & APK
+              100% On-Device · Web & APK
             </span>
           </div>
         </div>
       )}
 
-      {/* Active Processing / Preview View */}
+      {/* Active Processing / Fullscreen Mobile Optimized Preview */}
       {imageFile && (originalSrc || cleanedSrc) && (
-        <div className="flex flex-1 flex-col gap-4">
-          {/* Controls Bar & View Switcher */}
-          <div className="flex flex-col gap-3 rounded-xl border border-outline-variant/50 bg-surface-container-low p-3 sm:flex-row sm:items-center sm:justify-between">
-            {/* View Mode Selector */}
-            <div className="flex items-center gap-1 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-1 text-xs">
-              <button
-                onClick={() => setViewMode("compare")}
-                className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-headline font-semibold transition-colors",
-                  viewMode === "compare"
-                    ? "bg-fuchsia-500/20 text-fuchsia-300"
-                    : "text-on-surface-variant hover:text-on-surface"
-                )}
-              >
-                <Split className="size-3.5" /> Split Compare
-              </button>
+        <div className="flex flex-1 flex-col gap-3">
+          {/* Controls Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-outline-variant/50 bg-surface-container-low p-2">
+            {/* View Mode Toggle */}
+            <div className="flex items-center gap-1 rounded-lg border border-outline-variant/60 bg-surface-container-lowest p-0.5 text-xs">
               <button
                 onClick={() => setViewMode("cleaned")}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-headline font-semibold transition-colors",
+                  "flex items-center gap-1 rounded-md px-2.5 py-1 font-headline font-semibold text-[11px] sm:text-xs transition-colors",
                   viewMode === "cleaned"
                     ? "bg-fuchsia-500/20 text-fuchsia-300"
                     : "text-on-surface-variant hover:text-on-surface"
                 )}
               >
-                <Eye className="size-3.5" /> Cleaned Result
+                <Eye className="size-3" /> Cleaned
+              </button>
+              <button
+                onClick={() => setViewMode("compare")}
+                className={cn(
+                  "flex items-center gap-1 rounded-md px-2.5 py-1 font-headline font-semibold text-[11px] sm:text-xs transition-colors",
+                  viewMode === "compare"
+                    ? "bg-fuchsia-500/20 text-fuchsia-300"
+                    : "text-on-surface-variant hover:text-on-surface"
+                )}
+              >
+                <Split className="size-3" /> Split Slider
               </button>
               <button
                 onClick={() => setViewMode("original")}
                 className={cn(
-                  "flex items-center gap-1.5 rounded-lg px-3 py-1.5 font-headline font-semibold transition-colors",
+                  "rounded-md px-2.5 py-1 font-headline font-semibold text-[11px] sm:text-xs transition-colors",
                   viewMode === "original"
                     ? "bg-fuchsia-500/20 text-fuchsia-300"
                     : "text-on-surface-variant hover:text-on-surface"
@@ -479,153 +482,137 @@ export function WatermarkRemover() {
               </button>
             </div>
 
-            {/* Generative Coverage & AI Zone Controls */}
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex items-center gap-1.5">
-                <span className="font-mono text-[10px] uppercase text-on-surface-variant">Zone:</span>
-                <div className="flex items-center gap-1 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-1 text-xs">
-                  {(
-                    [
-                      { id: "auto", label: "✨ Auto" },
-                      { id: "bottom-right", label: "↘ BR" },
-                      { id: "bottom-left", label: "↙ BL" },
-                      { id: "top-right", label: "↗ TR" },
-                      { id: "bottom-banner", label: "Banner" },
-                    ] as const
-                  ).map((z) => (
-                    <button
-                      key={z.id}
-                      disabled={isProcessing}
-                      onClick={() => handleZoneChange(z.id)}
-                      className={cn(
-                        "rounded-lg px-2.5 py-1 font-mono text-[11px] transition-colors disabled:opacity-50",
-                        selectedZone === z.id
-                          ? "bg-fuchsia-600 text-white font-semibold shadow-sm"
-                          : "text-on-surface-variant hover:text-on-surface"
-                      )}
-                    >
-                      {z.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1.5">
-                <span className="font-mono text-[10px] uppercase text-on-surface-variant">Coverage:</span>
-                <div className="flex items-center gap-1 rounded-xl border border-outline-variant/60 bg-surface-container-lowest p-1 text-xs">
-                  {(
-                    [
-                      { id: "tight", label: "Tight" },
-                      { id: "balanced", label: "Balanced" },
-                      { id: "expand", label: "Expand" },
-                    ] as const
-                  ).map((c) => (
-                    <button
-                      key={c.id}
-                      disabled={isProcessing}
-                      onClick={() => handleCoverageChange(c.id)}
-                      className={cn(
-                        "rounded-lg px-2 py-1 font-mono text-[10px] transition-colors disabled:opacity-50",
-                        coverage === c.id
-                          ? "bg-fuchsia-500/30 text-fuchsia-300 font-semibold"
-                          : "text-on-surface-variant hover:text-on-surface"
-                      )}
-                    >
-                      {c.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+            {/* Smart Target Zone Selector */}
+            <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+              {(
+                [
+                  { id: "auto", label: "✨ Auto" },
+                  { id: "top-right", label: "✦ Top-Right" },
+                  { id: "bottom-right", label: "↘ Bottom-Right" },
+                  { id: "bottom-left", label: "↙ Bottom-Left" },
+                ] as const
+              ).map((z) => (
+                <button
+                  key={z.id}
+                  disabled={isProcessing}
+                  onClick={() => handleZoneChange(z.id)}
+                  className={cn(
+                    "whitespace-nowrap rounded-lg px-2.5 py-1 font-mono text-[10px] sm:text-[11px] transition-colors disabled:opacity-50",
+                    selectedZone === z.id
+                      ? "bg-fuchsia-600 text-white font-bold shadow-sm"
+                      : "border border-outline-variant/50 bg-surface-container-lowest text-on-surface-variant hover:text-on-surface"
+                  )}
+                >
+                  {z.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Interactive Tap Hint */}
-          <div className="flex items-center justify-between px-2 text-[11px] text-on-surface-variant font-mono">
-            <span className="flex items-center gap-1.5">
-              <Crosshair className="size-3.5 text-fuchsia-400" />
-              Tip: Tap or click anywhere on the photo to pinpoint & erase custom watermarks/objects
-            </span>
-            {imageDimensions && (
-              <span className="opacity-70">
-                {imageDimensions.w} × {imageDimensions.h} px
-              </span>
-            )}
-          </div>
-
-          {/* Main Visual Display */}
+          {/* Main Visual Display (Optimized for Android APK screen height & touch) */}
           <div
             ref={containerRef}
             onClick={handleImageClick}
             onPointerDown={viewMode === "compare" ? handlePointerDown : undefined}
             className={cn(
-              "relative flex flex-1 select-none items-center justify-center overflow-hidden rounded-2xl border border-outline-variant/60 bg-black/70 p-2 shadow-2xl min-h-[440px]",
+              "relative flex flex-1 select-none items-center justify-center overflow-hidden rounded-2xl border border-outline-variant/60 bg-black/80 p-2 shadow-2xl min-h-[380px] sm:min-h-[500px]",
               viewMode === "compare" ? "cursor-ew-resize" : "cursor-crosshair"
             )}
           >
-            {/* AI Radar / Scanner Overlay when processing */}
+            {/* AI Scanning / Processing Radar */}
             <AnimatePresence>
               {(isScanning || isProcessing) && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-black/75 backdrop-blur-md"
+                  className="absolute inset-0 z-30 flex flex-col items-center justify-center gap-3 bg-black/80 backdrop-blur-md"
                 >
                   <div className="relative grid size-16 place-items-center">
                     <span className="absolute inset-0 animate-ping rounded-full bg-fuchsia-500/20" />
                     <Scan className="size-8 animate-pulse text-fuchsia-400" />
                   </div>
-                  <div className="text-center">
+                  <div className="text-center px-4">
                     <p className="font-headline text-sm font-bold text-white tracking-wide">
-                      GENERATIVE AI RECONSTRUCTING BACKGROUND…
+                      RECONSTRUCTING BACKGROUND & SUBJECT…
                     </p>
                     <p className="mt-1 font-mono text-xs text-fuchsia-300">
-                      Analyzing surrounding photo texture, structural lines & gradient continuity
+                      Erasing watermark and generating photo-matching background
                     </p>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* 1. Cleaned Mode */}
-            {viewMode === "cleaned" && cleanedSrc && (
-              <img
-                ref={imageElementRef}
-                src={cleanedSrc}
-                alt="Cleaned Result"
-                className="max-h-[68vh] max-w-full rounded-xl border border-outline-variant/30 object-contain shadow-2xl"
-              />
+            {/* Tap Ripple Indicator */}
+            {tapRipple && (
+              <div
+                className="absolute z-30 pointer-events-none -translate-x-1/2 -translate-y-1/2"
+                style={{ left: tapRipple.x, top: tapRipple.y }}
+              >
+                <div className="size-16 rounded-full border-2 border-fuchsia-400 bg-fuchsia-500/30 animate-ping" />
+              </div>
             )}
 
-            {/* 2. Original Mode */}
+            {/* Display View: Cleaned Result (Default) */}
+            {viewMode === "cleaned" && cleanedSrc && (
+              <div className="relative flex items-center justify-center max-h-[62vh] sm:max-h-[72vh] w-full">
+                <img
+                  ref={imageElementRef}
+                  src={isHoldingOriginal ? originalSrc || cleanedSrc : cleanedSrc}
+                  alt="Cleaned Result"
+                  className="max-h-[62vh] sm:max-h-[72vh] max-w-full rounded-xl border border-outline-variant/30 object-contain shadow-2xl"
+                />
+
+                {/* Floating "Hold to Compare" Button on Mobile */}
+                <button
+                  type="button"
+                  onMouseDown={() => setIsHoldingOriginal(true)}
+                  onMouseUp={() => setIsHoldingOriginal(false)}
+                  onTouchStart={() => setIsHoldingOriginal(true)}
+                  onTouchEnd={() => setIsHoldingOriginal(false)}
+                  className={cn(
+                    "absolute bottom-3 left-3 z-20 flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-mono text-[10px] sm:text-xs font-bold shadow-lg backdrop-blur-md transition-all active:scale-95",
+                    isHoldingOriginal
+                      ? "border-amber-400 bg-amber-500/80 text-white"
+                      : "border-fuchsia-400/50 bg-black/70 text-fuchsia-300 hover:bg-black/90"
+                  )}
+                >
+                  <Hand className="size-3" />
+                  <span>{isHoldingOriginal ? "SHOWING ORIGINAL" : "HOLD TO COMPARE"}</span>
+                </button>
+              </div>
+            )}
+
+            {/* Display View: Original Image */}
             {viewMode === "original" && originalSrc && (
-              <div className="relative">
+              <div className="relative flex items-center justify-center max-h-[62vh] sm:max-h-[72vh] w-full">
                 <img
                   ref={imageElementRef}
                   src={originalSrc}
-                  alt="Original Image"
-                  className="max-h-[68vh] max-w-full rounded-xl border border-outline-variant/30 object-contain shadow-2xl"
+                  alt="Original"
+                  className="max-h-[62vh] sm:max-h-[72vh] max-w-full rounded-xl border border-outline-variant/30 object-contain shadow-2xl"
                 />
                 {detection && (
-                  <div className="absolute bottom-4 right-4 rounded-lg border border-fuchsia-500/80 bg-fuchsia-500/20 px-3 py-1 font-mono text-[11px] font-bold text-fuchsia-200 backdrop-blur-md">
+                  <div className="absolute top-3 right-3 rounded-lg border border-fuchsia-500/80 bg-fuchsia-500/25 px-2.5 py-1 font-mono text-[10px] font-bold text-fuchsia-200 backdrop-blur-md">
                     WATERMARK DETECTED
                   </div>
                 )}
               </div>
             )}
 
-            {/* 3. Interactive Split Comparison Mode */}
+            {/* Display View: Interactive Split Slider Mode */}
             {viewMode === "compare" && originalSrc && cleanedSrc && (
-              <div className="relative max-h-[68vh] max-w-full overflow-hidden rounded-xl border border-outline-variant/30 shadow-2xl">
-                {/* Cleaned Image (Base Layer) */}
+              <div className="relative max-h-[62vh] sm:max-h-[72vh] max-w-full overflow-hidden rounded-xl border border-outline-variant/30 shadow-2xl">
+                {/* Base Layer: Cleaned */}
                 <img
                   ref={imageElementRef}
                   src={cleanedSrc}
                   alt="Cleaned"
-                  className="max-h-[68vh] w-auto max-w-full object-contain pointer-events-none"
+                  className="max-h-[62vh] sm:max-h-[72vh] w-auto max-w-full object-contain pointer-events-none"
                 />
 
-                {/* Original Image (Clipped Left Layer) */}
+                {/* Clipped Top Layer: Original */}
                 <div
                   className="absolute inset-0 overflow-hidden pointer-events-none"
                   style={{ width: `${sliderPos}%` }}
@@ -633,15 +620,15 @@ export function WatermarkRemover() {
                   <img
                     src={originalSrc}
                     alt="Original"
-                    className="max-h-[68vh] w-auto max-w-none object-contain"
+                    className="max-h-[62vh] sm:max-h-[72vh] w-auto max-w-none object-contain"
                   />
-                  <div className="absolute top-3 left-3 rounded-md bg-black/75 px-2 py-0.5 font-mono text-[10px] font-semibold text-white/90 backdrop-blur-sm">
-                    BEFORE (ORIGINAL)
+                  <div className="absolute top-3 left-3 rounded-md bg-black/80 px-2 py-0.5 font-mono text-[9px] font-bold text-white/90 backdrop-blur-sm">
+                    BEFORE
                   </div>
                 </div>
 
-                <div className="absolute top-3 right-3 rounded-md bg-fuchsia-600/85 px-2 py-0.5 font-mono text-[10px] font-semibold text-white backdrop-blur-sm pointer-events-none">
-                  AFTER (GENERATIVE ERASED)
+                <div className="absolute top-3 right-3 rounded-md bg-fuchsia-600/90 px-2 py-0.5 font-mono text-[9px] font-bold text-white backdrop-blur-sm pointer-events-none">
+                  AFTER (AI ERASED)
                 </div>
 
                 {/* Slider Handle Line */}
@@ -649,7 +636,7 @@ export function WatermarkRemover() {
                   className="absolute top-0 bottom-0 z-20 w-0.5 bg-gradient-to-b from-fuchsia-400 via-white to-fuchsia-400 shadow-[0_0_12px_rgba(217,70,239,0.8)]"
                   style={{ left: `${sliderPos}%` }}
                 >
-                  <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 grid size-7 place-items-center rounded-full border-2 border-white bg-fuchsia-600 text-white shadow-xl transition-transform hover:scale-110 active:scale-95">
+                  <div className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 grid size-7 place-items-center rounded-full border-2 border-white bg-fuchsia-600 text-white shadow-xl">
                     <Split className="size-3.5" />
                   </div>
                 </div>
@@ -657,48 +644,57 @@ export function WatermarkRemover() {
             )}
           </div>
 
-          {/* Watermark Zoom Inspection Card */}
+          {/* Bottom Micro Hint & Area Inspection */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-1 text-[11px] text-on-surface-variant font-mono">
+            <span className="flex items-center gap-1 text-fuchsia-300">
+              <Crosshair className="size-3 shrink-0" />
+              Tap anywhere on photo to pinpoint & erase custom objects or logos
+            </span>
+            {imageDimensions && (
+              <span className="opacity-70 text-[10px]">
+                {imageDimensions.w} × {imageDimensions.h} px
+              </span>
+            )}
+          </div>
+
+          {/* Area Inspection Card */}
           {detection && detection.originalThumbnail && detection.cleanedThumbnail && (
-            <div className="flex flex-col gap-3 rounded-xl border border-outline-variant/50 bg-surface-container-low p-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="size-4 text-emerald-400" />
-                  <span className="font-headline text-xs font-bold uppercase tracking-wider text-on-surface">
-                    Area Inspection: {detection.label}
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-outline-variant/50 bg-surface-container-low p-3">
+              <div className="space-y-0.5 min-w-0">
+                <div className="flex items-center gap-1.5">
+                  <ShieldCheck className="size-3.5 text-emerald-400 shrink-0" />
+                  <span className="font-headline text-[11px] sm:text-xs font-bold uppercase tracking-wider text-on-surface truncate">
+                    Inspection: {detection.label}
                   </span>
                 </div>
-                <p className="font-body text-[11px] text-on-surface-variant">
-                  Close-up view of the photo-matching generative background synthesis.
+                <p className="font-body text-[10px] text-on-surface-variant truncate">
+                  Close-up view of generative background reconstruction
                 </p>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col items-center gap-1">
-                  <div className="size-14 overflow-hidden rounded-lg border border-red-500/40 bg-black shadow-inner">
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-col items-center gap-0.5">
+                  <div className="size-11 sm:size-12 overflow-hidden rounded-lg border border-red-500/40 bg-black shadow-inner">
                     <img
                       src={detection.originalThumbnail}
-                      alt="Watermark Before"
+                      alt="Before"
                       className="size-full object-cover"
                     />
                   </div>
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-red-400">
-                    Watermark
-                  </span>
+                  <span className="font-mono text-[8px] uppercase text-red-400">Before</span>
                 </div>
 
-                <ChevronRight className="size-4 text-on-surface-variant/40" />
+                <ChevronRight className="size-3 text-on-surface-variant/40" />
 
-                <div className="flex flex-col items-center gap-1">
-                  <div className="size-14 overflow-hidden rounded-lg border border-emerald-500/50 bg-black shadow-inner">
+                <div className="flex flex-col items-center gap-0.5">
+                  <div className="size-11 sm:size-12 overflow-hidden rounded-lg border border-emerald-500/50 bg-black shadow-inner">
                     <img
                       src={detection.cleanedThumbnail}
-                      alt="Watermark After"
+                      alt="After"
                       className="size-full object-cover"
                     />
                   </div>
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-400 font-semibold">
-                    Synthesized
-                  </span>
+                  <span className="font-mono text-[8px] uppercase text-emerald-400 font-semibold">After</span>
                 </div>
               </div>
             </div>
