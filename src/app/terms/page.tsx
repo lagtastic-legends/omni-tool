@@ -114,7 +114,7 @@ export default function TermsOfServicePage() {
           <div className="rounded-xl border border-border/60 bg-card/30 p-4 font-mono text-xs space-y-1">
             <p className="font-bold text-foreground">Omni Tool Labs · Legal Division</p>
             <p>100 Montgomery St, Suite 1400, San Francisco, CA 94104</p>
-            <p className="text-primary">supportlagtasticlegends@gmail.com</p>
+            <p className="text-primary">support.omnitool.com@gmail.com</p>
           </div>
         </section>
       </div>
