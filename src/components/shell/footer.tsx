@@ -18,7 +18,7 @@ export function AppFooter() {
                 OMNI TOOL LABS
               </span>
               <span className="rounded-full border border-pulse/30 bg-pulse/10 px-2 py-0.5 font-mono text-[9px] font-semibold text-pulse">
-                v2.4
+                v2.4.1
               </span>
             </div>
 
@@ -29,8 +29,8 @@ export function AppFooter() {
 
             <p className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
               <Mail className="size-3 shrink-0 text-neon" />
-              <a href="mailto:support@omnitool.app" className="hover:text-foreground transition-colors underline">
-                support@omnitool.app
+              <a href="mailto:supportlagtasticlegends@gmail.com" className="hover:text-foreground transition-colors underline">
+                supportlagtasticlegends@gmail.com
               </a>
             </p>
           </div>
