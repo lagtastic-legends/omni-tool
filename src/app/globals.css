@@ -4,15 +4,17 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ------------------------------------------------------------------ */
-/* OMNI TOOL — design tokens (single dark theme)                       */
+/* 1. OPINIONATED DESIGN TOKENS (MATHEMATICAL OFF-GRID PALETTE)       */
 /* ------------------------------------------------------------------ */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-space-grotesk), var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", monospace;
   --font-display: var(--font-orbitron), var(--font-space-grotesk), sans-serif;
+  --font-editorial: var(--font-eb-garamond), serif;
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -42,12 +44,15 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 6px);
+  --radius-tactile: 14px;
+  --radius-organic: 20px;
 
-  /* Neon accent palette — full Tailwind color API (bg-*, text-*, border-*) */
+  /* Human-Crafted Luminous Accents */
   --color-neon: var(--neon);
   --color-plasma: var(--plasma);
   --color-pulse: var(--pulse);
@@ -55,61 +60,80 @@
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0.875rem;
 
-  /* Deep violet-tinted space black */
-  --background: oklch(0.12 0.014 295);
-  --foreground: oklch(0.95 0.006 290);
+  /* Saturated Obsidian Dark Mode (No generic slate/zinc) */
+  --background: oklch(0.108 0.022 284);
+  --foreground: oklch(0.965 0.008 285);
 
-  --card: oklch(0.16 0.016 293);
-  --card-foreground: oklch(0.95 0.006 290);
+  --card: oklch(0.148 0.024 288);
+  --card-foreground: oklch(0.965 0.008 285);
 
-  --popover: oklch(0.17 0.018 293);
-  --popover-foreground: oklch(0.95 0.006 290);
+  --popover: oklch(0.165 0.026 288);
+  --popover-foreground: oklch(0.965 0.008 285);
 
-  /* Electric violet primary */
-  --primary: oklch(0.62 0.22 300);
-  --primary-foreground: oklch(0.98 0.005 290);
+  /* Cyber-Violet Primary */
+  --primary: oklch(0.64 0.24 298);
+  --primary-foreground: oklch(0.99 0.004 290);
 
-  --secondary: oklch(0.21 0.022 295);
-  --secondary-foreground: oklch(0.9 0.012 290);
+  --secondary: oklch(0.198 0.026 290);
+  --secondary-foreground: oklch(0.92 0.012 285);
 
-  --muted: oklch(0.2 0.018 295);
-  --muted-foreground: oklch(0.66 0.02 290);
+  --muted: oklch(0.185 0.020 290);
+  --muted-foreground: oklch(0.67 0.022 285);
 
-  --accent: oklch(0.25 0.05 300);
-  --accent-foreground: oklch(0.96 0.01 290);
+  --accent: oklch(0.245 0.052 298);
+  --accent-foreground: oklch(0.97 0.010 290);
 
   --destructive: oklch(0.62 0.24 25);
 
-  --border: oklch(0.27 0.022 295);
-  --input: oklch(0.24 0.022 295);
-  --ring: oklch(0.62 0.22 300);
+  --border: oklch(0.265 0.026 290);
+  --input: oklch(0.235 0.026 290);
+  --ring: oklch(0.64 0.24 298);
 
-  --chart-1: oklch(0.62 0.22 300);
-  --chart-2: oklch(0.82 0.12 205);
-  --chart-3: oklch(0.68 0.28 328);
-  --chart-4: oklch(0.78 0.16 85);
-  --chart-5: oklch(0.75 0.18 162);
+  --chart-1: oklch(0.64 0.24 298);
+  --chart-2: oklch(0.84 0.14 202);
+  --chart-3: oklch(0.70 0.29 332);
+  --chart-4: oklch(0.79 0.18 78);
+  --chart-5: oklch(0.78 0.19 160);
 
-  --sidebar: oklch(0.14 0.016 293);
-  --sidebar-foreground: oklch(0.95 0.006 290);
-  --sidebar-primary: oklch(0.62 0.22 300);
-  --sidebar-primary-foreground: oklch(0.98 0.005 290);
-  --sidebar-accent: oklch(0.24 0.04 300);
-  --sidebar-accent-foreground: oklch(0.96 0.01 290);
-  --sidebar-border: oklch(0.27 0.022 295);
-  --sidebar-ring: oklch(0.62 0.22 300);
+  --sidebar: oklch(0.13 0.020 286);
+  --sidebar-foreground: oklch(0.965 0.008 285);
+  --sidebar-primary: oklch(0.64 0.24 298);
+  --sidebar-primary-foreground: oklch(0.99 0.004 290);
+  --sidebar-accent: oklch(0.23 0.045 298);
+  --sidebar-accent-foreground: oklch(0.97 0.010 290);
+  --sidebar-border: oklch(0.265 0.026 290);
+  --sidebar-ring: oklch(0.64 0.24 298);
 
-  /* Neons */
-  --neon: oklch(0.82 0.12 205);
-  --plasma: oklch(0.68 0.28 328);
-  --pulse: oklch(0.75 0.18 162);
-  --abyss: oklch(0.1 0.012 295);
+  /* Luminous Chromatic Tones */
+  --neon: oklch(0.84 0.14 202);
+  --plasma: oklch(0.70 0.29 332);
+  --pulse: oklch(0.78 0.19 160);
+  --abyss: oklch(0.095 0.018 285);
+
+  /* ------------------------------------------------------------------ */
+  /* FLUID TYPOGRAPHY VARIABLES (ORGANIC VIEWPORT SCALING)              */
+  /* ------------------------------------------------------------------ */
+  --text-fluid-xs: clamp(0.72rem, 0.68rem + 0.2vw, 0.82rem);
+  --text-fluid-sm: clamp(0.82rem, 0.76rem + 0.3vw, 0.95rem);
+  --text-fluid-base: clamp(0.95rem, 0.88rem + 0.35vw, 1.08rem);
+  --text-fluid-lg: clamp(1.1rem, 1rem + 0.5vw, 1.3rem);
+  --text-fluid-xl: clamp(1.28rem, 1.12rem + 0.8vw, 1.65rem);
+  --text-fluid-2xl: clamp(1.6rem, 1.35rem + 1.25vw, 2.25rem);
+  --text-fluid-3xl: clamp(2.1rem, 1.7rem + 2vw, 3.2rem);
+  --text-fluid-hero: clamp(2.6rem, 1.9rem + 3.5vw, 4.8rem);
+
+  /* Physical Multi-Tier Elevation Shadows */
+  --shadow-subtle: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-tactile: 0 4px 14px -2px rgba(0, 0, 0, 0.22), 0 2px 5px -1px rgba(0, 0, 0, 0.14), inset 0 1px 1px 0 rgba(255, 255, 255, 0.08);
+  --shadow-elevation-1: 0 8px 24px -4px rgba(0, 0, 0, 0.32), 0 3px 8px -2px rgba(0, 0, 0, 0.18), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.1);
+  --shadow-elevation-2: 0 16px 38px -6px rgba(0, 0, 0, 0.42), 0 6px 14px -3px rgba(0, 0, 0, 0.25), inset 0 1px 2px 0 rgba(255, 255, 255, 0.14);
+  --shadow-elevation-floating: 0 24px 52px -8px rgba(0, 0, 0, 0.52), 0 12px 24px -4px rgba(0, 0, 0, 0.32), inset 0 1px 2.5px 0 rgba(255, 255, 255, 0.18);
 }
 
 /* ------------------------------------------------------------------ */
-/* Terracotta Studio Theme (Warm Paper & Terracotta)                   */
+/* Terracotta Studio Theme (Warm Paper & Clay Craftsmanship)          */
 /* ------------------------------------------------------------------ */
 
 [data-theme="terracotta"] {
@@ -157,91 +181,74 @@
   --sidebar-border: #E0D4C3;
   --sidebar-ring: #C2652A;
 
-  /* Theme Accents */
   --neon: #C2652A;
   --plasma: #8C3C3C;
   --pulse: #A35C2B;
   --abyss: #FAF5EE;
 
-  /* Fonts */
   --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-eb-garamond), serif;
+
+  --shadow-subtle: 0 2px 6px -1px rgba(58, 48, 42, 0.06), 0 1px 3px -1px rgba(58, 48, 42, 0.04);
+  --shadow-tactile: 0 4px 14px -2px rgba(58, 48, 42, 0.12), inset 0 1px 1px 0 rgba(255, 255, 255, 0.6);
+  --shadow-elevation-1: 0 8px 24px -4px rgba(58, 48, 42, 0.14), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.7);
+  --shadow-elevation-2: 0 16px 36px -6px rgba(58, 48, 42, 0.18), inset 0 1px 2px 0 rgba(255, 255, 255, 0.8);
 }
 
-[data-theme="terracotta"] .panel-hud {
+/* ------------------------------------------------------------------ */
+/* 2. ASYMMETRY, DEPTH & GLASS ELEVATION                              */
+/* ------------------------------------------------------------------ */
+
+/* Frosted glass panel with multi-layered depth and top specular highlight */
+.panel-hud,
+.glass-panel {
   background:
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.7) 0%,
-      rgba(255, 255, 255, 0.2) 100%
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(255, 255, 255, 0.01) 40%,
+      transparent 100%
+    ),
+    oklch(0.142 0.024 288 / 0.82);
+  border: 1px solid oklch(0.32 0.03 296 / 0.45);
+  box-shadow: var(--shadow-tactile);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+}
+
+[data-theme="terracotta"] .panel-hud,
+[data-theme="terracotta"] .glass-panel {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.8) 0%,
+      rgba(255, 255, 255, 0.3) 100%
     ),
     #F3ECE0;
   border: 1px solid #E0D4C3;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 4px 20px -2px rgba(58, 48, 42, 0.05);
+  box-shadow: var(--shadow-tactile);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Engineering blueprint grid with radial focus vignette */
+.bg-hud-grid {
+  background-image:
+    linear-gradient(oklch(0.45 0.05 296 / 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.45 0.05 296 / 0.08) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 82%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 82%);
 }
 
 [data-theme="terracotta"] .bg-hud-grid {
   background-image:
-    linear-gradient(rgba(194, 101, 42, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(194, 101, 42, 0.07) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-
-[data-theme="terracotta"] ::selection {
-  background: rgba(194, 101, 42, 0.25);
-  color: #3A302A;
-}
-
-/* ------------------------------------------------------------------ */
-/* Base                                                                */
-/* ------------------------------------------------------------------ */
-
-html {
-  color-scheme: dark;
-}
-
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  overscroll-behavior-y: none;
-}
-
-::selection {
-  background: oklch(0.62 0.22 300 / 0.45);
-  color: oklch(0.99 0.002 290);
-}
-
-/* ------------------------------------------------------------------ */
-/* HUD utilities                                                       */
-/* ------------------------------------------------------------------ */
-
-/* Frosted panel with a top light-streak, used across all tool shells */
-.panel-hud {
-  background:
-    linear-gradient(
-      180deg,
-      oklch(1 0 0 / 0.035) 0%,
-      oklch(1 0 0 / 0) 42%
-    ),
-    oklch(0.15 0.016 293 / 0.72);
-  border: 1px solid oklch(0.32 0.03 296 / 0.45);
-  backdrop-filter: blur(18px) saturate(1.35);
-  -webkit-backdrop-filter: blur(18px) saturate(1.35);
-}
-
-/* Subtle engineering grid with a radial fade-out mask */
-.bg-hud-grid {
-  background-image:
-    linear-gradient(oklch(0.45 0.05 296 / 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, oklch(0.45 0.05 296 / 0.07) 1px, transparent 1px);
+    linear-gradient(rgba(194, 101, 42, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(194, 101, 42, 0.08) 1px, transparent 1px);
   background-size: 44px 44px;
-  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 78%);
-  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 78%);
 }
 
-/* CRT scanline film — layer on dark panels via ::before */
+/* Subtle CRT scanline texture for physical feel */
 .scanlines {
   position: relative;
 }
@@ -255,38 +262,126 @@ body {
     0deg,
     transparent 0px,
     transparent 2px,
-    oklch(1 0 0 / 0.014) 2px,
-    oklch(1 0 0 / 0.014) 3px
+    oklch(1 0 0 / 0.015) 2px,
+    oklch(1 0 0 / 0.015) 3px
   );
 }
 
-/* Glow text helpers */
-.text-glow-cyan {
-  text-shadow:
-    0 0 14px oklch(0.82 0.12 205 / 0.65),
-    0 0 42px oklch(0.82 0.12 205 / 0.3);
-}
-.text-glow-violet {
-  text-shadow:
-    0 0 14px oklch(0.62 0.22 300 / 0.7),
-    0 0 46px oklch(0.62 0.22 300 / 0.32);
+/* ------------------------------------------------------------------ */
+/* 3. TACTILE MICRO-INTERACTIONS & ELEVATION HELPERS                  */
+/* ------------------------------------------------------------------ */
+
+.elevation-subtle {
+  box-shadow: var(--shadow-subtle);
 }
 
-/* Glow border helpers */
+.elevation-tactile {
+  box-shadow: var(--shadow-tactile);
+}
+
+.elevation-1 {
+  box-shadow: var(--shadow-elevation-1);
+}
+
+.elevation-2 {
+  box-shadow: var(--shadow-elevation-2);
+}
+
+.elevation-floating {
+  box-shadow: var(--shadow-elevation-floating);
+}
+
+/* Chromatic rim glows */
 .glow-box-violet {
   box-shadow:
-    0 0 0 1px oklch(0.62 0.22 300 / 0.35),
-    0 0 28px -4px oklch(0.62 0.22 300 / 0.45),
-    inset 0 0 22px -12px oklch(0.62 0.22 300 / 0.55);
-}
-.glow-box-cyan {
-  box-shadow:
-    0 0 0 1px oklch(0.82 0.12 205 / 0.3),
-    0 0 26px -6px oklch(0.82 0.12 205 / 0.4),
-    inset 0 0 22px -12px oklch(0.82 0.12 205 / 0.5);
+    0 0 0 1px oklch(0.64 0.24 298 / 0.4),
+    0 0 32px -4px oklch(0.64 0.24 298 / 0.45),
+    inset 0 0 20px -10px oklch(0.64 0.24 298 / 0.5);
 }
 
-/* Custom scrollbars */
+.glow-box-cyan {
+  box-shadow:
+    0 0 0 1px oklch(0.84 0.14 202 / 0.35),
+    0 0 28px -4px oklch(0.84 0.14 202 / 0.42),
+    inset 0 0 20px -10px oklch(0.84 0.14 202 / 0.48);
+}
+
+/* Fluid typography utilities */
+.text-fluid-xs { font-size: var(--text-fluid-xs); }
+.text-fluid-sm { font-size: var(--text-fluid-sm); }
+.text-fluid-base { font-size: var(--text-fluid-base); }
+.text-fluid-lg { font-size: var(--text-fluid-lg); }
+.text-fluid-xl { font-size: var(--text-fluid-xl); }
+.text-fluid-2xl { font-size: var(--text-fluid-2xl); }
+.text-fluid-3xl { font-size: var(--text-fluid-3xl); }
+.text-fluid-hero { font-size: var(--text-fluid-hero); }
+
+/* ------------------------------------------------------------------ */
+/* 4. MOBILE-NATIVE ERGONOMICS (THE THUMB ZONE)                       */
+/* ------------------------------------------------------------------ */
+
+/* Minimum ergonomic tap target */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.touch-target-lg {
+  min-height: 48px;
+  min-width: 48px;
+}
+
+/* Safe-area padding helpers for notches and dynamic islands */
+.safe-pb {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+}
+
+.safe-pt {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 0.75rem);
+}
+
+.safe-px {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
+
+/* ------------------------------------------------------------------ */
+/* 5. EMPATHETIC SKELETON & ANIMATIONS                                */
+/* ------------------------------------------------------------------ */
+
+@keyframes organic-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton-organic {
+  background: linear-gradient(
+    90deg,
+    oklch(0.18 0.02 288) 0%,
+    oklch(0.24 0.04 298 / 0.55) 50%,
+    oklch(0.18 0.02 288) 100%
+  );
+  background-size: 200% 100%;
+  animation: organic-shimmer 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  border-radius: var(--radius-sm);
+}
+
+[data-theme="terracotta"] .skeleton-organic {
+  background: linear-gradient(
+    90deg,
+    #EDE4D6 0%,
+    rgba(194, 101, 42, 0.15) 50%,
+    #EDE4D6 100%
+  );
+  background-size: 200% 100%;
+  animation: organic-shimmer 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Custom smooth scrollbars */
 .scroll-hud {
   scrollbar-width: thin;
   scrollbar-color: oklch(0.45 0.06 300 / 0.55) transparent;
@@ -314,56 +409,8 @@ body {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* Ambient animations                                                  */
-/* ------------------------------------------------------------------ */
-
-@keyframes omni-shimmer {
-  0% {
-    background-position: -180% 0;
-  }
-  100% {
-    background-position: 180% 0;
-  }
-}
-.animate-shimmer {
-  background-size: 200% 100%;
-  animation: omni-shimmer 1.5s linear infinite;
-}
-
-@keyframes omni-blink {
-  0%,
-  49% {
-    opacity: 1;
-  }
-  50%,
-  100% {
-    opacity: 0;
-  }
-}
-.animate-caret {
-  animation: omni-blink 1.05s step-end infinite;
-}
-
-@keyframes omni-drift {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  33% {
-    transform: translate3d(3%, -4%, 0) scale(1.06);
-  }
-  66% {
-    transform: translate3d(-3%, 3%, 0) scale(0.97);
-  }
-}
-.animate-drift {
-  animation: omni-drift 22s ease-in-out infinite;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .animate-drift,
-  .animate-shimmer {
+  .skeleton-organic {
     animation: none;
   }
 }
