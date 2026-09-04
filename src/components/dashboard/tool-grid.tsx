@@ -23,11 +23,21 @@ import type { ToolCategory, ToolMeta } from "@/types/omni";
 
 type Filter = "all" | ToolCategory;
 
-function ToolCard({ tool, index }: { tool: ToolMeta; index: number }) {
+function ToolCard({
+  tool,
+  index,
+  engineState,
+}: {
+  tool: ToolMeta;
+  index: number;
+  engineState: "idle" | "loading" | "ready" | "error";
+}) {
   const { toast } = useToast();
   const navigate = useNavStore((s) => s.navigate);
   const accent = ACCENT_STYLES[tool.accent];
   const locked = tool.status !== "online";
+  const requiresEngine = tool.requiresEngine !== false;
+  const isEngineReady = !requiresEngine || engineState === "ready";
 
   return (
     <motion.button
@@ -49,9 +59,11 @@ function ToolCard({ tool, index }: { tool: ToolMeta; index: number }) {
       className={`panel-hud group relative flex min-h-11 flex-col gap-3 rounded-xl p-4 text-left transition-shadow ${
         locked
           ? "cursor-pointer hover:border-primary/35"
-          : "cursor-pointer border-primary/40 glow-box-violet"
+          : isEngineReady
+          ? "cursor-pointer border-primary/40 glow-box-violet"
+          : "cursor-pointer hover:border-primary/40"
       }`}
-      aria-label={`${tool.name} — ${locked ? `locked, phase ${tool.phase}` : "online, open module"}`}
+      aria-label={`${tool.name} — ${locked ? `locked, phase ${tool.phase}` : isEngineReady ? "online, open module" : "standby, requires engine"}`}
     >
       <div className="flex items-start justify-between gap-2">
         <div
@@ -64,6 +76,23 @@ function ToolCard({ tool, index }: { tool: ToolMeta; index: number }) {
             <Lock className="size-2.5" />
             phase {tool.phase}
           </span>
+        ) : requiresEngine && engineState !== "ready" ? (
+          engineState === "loading" ? (
+            <span className="flex items-center gap-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-300">
+              <span className="size-1.5 animate-ping rounded-full bg-cyan-400" />
+              booting…
+            </span>
+          ) : engineState === "error" ? (
+            <span className="flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-destructive">
+              <span className="size-1.5 rounded-full bg-destructive" />
+              error
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 rounded-full border border-border/70 bg-card/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+              <span className="size-1.5 rounded-full bg-muted-foreground/60" />
+              standby
+            </span>
+          )
         ) : (
           <span className="flex items-center gap-1 rounded-full border border-pulse/30 bg-pulse/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-pulse">
             <span className="size-1.5 animate-pulse rounded-full bg-pulse" />
@@ -118,7 +147,13 @@ export function ToolGrid() {
     ...CATEGORY_ORDER.map((c) => ({ id: c, label: CATEGORY_LABELS[c] })),
   ];
 
-  const onlineCount = useMemo(() => getOnlineTools().length, []);
+  const onlineCount = useMemo(
+    () =>
+      TOOL_REGISTRY.filter(
+        (t) => t.status === "online" && (t.requiresEngine === false || state === "ready")
+      ).length,
+    [state]
+  );
 
   return (
     <section aria-labelledby="matrix-heading" className="space-y-4">
@@ -179,7 +214,7 @@ export function ToolGrid() {
       <motion.div layout className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <AnimatePresence mode="popLayout">
           {visible.map((tool, i) => (
-            <ToolCard key={tool.id} tool={tool} index={i} />
+            <ToolCard key={tool.id} tool={tool} index={i} engineState={state} />
           ))}
         </AnimatePresence>
       </motion.div>

@@ -113,7 +113,7 @@ export function TopBar() {
           </div>
 
           <ThemeToggle />
-          <SearchPalette />
+          <SearchPalette hideTrigger={isNative || process.env.NEXT_PUBLIC_MOBILE_EXPORT === "1"} />
 
           {user ? (
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">

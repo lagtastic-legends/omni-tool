@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useCallback } from "react";
 import { Search } from "lucide-react";
 import {
   CommandDialog,
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/command";
 import { TOOL_REGISTRY } from "@/lib/tools/registry";
 import { useNavStore } from "@/lib/navigation/nav-store";
+import { useSearchStore } from "@/lib/search/search-store";
 
 const ACCENT_MAP: Record<string, string> = {
   emerald: "bg-emerald-500/10 text-emerald-500",
@@ -25,40 +26,42 @@ const ACCENT_MAP: Record<string, string> = {
   indigo: "bg-indigo-500/10 text-indigo-500",
 };
 
-export function SearchPalette() {
-  const [open, setOpen] = useState(false);
+export function SearchPalette({ hideTrigger = false }: { hideTrigger?: boolean }) {
+  const { isOpen, setOpen, toggle } = useSearchStore();
   const navigate = useNavStore((s) => s.navigate);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setOpen((open) => !open);
+        toggle();
       }
     };
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, []);
+  }, [toggle]);
 
   const runCommand = useCallback((command: () => void) => {
     setOpen(false);
     command();
-  }, []);
+  }, [setOpen]);
 
   return (
     <>
-      <button
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3 py-1.5 text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
-        title="Search Tools (Cmd+K)"
-      >
-        <Search className="size-3.5" />
-        <span className="hidden font-mono text-[10px] uppercase tracking-[0.18em] sm:inline">
-          SEARCH
-        </span>
-      </button>
+      {!hideTrigger && (
+        <button
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3 py-1.5 text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          title="Search Tools (Cmd+K)"
+        >
+          <Search className="size-3.5" />
+          <span className="hidden font-mono text-[10px] uppercase tracking-[0.18em] sm:inline">
+            SEARCH
+          </span>
+        </button>
+      )}
 
-      <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandDialog open={isOpen} onOpenChange={setOpen}>
         <CommandInput placeholder="Search tools, features, converters..." />
         <CommandList>
           <CommandEmpty>No tools found.</CommandEmpty>

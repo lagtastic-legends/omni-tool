@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Wrench, Database, Search } from "lucide-react";
 import { useNavStore } from "@/lib/navigation/nav-store";
+import { useSearchStore } from "@/lib/search/search-store";
 import { cn } from "@/lib/utils";
 
 /**
@@ -11,6 +12,7 @@ import { cn } from "@/lib/utils";
  */
 export function StickyMobileCta() {
   const { view, navigate } = useNavStore();
+  const openSearch = useSearchStore((s) => s.open);
 
   if (view !== "dashboard") return null;
 
@@ -19,18 +21,6 @@ export function StickyMobileCta() {
     if (el) {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  };
-
-  const openSearch = () => {
-    // Trigger the existing global Cmd+K / Ctrl+K search palette listener
-    window.dispatchEvent(
-      new KeyboardEvent("keydown", {
-        key: "k",
-        metaKey: true,
-        ctrlKey: true,
-        bubbles: true,
-      })
-    );
   };
 
   return (

@@ -7,7 +7,7 @@
 
 import { motion } from "framer-motion";
 import { Activity, ArrowDown, Boxes, Database, FileAudio, FileImage, FileText, FileVideo, Files, Sparkles, Timer } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
 import { OmniRecorder } from "@/lib/native-recorder";
 import { EngineBootPanel } from "@/components/engine/engine-boot-panel";
@@ -110,7 +110,13 @@ export function DashboardView() {
     }
   }, []);
 
-  const onlineCount = getOnlineTools().length;
+  const onlineCount = useMemo(
+    () =>
+      TOOL_REGISTRY.filter(
+        (t) => t.status === "online" && (t.requiresEngine === false || state === "ready")
+      ).length,
+    [state]
+  );
   const recent = items.slice(0, 4);
 
   return (
