@@ -73,7 +73,7 @@ export function EngineBootPanel() {
   return (
     <section
       aria-labelledby="engine-heading"
-      className="panel-hud scanlines relative overflow-hidden rounded-2xl"
+      className="panel-hud scanlines relative overflow-hidden rounded-tactile border border-border/80 shadow-tactile"
     >
       <div className="grid lg:grid-cols-[1fr_1.15fr]">
         {/* ------------------------------------------------ left column */}
@@ -128,17 +128,18 @@ export function EngineBootPanel() {
             <motion.button
               onClick={() => void boot()}
               disabled={busy || ready}
-              whileHover={busy || ready ? undefined : { scale: 1.025 }}
-              whileTap={busy || ready ? undefined : { scale: 0.97 }}
+              whileHover={busy || ready ? undefined : { y: -2 }}
+              whileTap={busy || ready ? undefined : { scale: 0.965, y: 1 }}
+              transition={{ type: "spring", stiffness: 450, damping: 24 }}
               aria-busy={busy}
-              className={`group relative inline-flex min-h-11 items-center gap-2.5 overflow-hidden rounded-xl px-6 py-3 font-display text-xs font-bold tracking-[0.2em] transition-colors ${
+              className={`group relative inline-flex min-h-[44px] items-center gap-2.5 overflow-hidden rounded-tactile px-6 py-3 font-display text-xs font-bold tracking-[0.2em] shadow-tactile transition-all ${
                 ready
                   ? "cursor-default border border-pulse/40 bg-pulse/10 text-pulse"
                   : failed
-                    ? "border border-red-400/40 bg-red-500/15 text-red-200 hover:bg-red-500/25"
+                    ? "border border-red-400/40 bg-red-500/15 text-red-200 hover:bg-red-500/25 hover:shadow-elevation1"
                     : busy
                       ? "cursor-wait border border-primary/40 bg-primary/15 text-primary/80"
-                      : "border border-primary/50 bg-gradient-to-r from-primary/90 to-plasma/80 text-white hover:from-primary hover:to-plasma glow-box-violet"
+                      : "border border-primary/50 bg-gradient-to-r from-primary/90 to-plasma/80 text-white hover:from-primary hover:to-plasma hover:shadow-elevation1 glow-box-violet"
               }`}
             >
               {busy ? (
@@ -157,8 +158,11 @@ export function EngineBootPanel() {
               <motion.button
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
+                whileHover={{ y: -1 }}
+                whileTap={{ scale: 0.965 }}
+                transition={{ type: "spring", stiffness: 450, damping: 24 }}
                 onClick={shutdown}
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border/70 bg-card/50 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:border-red-400/40 hover:text-red-300"
+                className="inline-flex min-h-[44px] items-center gap-2 rounded-tactile border border-border/80 bg-card/60 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground shadow-tactile transition-all hover:border-red-400/40 hover:text-red-300"
               >
                 <Power className="size-3.5" />
                 Terminate
@@ -198,7 +202,7 @@ export function EngineBootPanel() {
                 ].map((stat) => (
                   <div
                     key={stat.label}
-                    className="rounded-lg border border-border/60 bg-background/50 px-3 py-2.5"
+                    className="rounded-tactile border border-border/70 bg-background/50 px-3 py-2.5 shadow-subtle"
                   >
                     <dt className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
                       {stat.label}

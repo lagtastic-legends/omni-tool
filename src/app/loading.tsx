@@ -6,7 +6,7 @@ export default function Loading() {
       aria-label="Loading workspace"
       className="mx-auto flex min-h-[70vh] w-full max-w-6xl flex-col items-center justify-center px-4 py-12"
     >
-      <div className="panel-hud relative flex w-full max-w-md flex-col items-center gap-6 rounded-2xl p-8 text-center shadow-2xl">
+      <div className="panel-hud relative flex w-full max-w-md flex-col items-center gap-6 rounded-tactile p-8 sm:p-10 text-center shadow-elevation2 border border-border/80">
         {/* Animated Radar Pulse Spinner */}
         <div className="relative grid size-16 place-items-center">
           <span className="absolute inset-0 animate-ping rounded-full bg-primary/20" />
@@ -16,11 +16,11 @@ export default function Loading() {
 
         {/* Loading text with animated bar */}
         <div className="w-full space-y-2">
-          <p className="font-display text-sm font-bold uppercase tracking-[0.24em] text-foreground">
+          <p className="font-display text-fluid-sm font-bold uppercase tracking-[0.24em] text-foreground">
             INITIALIZING WORKSPACE…
           </p>
-          <p className="font-mono text-[11px] text-muted-foreground">
-            Synchronizing WebAssembly engines & local environment
+          <p className="font-mono text-fluid-xs text-muted-foreground">
+            Calibrating WebAssembly engines & client environment
           </p>
 
           <div className="mx-auto mt-4 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-border/60">
@@ -28,10 +28,10 @@ export default function Loading() {
           </div>
         </div>
 
-        {/* Skeleton chips */}
-        <div className="grid w-full grid-cols-2 gap-2.5 pt-2">
-          <div className="h-12 rounded-xl bg-card/40 border border-border/40 animate-pulse" />
-          <div className="h-12 rounded-xl bg-card/40 border border-border/40 animate-pulse" />
+        {/* Skeleton chips with organic shimmer */}
+        <div className="grid w-full grid-cols-2 gap-3 pt-2">
+          <div className="h-12 rounded-tactile border border-border/50 skeleton-organic" />
+          <div className="h-12 rounded-tactile border border-border/50 skeleton-organic" />
         </div>
       </div>
     </div>

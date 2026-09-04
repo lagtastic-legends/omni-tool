@@ -46,8 +46,8 @@ function ToolCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ delay: Math.min(index * 0.03, 0.4), duration: 0.4, ease: "easeOut" }}
-      whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={{ y: -4, transition: { type: "spring", stiffness: 450, damping: 22 } }}
+      whileTap={{ scale: 0.97, y: 1, transition: { type: "spring", stiffness: 500, damping: 22 } }}
       onClick={() =>
         locked
           ? toast({
@@ -56,12 +56,12 @@ function ToolCard({
             })
           : navigate(tool.id)
       }
-      className={`panel-hud group relative flex min-h-11 flex-col gap-3 rounded-xl p-4 text-left transition-shadow ${
+      className={`panel-hud group relative flex min-h-11 flex-col gap-3 rounded-tactile p-4 text-left shadow-tactile transition-all duration-200 ${
         locked
-          ? "cursor-pointer hover:border-primary/35"
+          ? "cursor-pointer hover:border-primary/35 hover:shadow-elevation1"
           : isEngineReady
-          ? "cursor-pointer border-primary/40 glow-box-violet"
-          : "cursor-pointer hover:border-primary/40"
+          ? "cursor-pointer border-primary/40 glow-box-violet hover:shadow-elevation2"
+          : "cursor-pointer hover:border-primary/40 hover:shadow-elevation1"
       }`}
       aria-label={`${tool.name} — ${locked ? `locked, phase ${tool.phase}` : isEngineReady ? "online, open module" : "standby, requires engine"}`}
     >
@@ -213,9 +213,38 @@ export function ToolGrid() {
       {/* grid */}
       <motion.div layout className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         <AnimatePresence mode="popLayout">
-          {visible.map((tool, i) => (
-            <ToolCard key={tool.id} tool={tool} index={i} engineState={state} />
-          ))}
+          {visible.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 350, damping: 26 }}
+              className="col-span-full panel-hud rounded-tactile p-10 sm:p-14 text-center space-y-4 border border-border/80 shadow-tactile"
+            >
+              <div className="mx-auto grid size-12 place-items-center rounded-2xl border border-border/80 bg-card/70 text-muted-foreground shadow-subtle">
+                <LayoutGrid className="size-5 opacity-70" />
+              </div>
+              <div className="space-y-1">
+                <p className="font-display text-base font-bold tracking-wide text-foreground">
+                  No modules in this sector
+                </p>
+                <p className="font-mono text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
+                  There are no tools registered under this category yet. Explore other sectors or return to all modules.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setFilter("all")}
+                className="mt-2 inline-flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/10 px-4 py-2 font-mono text-xs font-semibold text-primary hover:bg-primary/20 active:scale-95 transition-all"
+              >
+                Show All Modules
+              </button>
+            </motion.div>
+          ) : (
+            visible.map((tool, i) => (
+              <ToolCard key={tool.id} tool={tool} index={i} engineState={state} />
+            ))
+          )}
         </AnimatePresence>
       </motion.div>
     </section>

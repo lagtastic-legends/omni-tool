@@ -45,10 +45,10 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
         <motion.button
           type="button"
           onClick={() => reset()}
-          whileHover={{ x: -3 }}
-          whileTap={{ scale: 0.96 }}
+          whileHover={{ x: -3, transition: { type: "spring", stiffness: 450, damping: 22 } }}
+          whileTap={{ scale: 0.96, transition: { type: "spring", stiffness: 500, damping: 22 } }}
           aria-label="Back to dashboard"
-          className="flex w-fit min-h-10 sm:min-h-11 items-center gap-1.5 sm:gap-2 rounded-xl border border-border/70 bg-card/50 px-3 sm:px-4 font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          className="flex w-fit min-h-[44px] items-center gap-1.5 sm:gap-2 rounded-tactile border border-border/80 bg-card/60 px-3.5 sm:px-4 font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-muted-foreground shadow-tactile transition-all hover:border-primary/40 hover:text-foreground"
         >
           <ArrowLeft className="size-3.5" />
           back
@@ -56,12 +56,12 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
 
         <div className="flex flex-1 items-center gap-3 sm:gap-4">
           <div
-            className={`grid size-10 sm:size-12 shrink-0 place-items-center rounded-xl border ${accent.tile}`}
+            className={`grid size-10 sm:size-12 shrink-0 place-items-center rounded-tactile border shadow-subtle ${accent.tile}`}
           >
             <Icon className="size-5 sm:size-6" strokeWidth={1.75} />
           </div>
           <div className="min-w-0">
-            <h1 className="font-display text-lg sm:text-xl md:text-2xl font-bold tracking-wide text-foreground">
+            <h1 className="font-display text-fluid-base sm:text-fluid-lg font-bold tracking-wide text-foreground">
               {tool.name}
             </h1>
             <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm line-clamp-2 sm:line-clamp-none">
@@ -73,7 +73,7 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
 
       {/* engine gate ------------------------------------------------------ */}
       {requiresEngine && state !== "ready" ? (
-        <div className="panel-hud scanlines flex flex-col items-center gap-4 rounded-2xl p-10 text-center">
+        <div className="panel-hud scanlines flex flex-col items-center gap-4 rounded-tactile border border-border/80 p-10 text-center shadow-tactile">
           {state === "loading" ? (
             <>
               <Loader2 className="size-8 animate-spin text-primary" />
@@ -99,12 +99,15 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
                   afterwards.
                 </p>
               </div>
-              <button
+              <motion.button
                 onClick={() => void boot()}
-                className="min-h-11 rounded-xl border border-primary/50 bg-gradient-to-r from-primary/90 to-plasma/80 px-6 font-display text-xs font-bold tracking-[0.2em] text-white glow-box-violet transition-transform hover:scale-[1.03] active:scale-95"
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.965, y: 1 }}
+                transition={{ type: "spring", stiffness: 450, damping: 22 }}
+                className="min-h-[44px] rounded-tactile border border-primary/50 bg-gradient-to-r from-primary/90 to-plasma/80 px-7 font-display text-xs font-bold tracking-[0.2em] text-white shadow-tactile glow-box-violet transition-all hover:shadow-elevation1"
               >
                 INITIALIZE ENGINE
-              </button>
+              </motion.button>
               {state === "error" && (
                 <p className="font-mono text-[11px] text-red-300">
                   Last boot failed — retry when ready.{" "}

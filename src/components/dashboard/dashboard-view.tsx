@@ -18,6 +18,7 @@ import { useNavStore } from "@/lib/navigation/nav-store";
 import { getOnlineTools, TOOL_REGISTRY } from "@/lib/tools/registry";
 import { useVault } from "@/lib/vault/vault-context";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import type { VaultKind } from "@/lib/vault/vault-db";
 
 const fadeUp = {
@@ -51,15 +52,17 @@ function StatChip({
   isNative?: boolean;
 }) {
   return (
-    <div
+    <motion.div
+      whileHover={{ y: -2, transition: { type: "spring", stiffness: 400, damping: 20 } }}
+      whileTap={{ scale: 0.98, transition: { type: "spring", stiffness: 500, damping: 22 } }}
       className={cn(
-        "panel-hud flex items-center gap-2.5 sm:gap-3 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3",
+        "panel-hud group relative flex items-center gap-2.5 sm:gap-3 rounded-tactile px-3 py-2.5 sm:px-4 sm:py-3.5 shadow-tactile transition-shadow duration-200 hover:shadow-elevation1 hover:border-primary/40 cursor-default",
         isNative && "gap-2 sm:gap-2.5 md:gap-3 px-2.5 py-2 sm:px-3 sm:py-2.5 md:px-4 md:py-3"
       )}
     >
       <div
         className={cn(
-          `grid size-8 sm:size-9 shrink-0 place-items-center rounded-lg border ${tone}`,
+          `grid size-8 sm:size-9 shrink-0 place-items-center rounded-lg border ${tone} transition-transform duration-200 group-hover:scale-105`,
           isNative && "size-7 sm:size-8 md:size-9"
         )}
       >
@@ -83,7 +86,7 @@ function StatChip({
           {value}
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -138,7 +141,7 @@ export function DashboardView() {
           initial="hidden"
           animate="show"
           custom={0.15}
-          className="font-display text-3xl sm:text-5xl lg:text-6xl font-black uppercase leading-[1.05] tracking-tight text-foreground"
+          className="font-display text-fluid-hero font-black uppercase leading-[1.04] tracking-tight text-foreground"
         >
           One toolkit.
           <br />
@@ -152,44 +155,46 @@ export function DashboardView() {
           initial="hidden"
           animate="show"
           custom={0.25}
-          className="mx-auto max-w-xl text-xs sm:text-sm md:text-base leading-relaxed text-muted-foreground px-2"
+          className="mx-auto max-w-xl text-fluid-sm sm:text-fluid-base leading-relaxed text-muted-foreground px-2"
         >
           Convert video, engineer audio, forge documents, capture your screen and
           vault the results — all processed locally by a WebAssembly engine that
           never ships a byte to a server.
         </motion.p>
 
-        {/* Above-the-fold Primary CTAs */}
+        {/* Above-the-fold Primary CTAs using Tactile Spring Button */}
         <motion.div
           variants={fadeUp}
           initial="hidden"
           animate="show"
           custom={0.28}
-          className="mx-auto flex flex-wrap items-center justify-center gap-3 pt-2"
+          className="mx-auto flex flex-wrap items-center justify-center gap-3.5 pt-3 sm:pt-4"
         >
-          <button
-            type="button"
+          <Button
+            size="lg"
+            variant="default"
             onClick={() => {
               const el = document.getElementById("tool-matrix");
               if (el) {
                 el.scrollIntoView({ behavior: "smooth", block: "start" });
               }
             }}
-            className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 sm:px-8 font-display text-xs font-bold uppercase tracking-[0.16em] text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-200 hover:scale-[1.03] active:scale-[0.98]"
+            className="font-display text-xs sm:text-sm font-bold uppercase tracking-widest px-7 sm:px-8"
           >
             <Sparkles className="size-4" />
             <span>Explore Toolkit</span>
             <ArrowDown className="size-3.5 opacity-70" />
-          </button>
+          </Button>
 
-          <button
-            type="button"
+          <Button
+            size="lg"
+            variant="secondary"
             onClick={() => navigate("vault")}
-            className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-border/80 bg-card/60 px-5 sm:px-6 font-mono text-xs font-semibold text-foreground backdrop-blur-md transition-all duration-200 hover:border-primary/40 hover:bg-card/80 active:scale-[0.98]"
+            className="font-mono text-xs font-semibold px-6 sm:px-7"
           >
             <Database className="size-4 text-neon" />
             <span>Open Vault</span>
-          </button>
+          </Button>
         </motion.div>
       </section>
 
@@ -280,9 +285,10 @@ export function DashboardView() {
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
-                  whileHover={{ y: -3 }}
+                  whileHover={{ y: -3, transition: { type: "spring", stiffness: 450, damping: 22 } }}
+                  whileTap={{ scale: 0.97, transition: { type: "spring", stiffness: 500, damping: 22 } }}
                   onClick={() => navigate("vault")}
-                  className="panel-hud flex items-center gap-3 rounded-xl p-3 text-left hover:border-neon/40"
+                  className="panel-hud flex items-center gap-3 rounded-tactile p-3 text-left shadow-tactile transition-all hover:border-neon/40 hover:shadow-elevation1"
                   aria-label={`Open vault — latest file ${item.name}`}
                 >
                   <div className="grid size-9 shrink-0 place-items-center rounded-lg border border-neon/30 bg-neon/10">
