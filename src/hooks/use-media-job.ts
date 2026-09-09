@@ -197,7 +197,7 @@ export function useMediaJob() {
           if (!(data instanceof Uint8Array) || data.byteLength === 0) {
             throw new Error(`Output "${r.name}" came back empty — conversion failed.`);
           }
-          const blob = new Blob([data], { type: r.mime });
+          const blob = new Blob([data as unknown as BlobPart], { type: r.mime });
           const url = URL.createObjectURL(blob);
           urlsRef.current.push(url);
           collected.push({

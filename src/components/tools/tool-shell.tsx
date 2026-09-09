@@ -39,7 +39,7 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
   const requiresEngine = tool.requiresEngine !== false;
 
   useEffect(() => {
-    if (requiresEngine && state === "booting") {
+    if (requiresEngine && state === "loading") {
       return useNavStore.getState().registerDirtyGuard(() => ({
         hasUnsaved: true,
         message: "The WebAssembly engine is currently initializing. Leaving now will interrupt setup. Are you sure you want to go back?",

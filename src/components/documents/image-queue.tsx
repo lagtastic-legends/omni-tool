@@ -189,7 +189,7 @@ export function ImageQueue({
         className="sr-only"
         aria-label="Add image files"
         onChange={(e) => {
-          acceptFiles(e.target.files);
+          acceptFiles(e.target.files ?? undefined);
           e.target.value = "";
         }}
       />
