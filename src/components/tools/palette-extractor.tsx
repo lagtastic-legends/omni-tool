@@ -11,6 +11,7 @@ import { Check, Copy, Palette, UploadCloud, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { ParamSelect } from "@/components/audio/param-controls";
 import { useToast } from "@/hooks/use-toast";
+import { useNavStore } from "@/lib/navigation/nav-store";
 import { formatBytes } from "@/lib/format";
 
 interface Swatch {
@@ -134,6 +135,26 @@ export function PaletteExtractor() {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
+
+  /* Step back: Clear extracted swatches first if viewing results */
+  useEffect(() => {
+    if (swatches.length > 0 && !working) {
+      return useNavStore.getState().registerStepHandler(() => {
+        setSwatches([]);
+        return true;
+      });
+    }
+  }, [swatches.length, working]);
+
+  /* Guard loaded image from accidental discard */
+  useEffect(() => {
+    if (file) {
+      return useNavStore.getState().registerDirtyGuard(() => ({
+        hasUnsaved: true,
+        message: `You have loaded "${file.name}". Going back will discard your image and extracted palette. Are you sure you want to proceed?`,
+      }));
+    }
+  }, [file]);
 
   const runExtraction = async (f: File, count: number) => {
     setWorking(true);

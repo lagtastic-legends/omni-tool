@@ -224,7 +224,13 @@ export const useNavStore = create<NavState>((set, get) => ({
   handleBack: async () => {
     const state = get();
 
-    // TIER 1: Close topmost overlay or drawer first
+    // If unsaved confirm dialog is currently open, pressing back cancels/dismisses it
+    if (state.confirmDialogState?.isOpen) {
+      state.confirmDialogState.onCancel();
+      return true;
+    }
+
+    // TIER 1: Close topmost overlay or drawer first (AI chat, Search, Menu)
     if (state.overlays.length > 0) {
       const overlaysCopy = [...state.overlays];
       const topOverlay = overlaysCopy.pop();
@@ -239,7 +245,21 @@ export const useNavStore = create<NavState>((set, get) => ({
       }
     }
 
-    // TIER 2: Check for unsaved work or active operations BEFORE losing progress
+    // TIER 2: Sub-step navigation inside active tool flows (e.g. Output view -> Editor view)
+    // Takes user back one step inside the active task without closing or leaving it
+    if (state.stepHandlers.length > 0) {
+      const handlers = [...state.stepHandlers];
+      for (let i = handlers.length - 1; i >= 0; i--) {
+        try {
+          const handled = handlers[i]();
+          if (handled) return true;
+        } catch {
+          // continue
+        }
+      }
+    }
+
+    // TIER 3: Check for unsaved work or active operations BEFORE exiting the task
     let hasUnsaved = false;
     let guardMessage =
       "You have an active operation or unsaved work in progress. Going back will discard your current progress. Are you sure you want to proceed?";
@@ -269,23 +289,7 @@ export const useNavStore = create<NavState>((set, get) => ({
             message: guardMessage,
             onConfirm: () => {
               set({ confirmDialogState: null });
-              // Check if task has a sub-step to step back into
-              const s = get();
-              if (s.stepHandlers.length > 0) {
-                const handlers = [...s.stepHandlers];
-                for (let i = handlers.length - 1; i >= 0; i--) {
-                  try {
-                    const handled = handlers[i]();
-                    if (handled) {
-                      resolve(true);
-                      return;
-                    }
-                  } catch {
-                    // continue
-                  }
-                }
-              }
-              // If no sub-steps, pop history or return to dashboard
+              // Discard confirmed: proceed directly to leaving the task / popping history
               get()._executeHistoryPop().then(resolve);
             },
             onCancel: () => {
@@ -297,20 +301,7 @@ export const useNavStore = create<NavState>((set, get) => ({
       });
     }
 
-    // TIER 3: If no unsaved work, check if task has an internal sub-step to step back into
-    if (state.stepHandlers.length > 0) {
-      const handlers = [...state.stepHandlers];
-      for (let i = handlers.length - 1; i >= 0; i--) {
-        try {
-          const handled = handlers[i]();
-          if (handled) return true;
-        } catch {
-          // continue
-        }
-      }
-    }
-
-    // TIERS 4 & 5: Execute history pop or safe dashboard fallback
+    // TIERS 4 & 5: Pop in-app history stack or safely fall back to dashboard / exit
     return await get()._executeHistoryPop();
   },
 }));

@@ -21,6 +21,7 @@ import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { OmniRecorder } from "@/lib/native-recorder";
 import { OutputCard } from "@/components/media/output-card";
+import { useNavStore } from "@/lib/navigation/nav-store";
 import fixWebmDuration from "fix-webm-duration";
 import {
   AlertDialog,
@@ -130,6 +131,26 @@ export function StudioRecorder() {
   }, [stopAnalysis]);
 
   useEffect(() => () => teardownMedia(), [teardownMedia]);
+
+  /* Step back: Stop live camera/mic preview without closing the tool */
+  useEffect(() => {
+    if (mediaState === "live" && !recording && !output) {
+      return useNavStore.getState().registerStepHandler(() => {
+        teardownMedia();
+        return true;
+      });
+    }
+  }, [mediaState, recording, output, teardownMedia]);
+
+  /* Guard active recording take from accidental exit */
+  useEffect(() => {
+    if (recording) {
+      return useNavStore.getState().registerDirtyGuard(() => ({
+        hasUnsaved: true,
+        message: "A studio recording is actively in progress. Going back will cancel and discard this take. Are you sure you want to go back?",
+      }));
+    }
+  }, [recording]);
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, ChangeEvent } from "react";
 import { Upload, Copy, Download, Image as ImageIcon, Library, ArrowLeft, TerminalSquare } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavStore } from "@/lib/navigation/nav-store";
 import { cn } from "@/lib/utils";
 import { ASCII_ARCHIVE, type AsciiCategory, type AsciiArt } from "@/lib/ascii/data";
 
@@ -132,6 +133,26 @@ export function AsciiGenerator() {
     img.onload = () => generateAscii(img, resolution);
     img.src = imageSrc;
   }, [imageSrc, resolution]);
+
+  /* Step back: Return from category view in archive or clear result */
+  useEffect(() => {
+    if (activeCategory) {
+      return useNavStore.getState().registerStepHandler(() => {
+        setActiveCategory(null);
+        return true;
+      });
+    }
+  }, [activeCategory]);
+
+  /* Guard loaded image from accidental discard */
+  useEffect(() => {
+    if (imageSrc) {
+      return useNavStore.getState().registerDirtyGuard(() => ({
+        hasUnsaved: true,
+        message: "You have an image loaded for ASCII generation. Going back will discard your progress. Are you sure you want to proceed?",
+      }));
+    }
+  }, [imageSrc]);
 
   const handleCopy = async () => {
     if (!asciiArt) return;

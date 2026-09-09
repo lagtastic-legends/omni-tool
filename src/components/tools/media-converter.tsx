@@ -136,15 +136,6 @@ export function MediaConverter() {
   const outputName = file ? `${baseName(file.name)}.${targetExt}` : "";
   const outputPath = `output.${targetExt}`;
 
-  /* Step back: Clear file selection before navigating away from tool */
-  useEffect(() => {
-    if (file && outputs.length === 0 && !busy) {
-      return useNavStore.getState().registerStepHandler(() => {
-        setFile(null);
-        return true;
-      });
-    }
-  }, [file, outputs.length, busy]);
 
   const start = async () => {
     if (!file) return;

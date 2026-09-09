@@ -133,7 +133,19 @@ export function AppShell() {
 
     const handlePopState = (e: PopStateEvent) => {
       e.preventDefault();
-      void useNavStore.getState().handleBack();
+      void useNavStore.getState().handleBack().then(() => {
+        const activeView = useNavStore.getState().view;
+        if (typeof window !== "undefined") {
+          const expectedHash = activeView === "dashboard" ? "" : `#${activeView}`;
+          if (window.location.hash !== expectedHash) {
+            try {
+              window.history.pushState({ view: activeView }, "", window.location.pathname + expectedHash);
+            } catch {
+              // ignore
+            }
+          }
+        }
+      });
     };
     window.addEventListener("popstate", handlePopState);
 

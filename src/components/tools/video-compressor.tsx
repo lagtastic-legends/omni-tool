@@ -65,16 +65,6 @@ export function VideoCompressor() {
   const outputName = file ? `${baseName(file.name)}-compressed.mp4` : "";
   const output = outputs[0] ?? null;
 
-  /* Step back: Clear file selection before navigating away from tool */
-  useEffect(() => {
-    if (file && outputs.length === 0 && !busy) {
-      return useNavStore.getState().registerStepHandler(() => {
-        setFile(null);
-        setMeta(null);
-        return true;
-      });
-    }
-  }, [file, outputs.length, busy]);
 
   const start = async () => {
     if (!file) return;

@@ -24,6 +24,7 @@ import {
   Hand,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useNavStore } from "@/lib/navigation/nav-store";
 import { cn } from "@/lib/utils";
 import { formatBytes } from "@/lib/format";
 import { useVault } from "@/lib/vault/vault-context";
@@ -70,6 +71,35 @@ export function WatermarkRemover() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageElementRef = useRef<HTMLImageElement>(null);
+
+  /* Step back: Return from cleaned comparison view back to editor */
+  useEffect(() => {
+    if (cleanedBlob && !isProcessing) {
+      return useNavStore.getState().registerStepHandler(() => {
+        if (cleanedSrc) URL.revokeObjectURL(cleanedSrc);
+        setCleanedBlob(null);
+        setCleanedSrc(null);
+        setViewMode("cleaned");
+        return true;
+      });
+    }
+  }, [cleanedBlob, cleanedSrc, isProcessing]);
+
+  /* Guard active watermark removal session from accidental discard */
+  useEffect(() => {
+    if (isProcessing) {
+      return useNavStore.getState().registerDirtyGuard(() => ({
+        hasUnsaved: true,
+        message: "AI watermark removal is currently in progress. Leaving now will cancel the process. Are you sure you want to go back?",
+      }));
+    }
+    if (imageFile) {
+      return useNavStore.getState().registerDirtyGuard(() => ({
+        hasUnsaved: true,
+        message: `You have loaded "${imageFile.name}" in Watermark Remover. Going back will discard your edits. Are you sure you want to proceed?`,
+      }));
+    }
+  }, [imageFile, isProcessing]);
 
   /**
    * Executes AI detection and Generative Background/Subject Inpainting

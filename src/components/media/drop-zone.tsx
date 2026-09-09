@@ -59,25 +59,15 @@ export function DropZone({
     [previewUrl],
   );
 
-  /* Guard against discarding loaded files & step back to clear file on Back */
+  /* Guard against discarding loaded files on Back navigation */
   useEffect(() => {
     if (file) {
-      const unguard = useNavStore.getState().registerDirtyGuard(() => ({
+      return useNavStore.getState().registerDirtyGuard(() => ({
         hasUnsaved: true,
         message: `You have loaded "${file.name}". Going back will discard your file and progress. Are you sure you want to proceed?`,
       }));
-
-      const unstep = useNavStore.getState().registerStepHandler(() => {
-        onClear();
-        return true;
-      });
-
-      return () => {
-        unguard();
-        unstep();
-      };
     }
-  }, [file, onClear]);
+  }, [file]);
 
   /* Native metadata probe — setState lands inside the async callback,
    * never synchronously in the effect body. Audio probing reports duration

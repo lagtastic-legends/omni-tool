@@ -14,6 +14,7 @@ import { PageOptions } from "@/components/documents/page-options";
 import { ParamPanel, ParamToggle } from "@/components/audio/param-controls";
 import { OutputCard } from "@/components/media/output-card";
 import { useToast } from "@/hooks/use-toast";
+import { useNavStore } from "@/lib/navigation/nav-store";
 import type { JobOutput } from "@/hooks/use-media-job";
 import {
   buildImagePdf,
@@ -59,6 +60,34 @@ export function ScanToPdf() {
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, []);
+
+  /* Step back: Close camera if live before leaving */
+  useEffect(() => {
+    if (camera === "live") {
+      return useNavStore.getState().registerStepHandler(() => {
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
+        setCamera("off");
+        return true;
+      });
+    }
+  }, [camera]);
+
+  /* Guard scanned pages and active compilation */
+  useEffect(() => {
+    if (busy) {
+      return useNavStore.getState().registerDirtyGuard(() => ({
+        hasUnsaved: true,
+        message: "PDF compilation is in progress. Leaving now will cancel it. Are you sure you want to go back?",
+      }));
+    }
+    if (pages.length > 0 && !output) {
+      return useNavStore.getState().registerDirtyGuard(() => ({
+        hasUnsaved: true,
+        message: `You have ${pages.length} scanned page${pages.length > 1 ? "s" : ""}. Going back will discard your document. Are you sure?`,
+      }));
+    }
+  }, [busy, pages.length, output]);
 
   const startCamera = async () => {
     setCamera("starting");

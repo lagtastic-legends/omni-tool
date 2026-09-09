@@ -13,6 +13,7 @@ import { PageOptions } from "@/components/documents/page-options";
 import { ParamPanel } from "@/components/audio/param-controls";
 import { OutputCard } from "@/components/media/output-card";
 import { useToast } from "@/hooks/use-toast";
+import { useNavStore } from "@/lib/navigation/nav-store";
 import type { JobOutput } from "@/hooks/use-media-job";
 import {
   buildImagePdf,
@@ -43,6 +44,22 @@ export function ImageToPdf() {
       images.forEach((i) => URL.revokeObjectURL(i.previewUrl));
     };
   }, []);  
+
+  /* Guard queued images and active compilation */
+  useEffect(() => {
+    if (busy) {
+      return useNavStore.getState().registerDirtyGuard(() => ({
+        hasUnsaved: true,
+        message: "PDF compilation is in progress. Leaving now will cancel it. Are you sure you want to go back?",
+      }));
+    }
+    if (images.length > 0 && !output) {
+      return useNavStore.getState().registerDirtyGuard(() => ({
+        hasUnsaved: true,
+        message: `You have ${images.length} image${images.length > 1 ? "s" : ""} queued for PDF compilation. Going back will discard them. Are you sure?`,
+      }));
+    }
+  }, [busy, images.length, output]);
 
   const reset = () => {
     if (output) URL.revokeObjectURL(output.url);

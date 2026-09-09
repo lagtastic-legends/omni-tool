@@ -18,7 +18,7 @@ export function AppFooter() {
                 OMNI TOOL LABS
               </span>
               <span className="rounded-full border border-pulse/30 bg-pulse/10 px-2 py-0.5 font-mono text-[9px] font-semibold text-pulse">
-                v2.5.5
+                v2.5.6
               </span>
             </div>
 
