@@ -32,27 +32,66 @@ export async function POST(req: Request) {
       ? "streamGenerateContent?alt=sse" 
       : "generateContent";
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:${endpoint}&key=${apiKey}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          contents: body.contents,
-          systemInstruction: {
-            parts: [{ text: SYSTEM_INSTRUCTION }]
-          }
-        }),
-      }
-    );
+    // Primary: Gemini 3.8 Flash. Fallback: Gemini 3.6 Flash if Google API sheds 503 load
+    const candidateModels = ["gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.6-flash"];
+    let response: Response | null = null;
+    let lastErrorData = "";
 
-    if (!response.ok) {
-      const errorData = await response.text();
+    for (let i = 0; i < candidateModels.length; i++) {
+      const model = candidateModels[i];
+      const payload: Record<string, unknown> = {
+        contents: body.contents,
+        systemInstruction: {
+          parts: [{ text: SYSTEM_INSTRUCTION }],
+        },
+      };
+
+      // Set low thinking level on Gemini 3.8 to minimize compute spikes that trigger 503s
+      if (model.startsWith("gemini-3.8")) {
+        payload.generationConfig = {
+          thinkingConfig: {
+            thinkingLevel: "low",
+          },
+        };
+      }
+
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:${endpoint}&key=${apiKey}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          }
+        );
+
+        if (res.ok) {
+          response = res;
+          break;
+        }
+
+        lastErrorData = await res.text();
+        // Transient 503 (High demand) or 429 (Rate limit): wait briefly and retry
+        if (res.status === 503 || res.status === 429) {
+          if (i < candidateModels.length - 1) {
+            await new Promise((r) => setTimeout(r, 400));
+            continue;
+          }
+        } else {
+          response = res;
+          break;
+        }
+      } catch (err: unknown) {
+        lastErrorData = err instanceof Error ? err.message : String(err);
+      }
+    }
+
+    if (!response || !response.ok) {
       return NextResponse.json(
-        { error: `Google API Error: ${errorData}` },
-        { status: response.status, headers: corsHeaders }
+        { error: `Google API Error: ${lastErrorData || "Service temporarily unavailable"}` },
+        { status: response?.status || 503, headers: corsHeaders }
       );
     }
 
