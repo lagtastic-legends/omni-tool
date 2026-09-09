@@ -89,6 +89,7 @@ export interface ToolbarAction {
   label: string;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   onClick?: () => void;
+  accentClass?: string;
   accent?: string;
 }
 
@@ -225,7 +226,9 @@ export function FloatingToolbar({
                       key={action.id}
                       icon={action.icon}
                       label={action.label}
+                      accentClass={action.accentClass}
                       onClick={() => {
+                        setIsOpen(false);
                         action.onClick?.();
                         onActionClick?.(action.id);
                       }}

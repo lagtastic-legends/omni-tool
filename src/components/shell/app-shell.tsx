@@ -6,7 +6,7 @@
  */
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Compass, Database, Layers, Loader2, Scissors, Video } from "lucide-react";
+import { Compass, Database, Layers, Loader2, Scissors, Sparkles, Video } from "lucide-react";
 import { lazy, Suspense, useEffect } from "react";
 import { AuthGateway } from "@/components/auth/auth-gateway";
 import { AuthGuard } from "@/components/auth/auth-guard";
@@ -19,6 +19,7 @@ import AskOmni from "@/components/AskOmni";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 import { ToolShell } from "@/components/tools/tool-shell";
 import { useNavStore } from "@/lib/navigation/nav-store";
+import { useAiStore } from "@/store/useAiStore";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 
@@ -135,8 +136,16 @@ export function AppShell() {
     };
   }, []);
   const { view, navigate, reset } = useNavStore();
+  const { isOpen: isAiOpen, toggleOpen: toggleAi } = useAiStore();
 
   const floatingActions = [
+    {
+      id: "ai",
+      label: "Ask Omni AI",
+      icon: Sparkles,
+      accentClass: "text-neon border-neon/50 bg-neon/15 hover:bg-neon/25 shadow-[0_0_12px_rgba(0,240,255,0.3)]",
+      onClick: () => toggleAi(),
+    },
     { id: "matrix", label: "Tool Matrix", icon: Layers, onClick: () => reset() },
     { id: "converter", label: "Media Studio", icon: Scissors, onClick: () => navigate("video-converter") },
     { id: "vault", label: "File Vault", icon: Database, onClick: () => navigate("vault") },
@@ -175,7 +184,7 @@ export function AppShell() {
         </AnimatePresence>
       </main>
 
-      <FloatingToolbar actions={floatingActions} />
+      {!isAiOpen && <FloatingToolbar actions={floatingActions} />}
       <StickyMobileCta />
       <AppFooter />
     </div>
