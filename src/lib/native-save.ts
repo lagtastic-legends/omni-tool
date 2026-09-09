@@ -10,8 +10,10 @@ export const nativeSave = async (blob: Blob, filename: string) => {
     a.download = filename;
     document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 2000);
     return;
   }
 

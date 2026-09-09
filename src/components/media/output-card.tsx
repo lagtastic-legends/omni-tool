@@ -7,7 +7,7 @@
 
 import { motion } from "framer-motion";
 import { Check, Database, Download, FileAudio, FileImage, FileText, FileVideo, Sparkles, X } from "lucide-react";
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { formatBytes } from "@/lib/format";
 import { useVault } from "@/lib/vault/vault-context";
 import { useNavStore } from "@/lib/navigation/nav-store";
@@ -33,6 +33,10 @@ const TONE: Record<NonNullable<OutputCardProps["badgeTone"]>, string> = {
 export function OutputCard({ output, extra, badge, badgeTone = "pulse", onClear }: OutputCardProps) {
   const { save } = useVault();
   const [vaultState, setVaultState] = useState<"idle" | "saved">("idle");
+  const onClearRef = useRef(onClear);
+  onClearRef.current = onClear;
+  const outputRef = useRef(output);
+  outputRef.current = output;
 
   const saveToVault = async () => {
     const item = await save({
@@ -46,25 +50,25 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse", onClear 
 
   /* Guard against discarding generated output and step back to clear preview */
   useEffect(() => {
-    if (output) {
-      const unguard = useNavStore.getState().registerDirtyGuard(() => ({
-        hasUnsaved: true,
-        message: `You have generated "${output.name}". Going back will discard this processed file. Are you sure you want to proceed?`,
-      }));
+    if (!output) return;
+    const unguard = useNavStore.getState().registerDirtyGuard(() => ({
+      hasUnsaved: true,
+      message: `You have generated "${outputRef.current?.name ?? "file"}". Going back will discard this processed file. Are you sure you want to proceed?`,
+    }));
 
-      const unstep = onClear
-        ? useNavStore.getState().registerStepHandler(() => {
-            onClear();
-            return true;
-          })
-        : () => {};
+    const unstep = useNavStore.getState().registerStepHandler(() => {
+      if (onClearRef.current) {
+        onClearRef.current();
+        return true;
+      }
+      return false;
+    });
 
-      return () => {
-        unguard();
-        unstep();
-      };
-    }
-  }, [output, onClear]);
+    return () => {
+      unguard();
+      unstep();
+    };
+  }, [output?.url]);
 
   const isVideo = output.mime.startsWith("video/");
   const isAudio = output.mime.startsWith("audio/");

@@ -7,7 +7,7 @@
 
 import { motion } from "framer-motion";
 import { FileImage } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { ImageQueue, type QueuedImage } from "@/components/documents/image-queue";
 import { PageOptions } from "@/components/documents/page-options";
 import { ParamPanel } from "@/components/audio/param-controls";
@@ -61,13 +61,15 @@ export function ImageToPdf() {
     }
   }, [busy, images.length, output]);
 
-  const reset = () => {
-    if (output) URL.revokeObjectURL(output.url);
-    setOutput(null);
+  const reset = useCallback(() => {
+    setOutput((prev) => {
+      if (prev) URL.revokeObjectURL(prev.url);
+      return null;
+    });
     setStatus("idle");
     setPageCount(0);
     setError(null);
-  };
+  }, []);
 
   const addFiles = (files: File[]) => {
     setImages((prev) => [
