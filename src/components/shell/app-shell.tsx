@@ -6,7 +6,7 @@
  */
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Compass, Loader2 } from "lucide-react";
+import { Compass, Database, Layers, Loader2, Scissors, Video } from "lucide-react";
 import { lazy, Suspense, useEffect } from "react";
 import { AuthGateway } from "@/components/auth/auth-gateway";
 import { AuthGuard } from "@/components/auth/auth-guard";
@@ -14,6 +14,7 @@ import { AuroraBackground } from "@/components/shell/aurora-background";
 import { AppFooter } from "@/components/shell/footer";
 import { TopBar } from "@/components/shell/top-bar";
 import { StickyMobileCta } from "@/components/shell/sticky-mobile-cta";
+import { FloatingToolbar } from "@/components/ui/floating-toolbar";
 import AskOmni from "@/components/AskOmni";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
 import { ToolShell } from "@/components/tools/tool-shell";
@@ -133,7 +134,14 @@ export function AppShell() {
       sub.then((s) => s.remove()).catch(() => {});
     };
   }, []);
-  const view = useNavStore((s) => s.view);
+  const { view, navigate, reset } = useNavStore();
+
+  const floatingActions = [
+    { id: "matrix", label: "Tool Matrix", icon: Layers, onClick: () => reset() },
+    { id: "converter", label: "Media Studio", icon: Scissors, onClick: () => navigate("video-converter") },
+    { id: "vault", label: "File Vault", icon: Database, onClick: () => navigate("vault") },
+    { id: "recorder", label: "Studio Recorder", icon: Video, onClick: () => navigate("studio-recorder") },
+  ];
 
   return (
     <div className="relative flex min-h-screen flex-col">
@@ -167,6 +175,7 @@ export function AppShell() {
         </AnimatePresence>
       </main>
 
+      <FloatingToolbar actions={floatingActions} />
       <StickyMobileCta />
       <AppFooter />
     </div>
