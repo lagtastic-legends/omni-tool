@@ -41,6 +41,16 @@ export function SearchPalette({ hideTrigger = false }: { hideTrigger?: boolean }
     return () => document.removeEventListener("keydown", down);
   }, [toggle]);
 
+  /* Register as an active overlay so back key/gesture dismisses the search palette first */
+  useEffect(() => {
+    if (isOpen) {
+      return useNavStore.getState().registerOverlay("search-palette", () => {
+        setOpen(false);
+        return true;
+      });
+    }
+  }, [isOpen, setOpen]);
+
   const runCommand = useCallback((command: () => void) => {
     setOpen(false);
     command();

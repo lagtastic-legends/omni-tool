@@ -10,7 +10,8 @@
 
 import { motion } from "framer-motion";
 import { Film, Music4, Wand2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavStore } from "@/lib/navigation/nav-store";
 import { DropZone } from "@/components/media/drop-zone";
 import { OutputCard } from "@/components/media/output-card";
 import { ProcessingStatus } from "@/components/media/processing-status";
@@ -134,6 +135,16 @@ export function MediaConverter() {
   const inputPath = file ? `input.${extOf(file.name) || "bin"}` : "";
   const outputName = file ? `${baseName(file.name)}.${targetExt}` : "";
   const outputPath = `output.${targetExt}`;
+
+  /* Step back: Clear file selection before navigating away from tool */
+  useEffect(() => {
+    if (file && outputs.length === 0 && !busy) {
+      return useNavStore.getState().registerStepHandler(() => {
+        setFile(null);
+        return true;
+      });
+    }
+  }, [file, outputs.length, busy]);
 
   const start = async () => {
     if (!file) return;

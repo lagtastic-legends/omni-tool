@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Plus, Layers, Scissors, Settings, Database } from "lucide-react";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
+import { useNavStore } from "@/lib/navigation/nav-store";
 
 /**
  * 120Hz Spring Dynamics Tuning
@@ -176,6 +177,16 @@ export function FloatingToolbar({
     setIsOpen(nextState);
     onToggle?.(nextState);
   };
+
+  /* Register as active overlay so back key/gesture collapses the toolbar first */
+  useEffect(() => {
+    if (isOpen) {
+      return useNavStore.getState().registerOverlay("floating-toolbar", () => {
+        setIsOpen(false);
+        return true;
+      });
+    }
+  }, [isOpen]);
 
   return (
     <div

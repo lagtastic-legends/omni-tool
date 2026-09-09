@@ -7,7 +7,7 @@
 
 import { motion } from "framer-motion";
 import { ArrowLeft, Loader2, Power } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { useNavStore } from "@/lib/navigation/nav-store";
 import { ACCENT_STYLES } from "@/lib/tools/accents";
@@ -20,7 +20,7 @@ interface ToolShellProps {
 
 export function ToolShell({ toolId, children }: ToolShellProps) {
   const tool = TOOL_REGISTRY.find((t) => t.id === toolId);
-  const reset = useNavStore((s) => s.reset);
+  const handleBack = useNavStore((s) => s.handleBack);
   const { state, boot, engine, appendLog } = useFFmpegEngine();
 
   if (!tool) {
@@ -38,13 +38,22 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
   /* Document/imaging tools run without the wasm engine. */
   const requiresEngine = tool.requiresEngine !== false;
 
+  useEffect(() => {
+    if (requiresEngine && state === "booting") {
+      return useNavStore.getState().registerDirtyGuard(() => ({
+        hasUnsaved: true,
+        message: "The WebAssembly engine is currently initializing. Leaving now will interrupt setup. Are you sure you want to go back?",
+      }));
+    }
+  }, [requiresEngine, state]);
+
   return (
     <div className="space-y-6">
       {/* header ---------------------------------------------------------- */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
         <motion.button
           type="button"
-          onClick={() => reset()}
+          onClick={() => void handleBack()}
           whileHover={{ x: -3, transition: { type: "spring", stiffness: 380, damping: 28, mass: 0.7 } }}
           whileTap={{ scale: 0.96, transition: { type: "spring", stiffness: 380, damping: 28, mass: 0.7 } }}
           aria-label="Back to dashboard"

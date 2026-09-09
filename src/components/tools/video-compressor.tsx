@@ -8,7 +8,8 @@
 
 import { motion } from "framer-motion";
 import { Minimize2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useNavStore } from "@/lib/navigation/nav-store";
 import { DropZone } from "@/components/media/drop-zone";
 import { OutputCard } from "@/components/media/output-card";
 import { ProcessingStatus } from "@/components/media/processing-status";
@@ -63,6 +64,17 @@ export function VideoCompressor() {
 
   const outputName = file ? `${baseName(file.name)}-compressed.mp4` : "";
   const output = outputs[0] ?? null;
+
+  /* Step back: Clear file selection before navigating away from tool */
+  useEffect(() => {
+    if (file && outputs.length === 0 && !busy) {
+      return useNavStore.getState().registerStepHandler(() => {
+        setFile(null);
+        setMeta(null);
+        return true;
+      });
+    }
+  }, [file, outputs.length, busy]);
 
   const start = async () => {
     if (!file) return;

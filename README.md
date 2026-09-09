@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.5.3">
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.5.4">
     <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release" alt="Release" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.5.3/omni-tool-v2.5.3.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.5.3-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.5.4/omni-tool-v2.5.4.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.5.4-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" />
@@ -39,7 +39,7 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web App** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero install required. |
-| **📱 Android APK** | [**Download omni-tool-v2.5.3.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.5.3/omni-tool-v2.5.3.apk) | Direct install for normal phones, foldables, flips, and tablets. |
+| **📱 Android APK** | [**Download omni-tool-v2.5.4.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.5.4/omni-tool-v2.5.4.apk) | Direct install for normal phones, foldables, flips, and tablets. |
 
 ---
 

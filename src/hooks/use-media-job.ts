@@ -13,6 +13,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
+import { useNavStore } from "@/lib/navigation/nav-store";
 import { clamp } from "@/lib/format";
 
 export type JobPhase = "idle" | "writing" | "processing" | "reading" | "done" | "error";
@@ -83,6 +84,26 @@ export function useMediaJob() {
     urlsRef.current = [];
     setOutputs([]);
   }, []);
+
+  /* Register hierarchical navigation guards for active jobs & multi-step results */
+  useEffect(() => {
+    if (busy) {
+      return useNavStore.getState().registerDirtyGuard(() => ({
+        hasUnsaved: true,
+        message:
+          "A media processing job is actively running in WebAssembly. Leaving now will cancel the process. Are you sure you want to go back?",
+      }));
+    }
+  }, [busy]);
+
+  useEffect(() => {
+    if (outputs.length > 0) {
+      return useNavStore.getState().registerStepHandler(() => {
+        releaseOutputs();
+        return true;
+      });
+    }
+  }, [outputs.length, releaseOutputs]);
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) {

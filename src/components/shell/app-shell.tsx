@@ -22,6 +22,7 @@ import { useNavStore } from "@/lib/navigation/nav-store";
 import { useAiStore } from "@/store/useAiStore";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
+import { BackConfirmDialog } from "@/components/navigation/back-confirm-dialog";
 
 /* Dynamic code-split tool modules to control memory & isolate thread workloads */
 const MediaConverter = lazy(() => import("@/components/tools/media-converter").then((m) => ({ default: m.MediaConverter })));
@@ -123,20 +124,38 @@ function ToolView({ toolId }: { toolId: string }) {
 
 export function AppShell() {
   useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-    const sub = CapacitorApp.addListener("backButton", () => {
-      if (useNavStore.getState().view !== "dashboard") {
-        useNavStore.getState().reset();
-      } else {
-        CapacitorApp.exitApp();
-      }
-    });
+    let capSub: Promise<{ remove: () => Promise<void> }> | null = null;
+    if (Capacitor.isNativePlatform()) {
+      capSub = CapacitorApp.addListener("backButton", () => {
+        void useNavStore.getState().handleBack();
+      });
+    }
+
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      void useNavStore.getState().handleBack();
+    };
+    window.addEventListener("popstate", handlePopState);
+
     return () => {
-      sub.then((s) => s.remove()).catch(() => {});
+      if (capSub) {
+        capSub.then((s) => s.remove()).catch(() => {});
+      }
+      window.removeEventListener("popstate", handlePopState);
     };
   }, []);
+
   const { view, navigate, reset } = useNavStore();
   const { isOpen: isAiOpen, toggleOpen: toggleAi } = useAiStore();
+
+  useEffect(() => {
+    if (isAiOpen) {
+      return useNavStore.getState().registerOverlay("ai-chat", () => {
+        useAiStore.getState().setIsOpen(false);
+        return true;
+      });
+    }
+  }, [isAiOpen]);
 
   const floatingActions = [
     {
@@ -186,6 +205,7 @@ export function AppShell() {
 
       {!isAiOpen && <FloatingToolbar actions={floatingActions} />}
       <StickyMobileCta />
+      <BackConfirmDialog />
       <AppFooter />
     </div>
   );
