@@ -1,4 +1,4 @@
-﻿<p align="center">
+<p align="center">
   <img src="public/logo.jpg" alt="Omni Tool Logo" width="128" height="128" style="border-radius: 28px; box-shadow: 0 12px 32px rgba(139, 92, 246, 0.35);" />
 </p>
 
@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.4.3">
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.5.2">
     <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release" alt="Release" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.4.3/omni-tool-v2.4.3.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.4.3-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.5.2/omni-tool-v2.5.2.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.5.2-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" />
@@ -39,7 +39,7 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web App** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero install required. |
-| **📱 Android APK** | [**Download omni-tool-v2.4.3.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.4.3/omni-tool-v2.4.3.apk) | Direct install for normal phones, foldables, flips, and tablets. |
+| **📱 Android APK** | [**Download omni-tool-v2.5.2.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.5.2/omni-tool-v2.5.2.apk) | Direct install for normal phones, foldables, flips, and tablets. |
 
 ---
 
@@ -71,16 +71,23 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 * **Local Vault**: Persistent client-side file archive using IndexedDB and native sandbox storage.
 * **Studio Recorder**: Screen recording, microphone audio capture, and live device streaming.
 
+### ⚡ 120Hz Motion & Native Android Experience
+* **120Hz GPU Micro-Interactions**: Zero layout thrashing via GPU-composited `scaleX`/`scaleY` transforms and near-critical damping spring physics (`stiffness: 380, damping: 28, mass: 0.7`).
+* **Dual-Tier Native Haptics**: `@capacitor/haptics` integration with light ticks on navigation and medium feedback on button taps.
+* **Expanding Floating Toolbar**: Sleek vertical glassmorphic pill menu with staggered pop-in animation, Android safe area conformance, and minimum 44x44px touch bounding boxes.
+* **Ask Omni AI Assistant**: On-device streaming assistant seamlessly integrated into the floating toolbar.
+
 ---
 
 ## 🏛️ Architecture & Principles
 
-`
+```text
   ┌─────────────────────────────────────────────────────────┐
   │                 OMNI TOOL RUNTIME                       │
   │                                                         │
   │   Next.js 16 (App Router) + Tailwind CSS + Radix UI     │
-  │   Framer Motion (Newtonian Spring Micro-Interactions)   │
+  │   Framer Motion (120Hz Critical-Damping Physics)        │
+  │   Capacitor Haptics Engine (Dual-Tier Native Feedback)  │
   └───────────────────────────┬─────────────────────────────┘
                               │
                ┌──────────────┴──────────────┐
@@ -88,13 +95,13 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
    ┌───────────────────────┐     ┌───────────────────────┐
    │  WebAssembly Engine   │     │  Capacitor Shell      │
    │  @ffmpeg/core (WASM)  │     │  Native Android APK   │
-   │  Local File Buffers   │     │  Thumb-Zone Layout    │
-   │  Zero Network Sockets │     │  Edge-to-Edge Padding │
+   │  Virtual FS Auto-GC   │     │  Thumb-Zone Layout    │
+   │  Zero Cloud Uploads   │     │  Edge-to-Edge Insets  │
    └───────────────────────┘     └───────────────────────┘
-`
+```
 
 1. **Zero-Upload Guarantee**: We operate no cloud ingestion servers. All CPU/GPU operations are executed locally.
-2. **Tactile Craftsmanship**: Custom mathematically off-grid OKLCH color palettes, fluid typography (clamp()), and physical spring physics (stiffness: 450, damping: 24).
+2. **Tactile Craftsmanship**: Custom mathematically off-grid OKLCH color palettes, fluid typography (clamp()), and physical spring physics (stiffness: 380, damping: 28).
 3. **Ergonomic Native Design**: Optimized thumb-zone navigation, safe-area-inset adaptation, and native responsiveness for slabs, flips, folds, and tablets.
 
 ---
@@ -102,8 +109,9 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 ## 🛠️ Tech Stack
 
 * **Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
-* **Engine**: [FFmpeg.wasm](https://github.com/ffmpegwasm/ffmpeg.wasm) & [pdf-lib](https://pdf-lib.js.org/)
+* **Engine**: [FFmpeg.wasm 0.12](https://github.com/ffmpegwasm/ffmpeg.wasm) & [pdf-lib](https://pdf-lib.js.org/)
 * **Mobile Runtime**: [Capacitor 8](https://capacitorjs.com/)
+* **Native Haptics**: [@capacitor/haptics](https://capacitorjs.com/docs/apis/haptics)
 * **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
 * **Motion Physics**: [Framer Motion](https://www.framer.com/motion/)
 * **State & DB**: [Zustand](https://github.com/pmndrs/zustand) + IndexedDB
