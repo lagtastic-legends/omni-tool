@@ -7,7 +7,8 @@
 
 import { motion } from "framer-motion";
 import { FileText } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useNavStore } from "@/lib/navigation/nav-store";
 import { ParamPanel, ParamSelect, ParamSlider } from "@/components/audio/param-controls";
 import { PageOptions } from "@/components/documents/page-options";
 import { OutputCard } from "@/components/media/output-card";
@@ -38,6 +39,16 @@ export function TextToPdf() {
 
   const busy = status === "working";
   const words = useMemo(() => (text.trim() ? text.trim().split(/\s+/).length : 0), [text]);
+
+  /* Guard against losing typed draft on back */
+  useEffect(() => {
+    if (text.trim().length > 0) {
+      return useNavStore.getState().registerDirtyGuard(() => ({
+        hasUnsaved: true,
+        message: "You have typed text for a PDF. Going back will discard your draft. Are you sure you want to proceed?",
+      }));
+    }
+  }, [text]);
 
   const reset = () => {
     if (output) URL.revokeObjectURL(output.url);

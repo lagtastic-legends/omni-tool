@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatBytes } from "@/lib/format";
 import { SIZE_BLOCK_BYTES, SIZE_WARN_BYTES } from "@/lib/media/ffmpeg-jobs";
 import { probeAudioDuration, probeVideo, type VideoMeta } from "@/lib/media/probe";
+import { useNavStore } from "@/lib/navigation/nav-store";
 
 interface DropZoneProps {
   /** MIME filter, e.g. "video/*" — also used to validate drops. */
@@ -57,6 +58,26 @@ export function DropZone({
     },
     [previewUrl],
   );
+
+  /* Guard against discarding loaded files & step back to clear file on Back */
+  useEffect(() => {
+    if (file) {
+      const unguard = useNavStore.getState().registerDirtyGuard(() => ({
+        hasUnsaved: true,
+        message: `You have loaded "${file.name}". Going back will discard your file and progress. Are you sure you want to proceed?`,
+      }));
+
+      const unstep = useNavStore.getState().registerStepHandler(() => {
+        onClear();
+        return true;
+      });
+
+      return () => {
+        unguard();
+        unstep();
+      };
+    }
+  }, [file, onClear]);
 
   /* Native metadata probe — setState lands inside the async callback,
    * never synchronously in the effect body. Audio probing reports duration

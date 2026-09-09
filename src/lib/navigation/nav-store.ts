@@ -239,23 +239,10 @@ export const useNavStore = create<NavState>((set, get) => ({
       }
     }
 
-    // TIER 2: Check if current active tool has a sub-step to step back into
-    if (state.stepHandlers.length > 0) {
-      const handlers = [...state.stepHandlers];
-      for (let i = handlers.length - 1; i >= 0; i--) {
-        try {
-          const handled = handlers[i]();
-          if (handled) return true;
-        } catch {
-          // continue
-        }
-      }
-    }
-
-    // TIER 3: Check for unsaved work or active media processing
+    // TIER 2: Check for unsaved work or active operations BEFORE losing progress
     let hasUnsaved = false;
     let guardMessage =
-      "You have an active operation or unsaved work in progress. Leaving will discard your current progress. Are you sure you want to go back?";
+      "You have an active operation or unsaved work in progress. Going back will discard your current progress. Are you sure you want to proceed?";
 
     for (const guard of state.dirtyGuards) {
       try {
@@ -281,7 +268,24 @@ export const useNavStore = create<NavState>((set, get) => ({
             title: "Discard Unsaved Work?",
             message: guardMessage,
             onConfirm: () => {
-              set({ confirmDialogState: null, dirtyGuards: [], stepHandlers: [] });
+              set({ confirmDialogState: null });
+              // Check if task has a sub-step to step back into
+              const s = get();
+              if (s.stepHandlers.length > 0) {
+                const handlers = [...s.stepHandlers];
+                for (let i = handlers.length - 1; i >= 0; i--) {
+                  try {
+                    const handled = handlers[i]();
+                    if (handled) {
+                      resolve(true);
+                      return;
+                    }
+                  } catch {
+                    // continue
+                  }
+                }
+              }
+              // If no sub-steps, pop history or return to dashboard
               get()._executeHistoryPop().then(resolve);
             },
             onCancel: () => {
@@ -291,6 +295,19 @@ export const useNavStore = create<NavState>((set, get) => ({
           },
         });
       });
+    }
+
+    // TIER 3: If no unsaved work, check if task has an internal sub-step to step back into
+    if (state.stepHandlers.length > 0) {
+      const handlers = [...state.stepHandlers];
+      for (let i = handlers.length - 1; i >= 0; i--) {
+        try {
+          const handled = handlers[i]();
+          if (handled) return true;
+        } catch {
+          // continue
+        }
+      }
     }
 
     // TIERS 4 & 5: Execute history pop or safe dashboard fallback
