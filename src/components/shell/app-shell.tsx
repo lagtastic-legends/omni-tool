@@ -6,7 +6,8 @@
  */
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Compass } from "lucide-react";
+import { Compass, Loader2 } from "lucide-react";
+import { lazy, Suspense, useEffect } from "react";
 import { AuthGateway } from "@/components/auth/auth-gateway";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { AuroraBackground } from "@/components/shell/aurora-background";
@@ -15,34 +16,49 @@ import { TopBar } from "@/components/shell/top-bar";
 import { StickyMobileCta } from "@/components/shell/sticky-mobile-cta";
 import AskOmni from "@/components/AskOmni";
 import { DashboardView } from "@/components/dashboard/dashboard-view";
-import { GifMaker } from "@/components/tools/gif-maker";
-import { AudioEditor } from "@/components/tools/audio-editor";
-import { BassBooster } from "@/components/tools/bass-booster";
-import { EqualizerTool } from "@/components/tools/equalizer-tool";
-import { ImageToPdf } from "@/components/tools/image-to-pdf";
-import { LockPdf } from "@/components/tools/lock-pdf";
-import { MediaConverter } from "@/components/tools/media-converter";
-import { ReverseAudio } from "@/components/tools/reverse-audio";
-import { RingtoneMaker } from "@/components/tools/ringtone-maker";
-import { ScanToPdf } from "@/components/tools/scan-to-pdf";
-import { SlowedReverb } from "@/components/tools/slowed-reverb";
-import { Spatial8D } from "@/components/tools/spatial-8d";
-import { StereoPanner } from "@/components/tools/stereo-panner";
-import { StudioRecorder } from "@/components/tools/studio-recorder";
-import { TextToPdf } from "@/components/tools/text-to-pdf";
-import { PaletteExtractor } from "@/components/tools/palette-extractor";
-import { AsciiGenerator } from "@/components/tools/ascii-generator";
-import { WatermarkRemover } from "@/components/tools/watermark-remover";
-import { QrStudio } from "@/components/tools/qr-studio";
 import { ToolShell } from "@/components/tools/tool-shell";
-import { VaultView } from "@/components/vault/vault-view";
-import { VideoCompressor } from "@/components/tools/video-compressor";
-import { VideoMute } from "@/components/tools/video-mute";
-import { VolumeChanger } from "@/components/tools/volume-changer";
 import { useNavStore } from "@/lib/navigation/nav-store";
-import { useEffect } from "react";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
+
+/* Dynamic code-split tool modules to control memory & isolate thread workloads */
+const MediaConverter = lazy(() => import("@/components/tools/media-converter").then((m) => ({ default: m.MediaConverter })));
+const VideoCompressor = lazy(() => import("@/components/tools/video-compressor").then((m) => ({ default: m.VideoCompressor })));
+const VideoMute = lazy(() => import("@/components/tools/video-mute").then((m) => ({ default: m.VideoMute })));
+const GifMaker = lazy(() => import("@/components/tools/gif-maker").then((m) => ({ default: m.GifMaker })));
+const AudioEditor = lazy(() => import("@/components/tools/audio-editor").then((m) => ({ default: m.AudioEditor })));
+const SlowedReverb = lazy(() => import("@/components/tools/slowed-reverb").then((m) => ({ default: m.SlowedReverb })));
+const BassBooster = lazy(() => import("@/components/tools/bass-booster").then((m) => ({ default: m.BassBooster })));
+const Spatial8D = lazy(() => import("@/components/tools/spatial-8d").then((m) => ({ default: m.Spatial8D })));
+const EqualizerTool = lazy(() => import("@/components/tools/equalizer-tool").then((m) => ({ default: m.EqualizerTool })));
+const ReverseAudio = lazy(() => import("@/components/tools/reverse-audio").then((m) => ({ default: m.ReverseAudio })));
+const StereoPanner = lazy(() => import("@/components/tools/stereo-panner").then((m) => ({ default: m.StereoPanner })));
+const VolumeChanger = lazy(() => import("@/components/tools/volume-changer").then((m) => ({ default: m.VolumeChanger })));
+const RingtoneMaker = lazy(() => import("@/components/tools/ringtone-maker").then((m) => ({ default: m.RingtoneMaker })));
+const ImageToPdf = lazy(() => import("@/components/tools/image-to-pdf").then((m) => ({ default: m.ImageToPdf })));
+const TextToPdf = lazy(() => import("@/components/tools/text-to-pdf").then((m) => ({ default: m.TextToPdf })));
+const LockPdf = lazy(() => import("@/components/tools/lock-pdf").then((m) => ({ default: m.LockPdf })));
+const ScanToPdf = lazy(() => import("@/components/tools/scan-to-pdf").then((m) => ({ default: m.ScanToPdf })));
+const PaletteExtractor = lazy(() => import("@/components/tools/palette-extractor").then((m) => ({ default: m.PaletteExtractor })));
+const AsciiGenerator = lazy(() => import("@/components/tools/ascii-generator").then((m) => ({ default: m.AsciiGenerator })));
+const WatermarkRemover = lazy(() => import("@/components/tools/watermark-remover").then((m) => ({ default: m.WatermarkRemover })));
+const VaultView = lazy(() => import("@/components/vault/vault-view").then((m) => ({ default: m.VaultView })));
+const StudioRecorder = lazy(() => import("@/components/tools/studio-recorder").then((m) => ({ default: m.StudioRecorder })));
+const QrStudio = lazy(() => import("@/components/tools/qr-studio").then((m) => ({ default: m.QrStudio })));
+
+function ToolSkeleton() {
+  return (
+    <div className="panel-hud scanlines flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-tactile border border-border/80 p-10 text-center shadow-tactile animate-pulse">
+      <Loader2 className="size-8 animate-spin text-primary" />
+      <p className="font-display text-xs font-bold tracking-[0.2em] text-foreground/80">
+        MOUNTING MODULE WORKSPACE…
+      </p>
+      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+        Zero cloud latency · Allocating isolated sandbox memory
+      </p>
+    </div>
+  );
+}
 
 /** tool id → module implementation (grows every phase) */
 const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
@@ -96,7 +112,9 @@ function ToolView({ toolId }: { toolId: string }) {
   }
   return (
     <ToolShell toolId={toolId}>
-      <Tool />
+      <Suspense fallback={<ToolSkeleton />}>
+        <Tool />
+      </Suspense>
     </ToolShell>
   );
 }

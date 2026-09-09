@@ -19,7 +19,7 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
@@ -56,7 +56,7 @@ const KIND_TONE: Record<VaultKind, string> = {
   file: "border-border/60 bg-muted text-muted-foreground",
 };
 
-function VaultRow({ item, onDelete }: { item: VaultItem; onDelete: (id: string) => void }) {
+const VaultRow = memo(function VaultRow({ item, onDelete }: { item: VaultItem; onDelete: (id: string) => void }) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const urlRef = useRef<string | null>(null);
@@ -135,9 +135,11 @@ function VaultRow({ item, onDelete }: { item: VaultItem; onDelete: (id: string) 
       <AnimatePresence>
         {open && previewUrl && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
+            initial={{ opacity: 0, scaleY: 0.96, y: -6 }}
+            animate={{ opacity: 1, scaleY: 1, y: 0 }}
+            exit={{ opacity: 0, scaleY: 0.96, y: -6 }}
+            transition={{ type: "spring", stiffness: 380, damping: 28, mass: 0.7 }}
+            style={{ transformOrigin: "top center" }}
             className="overflow-hidden"
           >
             <div className="pt-3">
@@ -163,7 +165,7 @@ function VaultRow({ item, onDelete }: { item: VaultItem; onDelete: (id: string) 
       </AnimatePresence>
     </motion.li>
   );
-}
+});
 
 export function VaultView() {
   const { items, ready, totalBytes, estimate, remove, clearAll } = useVault();
@@ -264,11 +266,13 @@ export function VaultView() {
               <span className="text-neon">{(estimate.percent * 100).toFixed(2)}%</span>
             )}
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
             <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-primary to-neon"
-              animate={{ width: `${Math.max((estimate?.percent ?? 0) * 100, items.length > 0 ? 1.5 : 0)}%` }}
-              transition={{ duration: 0.4 }}
+              className="h-full w-full rounded-full bg-gradient-to-r from-primary to-neon origin-left"
+              style={{ transformOrigin: "0% 50%" }}
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: Math.min(Math.max(estimate?.percent ?? (items.length > 0 ? 0.015 : 0), 0), 1) }}
+              transition={{ type: "spring", stiffness: 380, damping: 28, mass: 0.7 }}
             />
           </div>
           {estimate && estimate.quota > 0 && (

@@ -55,16 +55,28 @@ export function useMediaJob() {
   const busy = phase === "writing" || phase === "processing" || phase === "reading";
   const busyRef = useRef(false);
   const urlsRef = useRef<string[]>([]);
+  const allocatedFilesRef = useRef<Set<string>>(new Set());
   const startedAtRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  /* Revoke any dangling blob URLs on unmount. ------------------------------ */
+  /* Revoke dangling blob URLs and clean orphaned virtual FS files on unmount. */
   useEffect(() => {
     return () => {
       urlsRef.current.forEach((u) => URL.revokeObjectURL(u));
+      urlsRef.current = [];
       if (timerRef.current) clearInterval(timerRef.current);
+      if (engine && allocatedFilesRef.current.size > 0) {
+        allocatedFilesRef.current.forEach((filePath) => {
+          try {
+            void engine.deleteFile(filePath);
+          } catch {
+            /* virtual file already unlinked */
+          }
+        });
+        allocatedFilesRef.current.clear();
+      }
     };
-  }, []);
+  }, [engine]);
 
   const releaseOutputs = useCallback(() => {
     urlsRef.current.forEach((u) => URL.revokeObjectURL(u));
@@ -135,6 +147,7 @@ export function useMediaJob() {
         /* 1 — stage inputs into the virtual FS --------------------------- */
         setPhase("writing");
         for (const w of spec.write) {
+          allocatedFilesRef.current.add(w.path);
           await engine.writeFile(w.path, w.data);
         }
 
@@ -158,6 +171,7 @@ export function useMediaJob() {
         setPhase("reading");
         const collected: JobOutput[] = [];
         for (const r of spec.read) {
+          allocatedFilesRef.current.add(r.path);
           const data = await engine.readFile(r.path, "binary");
           if (!(data instanceof Uint8Array) || data.byteLength === 0) {
             throw new Error(`Output "${r.name}" came back empty — conversion failed.`);
@@ -183,14 +197,18 @@ export function useMediaJob() {
         setPhase("error");
       } finally {
         engine.off("progress", handler);
-        /* 4 — best-effort virtual FS cleanup ------------------------------ */
-        if (spec.cleanup?.length) {
-          for (const p of spec.cleanup) {
-            try {
-              await engine.deleteFile(p);
-            } catch {
-              /* virtual file already gone — nothing to do */
-            }
+        /* 4 — aggressive virtual FS cleanup (prevent memory leaks) -------- */
+        const filesToClean = new Set<string>([
+          ...spec.write.map((w) => w.path),
+          ...spec.read.map((r) => r.path),
+          ...(spec.cleanup ?? []),
+        ]);
+        for (const p of filesToClean) {
+          try {
+            await engine.deleteFile(p);
+            allocatedFilesRef.current.delete(p);
+          } catch {
+            /* virtual file already deleted or never created */
           }
         }
         stopTimer();

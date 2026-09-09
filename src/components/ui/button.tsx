@@ -5,6 +5,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import { motion, HTMLMotionProps } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import { useHaptics, type HapticImpact } from "@/hooks/use-haptics";
 import { cn } from "@/lib/utils";
 
 /**
@@ -71,12 +72,12 @@ export const buttonVariants = cva(
   }
 );
 
-/* Spring Physics Tuning */
+/* 120Hz GPU-Optimized Spring Physics Tuning */
 const springPhysics = {
   type: "spring",
-  stiffness: 450,
-  damping: 24,
-  mass: 0.8,
+  stiffness: 380,
+  damping: 28,
+  mass: 0.7,
 } as const;
 
 export interface ButtonProps
@@ -84,6 +85,7 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
   isLoading?: boolean;
+  haptic?: HapticImpact | "none";
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -94,12 +96,16 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       size,
       asChild = false,
       isLoading = false,
+      haptic = "light",
       children,
       disabled,
+      onPointerDown,
       ...props
     },
     ref
   ) => {
+    const haptics = useHaptics();
+
     // When asChild is requested (e.g. Next.js Link or Radix Trigger), pass through to Slot
     if (asChild) {
       return (
@@ -118,6 +124,12 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <motion.button
         ref={ref}
         disabled={disabled || isLoading}
+        onPointerDown={(e) => {
+          if (!disabled && !isLoading && haptic !== "none") {
+            void haptics.impact(haptic);
+          }
+          onPointerDown?.(e);
+        }}
         whileHover={
           disabled || isLoading
             ? undefined
@@ -132,7 +144,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             : {
                 scale: 0.965,
                 y: 1,
-                transition: { type: "spring", stiffness: 500, damping: 20 },
+                transition: springPhysics,
               }
         }
         className={cn(buttonVariants({ variant, size, className }))}

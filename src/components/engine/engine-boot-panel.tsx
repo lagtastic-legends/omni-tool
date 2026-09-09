@@ -18,6 +18,7 @@ import {
   Terminal,
 } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { useHaptics } from "@/hooks/use-haptics";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { formatBytes, formatDurationMs } from "@/lib/format";
 import type { BootStage, LogLevel } from "@/types/omni";
@@ -57,6 +58,19 @@ function StageIcon({ stage, current }: { stage: BootStage; current: BootStage })
 export function EngineBootPanel() {
   const { state, stage, error, boot, shutdown, bootMs, download, logs, capabilities } =
     useFFmpegEngine();
+  const haptics = useHaptics();
+  const lastStateRef = useRef(state);
+
+  useEffect(() => {
+    if (lastStateRef.current !== state) {
+      if (state === "ready") {
+        void haptics.success();
+      } else if (state === "error") {
+        void haptics.error();
+      }
+      lastStateRef.current = state;
+    }
+  }, [state, haptics]);
 
   const consoleRef = useRef<HTMLDivElement>(null);
 
@@ -126,11 +140,14 @@ export function EngineBootPanel() {
           {/* Actions */}
           <div className="flex flex-wrap items-center gap-3">
             <motion.button
-              onClick={() => void boot()}
+              onClick={() => {
+                void haptics.heavy();
+                void boot();
+              }}
               disabled={busy || ready}
               whileHover={busy || ready ? undefined : { y: -2 }}
               whileTap={busy || ready ? undefined : { scale: 0.965, y: 1 }}
-              transition={{ type: "spring", stiffness: 450, damping: 24 }}
+              transition={{ type: "spring", stiffness: 380, damping: 28, mass: 0.7 }}
               aria-busy={busy}
               className={`group relative inline-flex min-h-[44px] items-center gap-2.5 overflow-hidden rounded-tactile px-6 py-3 font-display text-xs font-bold tracking-[0.2em] shadow-tactile transition-all ${
                 ready
@@ -160,8 +177,11 @@ export function EngineBootPanel() {
                 animate={{ opacity: 1, x: 0 }}
                 whileHover={{ y: -1 }}
                 whileTap={{ scale: 0.965 }}
-                transition={{ type: "spring", stiffness: 450, damping: 24 }}
-                onClick={shutdown}
+                transition={{ type: "spring", stiffness: 380, damping: 28, mass: 0.7 }}
+                onClick={() => {
+                  void haptics.medium();
+                  shutdown();
+                }}
                 className="inline-flex min-h-[44px] items-center gap-2 rounded-tactile border border-border/80 bg-card/60 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground shadow-tactile transition-all hover:border-red-400/40 hover:text-red-300"
               >
                 <Power className="size-3.5" />
@@ -252,11 +272,13 @@ export function EngineBootPanel() {
                       {Math.round(download.percent * 100)}%
                     </span>
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                     <motion.div
-                      className="h-full rounded-full bg-gradient-to-r from-primary to-neon"
-                      animate={{ width: `${Math.max(download.percent * 100, 2)}%` }}
-                      transition={{ duration: 0.18, ease: "easeOut" }}
+                      className="h-full w-full rounded-full bg-gradient-to-r from-primary to-neon origin-left"
+                      style={{ transformOrigin: "0% 50%" }}
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: Math.min(Math.max(download.percent, 0.02), 1) }}
+                      transition={{ type: "spring", stiffness: 380, damping: 28, mass: 0.7 }}
                     />
                   </div>
                 </motion.div>

@@ -45,8 +45,8 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
         <motion.button
           type="button"
           onClick={() => reset()}
-          whileHover={{ x: -3, transition: { type: "spring", stiffness: 450, damping: 22 } }}
-          whileTap={{ scale: 0.96, transition: { type: "spring", stiffness: 500, damping: 22 } }}
+          whileHover={{ x: -3, transition: { type: "spring", stiffness: 380, damping: 28, mass: 0.7 } }}
+          whileTap={{ scale: 0.96, transition: { type: "spring", stiffness: 380, damping: 28, mass: 0.7 } }}
           aria-label="Back to dashboard"
           className="flex w-fit min-h-[44px] items-center gap-1.5 sm:gap-2 rounded-tactile border border-border/80 bg-card/60 px-3.5 sm:px-4 font-mono text-[10px] sm:text-[11px] uppercase tracking-[0.16em] text-muted-foreground shadow-tactile transition-all hover:border-primary/40 hover:text-foreground"
         >
@@ -55,15 +55,19 @@ export function ToolShell({ toolId, children }: ToolShellProps) {
         </motion.button>
 
         <div className="flex flex-1 items-center gap-3 sm:gap-4">
-          <div
+          <motion.div
+            layoutId={`tool-icon-${tool.id}`}
             className={`grid size-10 sm:size-12 shrink-0 place-items-center rounded-tactile border shadow-subtle ${accent.tile}`}
           >
             <Icon className="size-5 sm:size-6" strokeWidth={1.75} />
-          </div>
+          </motion.div>
           <div className="min-w-0">
-            <h1 className="font-display text-fluid-base sm:text-fluid-lg font-bold tracking-wide text-foreground">
+            <motion.h1
+              layoutId={`tool-title-${tool.id}`}
+              className="font-display text-fluid-base sm:text-fluid-lg font-bold tracking-wide text-foreground"
+            >
               {tool.name}
-            </h1>
+            </motion.h1>
             <p className="mt-0.5 text-xs text-muted-foreground sm:text-sm line-clamp-2 sm:line-clamp-none">
               {tool.description}
             </p>

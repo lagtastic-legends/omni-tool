@@ -14,6 +14,8 @@ import {
   Loader2,
   Terminal,
 } from "lucide-react";
+import { memo, useEffect, useRef } from "react";
+import { useHaptics } from "@/hooks/use-haptics";
 import { formatDurationMs } from "@/lib/format";
 import type { JobPhase } from "@/hooks/use-media-job";
 
@@ -39,7 +41,7 @@ const PHASE_META: Record<
   error: { label: "Fault", icon: AlertTriangle },
 };
 
-export function ProcessingStatus({
+export const ProcessingStatus = memo(function ProcessingStatus({
   phase,
   progress,
   passIndex,
@@ -49,6 +51,20 @@ export function ProcessingStatus({
   error,
   passNames = [],
 }: ProcessingStatusProps) {
+  const haptics = useHaptics();
+  const lastPhaseRef = useRef(phase);
+
+  useEffect(() => {
+    if (lastPhaseRef.current !== phase) {
+      if (phase === "done") {
+        void haptics.success();
+      } else if (phase === "error") {
+        void haptics.error();
+      }
+      lastPhaseRef.current = phase;
+    }
+  }, [phase, haptics]);
+
   if (phase === "idle") return null;
 
   const meta = PHASE_META[phase];
@@ -58,6 +74,7 @@ export function ProcessingStatus({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 380, damping: 28, mass: 0.7 }}
       className="space-y-3 rounded-xl border border-border/60 bg-card/40 p-4"
       role="status"
       aria-live="polite"
@@ -81,17 +98,19 @@ export function ProcessingStatus({
         </span>
       </div>
 
-      {/* progress bar */}
+      {/* progress bar (120Hz GPU-accelerated scaleX to avoid layout thrashing) */}
       {phase !== "error" && (
-        <div className="h-2 overflow-hidden rounded-full bg-muted">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
           <motion.div
             className={
               phase === "done"
-                ? "h-full rounded-full bg-pulse"
-                : "h-full rounded-full bg-gradient-to-r from-primary to-neon"
+                ? "h-full w-full rounded-full bg-pulse origin-left"
+                : "h-full w-full rounded-full bg-gradient-to-r from-primary to-neon origin-left"
             }
-            animate={{ width: `${phase === "done" ? 100 : Math.max(pct, 2)}%` }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
+            style={{ transformOrigin: "0% 50%" }}
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: Math.min(Math.max((phase === "done" ? 100 : Math.max(pct, 2)) / 100, 0), 1) }}
+            transition={{ type: "spring", stiffness: 380, damping: 28, mass: 0.7 }}
           />
         </div>
       )}
@@ -130,4 +149,4 @@ export function ProcessingStatus({
       </AnimatePresence>
     </motion.div>
   );
-}
+});

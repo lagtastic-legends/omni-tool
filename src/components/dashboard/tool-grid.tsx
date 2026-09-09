@@ -8,7 +8,8 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight, LayoutGrid, Lock } from "lucide-react";
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
+import { useHaptics } from "@/hooks/use-haptics";
 import { useToast } from "@/hooks/use-toast";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { useNavStore } from "@/lib/navigation/nav-store";
@@ -23,7 +24,7 @@ import type { ToolCategory, ToolMeta } from "@/types/omni";
 
 type Filter = "all" | ToolCategory;
 
-function ToolCard({
+const ToolCard = memo(function ToolCard({
   tool,
   index,
   engineState,
@@ -33,6 +34,7 @@ function ToolCard({
   engineState: "idle" | "loading" | "ready" | "error";
 }) {
   const { toast } = useToast();
+  const haptics = useHaptics();
   const navigate = useNavStore((s) => s.navigate);
   const accent = ACCENT_STYLES[tool.accent];
   const locked = tool.status !== "online";
@@ -46,16 +48,20 @@ function ToolCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ delay: Math.min(index * 0.03, 0.4), duration: 0.4, ease: "easeOut" }}
-      whileHover={{ y: -4, transition: { type: "spring", stiffness: 450, damping: 22 } }}
-      whileTap={{ scale: 0.97, y: 1, transition: { type: "spring", stiffness: 500, damping: 22 } }}
-      onClick={() =>
-        locked
-          ? toast({
-              title: `${tool.name} is sealed`,
-              description: `This module unlocks in Phase ${tool.phase} of the build sequence.`,
-            })
-          : navigate(tool.id)
-      }
+      whileHover={{ y: -4, transition: { type: "spring", stiffness: 380, damping: 28, mass: 0.7 } }}
+      whileTap={{ scale: 0.97, y: 1, transition: { type: "spring", stiffness: 380, damping: 28, mass: 0.7 } }}
+      onClick={() => {
+        if (locked) {
+          void haptics.warning();
+          toast({
+            title: `${tool.name} is sealed`,
+            description: `This module unlocks in Phase ${tool.phase} of the build sequence.`,
+          });
+        } else {
+          void haptics.medium();
+          navigate(tool.id);
+        }
+      }}
       className={`panel-hud group relative flex min-h-11 flex-col gap-3 rounded-tactile p-4 text-left shadow-tactile transition-all duration-200 ${
         locked
           ? "cursor-pointer hover:border-primary/35 hover:shadow-elevation1"
@@ -66,11 +72,12 @@ function ToolCard({
       aria-label={`${tool.name} — ${locked ? `locked, phase ${tool.phase}` : isEngineReady ? "online, open module" : "standby, requires engine"}`}
     >
       <div className="flex items-start justify-between gap-2">
-        <div
+        <motion.div
+          layoutId={`tool-icon-${tool.id}`}
           className={`grid size-10 shrink-0 place-items-center rounded-lg border ${accent.tile} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}
         >
           <tool.icon className="size-5" strokeWidth={1.75} />
-        </div>
+        </motion.div>
         {locked ? (
           <span className="flex items-center gap-1 rounded-full border border-border/60 bg-background/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
             <Lock className="size-2.5" />
@@ -102,12 +109,15 @@ function ToolCard({
       </div>
 
       <div>
-        <p className="flex items-center gap-1.5 font-display text-[13px] font-bold tracking-wide text-foreground">
+        <motion.p
+          layoutId={`tool-title-${tool.id}`}
+          className="flex items-center gap-1.5 font-display text-[13px] font-bold tracking-wide text-foreground"
+        >
           {tool.name}
           {!locked && (
             <ArrowUpRight className="size-3.5 text-primary opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
           )}
-        </p>
+        </motion.p>
         <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
           {tool.description}
         </p>
@@ -120,11 +130,12 @@ function ToolCard({
       </span>
     </motion.button>
   );
-}
+});
 
 export function ToolGrid() {
   const { state } = useFFmpegEngine();
   const [filter, setFilter] = useState<Filter>("all");
+  const haptics = useHaptics();
 
   const counts = useMemo(() => {
     const map = new Map<Filter, number>([["all", TOOL_REGISTRY.length]]);
@@ -183,7 +194,10 @@ export function ToolGrid() {
               key={f.id}
               role="tab"
               aria-selected={active}
-              onClick={() => setFilter(f.id)}
+              onClick={() => {
+                void haptics.selectionChanged();
+                setFilter(f.id);
+              }}
               className={`relative shrink-0 rounded-full px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors ${
                 active
                   ? "text-primary-foreground"
