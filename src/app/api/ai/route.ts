@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       : "generateContent";
 
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:${endpoint}&key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:${endpoint}&key=${apiKey}`,
       {
         method: "POST",
         headers: {
