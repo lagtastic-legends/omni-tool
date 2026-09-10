@@ -148,6 +148,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
               }
         }
         className={cn(buttonVariants({ variant, size, className }))}
+        style={{ transform: "translate3d(0, 0, 0)", backfaceVisibility: "hidden" }}
         {...(props as HTMLMotionProps<"button">)}
       >
         {isLoading ? (

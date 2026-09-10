@@ -69,11 +69,12 @@ export default function AskOmni({ showTrigger = false }: AskOmniProps) {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
+            initial={{ opacity: 0, y: 20, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="fixed bottom-20 right-4 sm:right-6 w-[calc(100vw-32px)] sm:w-[400px] h-[600px] max-h-[80vh] z-[70] rounded-2xl bg-zinc-950/95 backdrop-blur-3xl border border-white/10 shadow-2xl flex flex-col overflow-hidden"
+            exit={{ opacity: 0, y: 16, scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 380, damping: 28, mass: 0.7 }}
+            style={{ transform: "translate3d(0, 0, 0)", backfaceVisibility: "hidden" }}
+            className="fixed bottom-20 right-4 sm:right-6 w-[calc(100vw-32px)] sm:w-[400px] h-[600px] max-h-[80vh] z-[70] rounded-2xl bg-zinc-950/95 backdrop-blur-3xl border border-white/10 shadow-elevation-floating flex flex-col overflow-hidden will-change-[transform,opacity]"
           >
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-white/10 bg-black/40 backdrop-blur-md">

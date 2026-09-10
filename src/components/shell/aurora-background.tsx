@@ -34,6 +34,7 @@ export function AuroraBackground() {
   return (
     <div
       aria-hidden="true"
+      style={{ contain: "strict", transform: "translate3d(0, 0, 0)" }}
       className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
     >
       {/* Aurora orbs */}
@@ -41,6 +42,12 @@ export function AuroraBackground() {
         <motion.div
           key={i}
           className={`absolute rounded-full ${orb.className}`}
+          style={{
+            willChange: "transform",
+            transform: "translate3d(0, 0, 0)",
+            backfaceVisibility: "hidden",
+            contain: "layout style paint",
+          }}
           animate={orb.drift ?? undefined}
           transition={
             reduceMotion
@@ -48,6 +55,7 @@ export function AuroraBackground() {
               : {
                   duration: 26 + i * 6,
                   repeat: Infinity,
+                  repeatType: "reverse",
                   ease: "easeInOut",
                 }
           }

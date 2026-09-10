@@ -22,11 +22,11 @@ import { Button } from "@/components/ui/button";
 import type { VaultKind } from "@/lib/vault/vault-db";
 
 const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 16 },
   show: (delay: number) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.6, delay, ease: [0.22, 1, 0.36, 1] as const },
+    transition: { duration: 0.45, delay, ease: [0.16, 1, 0.3, 1] as const },
   }),
 };
 
@@ -53,8 +53,9 @@ function StatChip({
 }) {
   return (
     <motion.div
-      whileHover={{ y: -2, transition: { type: "spring", stiffness: 400, damping: 20 } }}
-      whileTap={{ scale: 0.98, transition: { type: "spring", stiffness: 500, damping: 22 } }}
+      whileHover={{ y: -2, transition: { type: "spring", stiffness: 420, damping: 26, mass: 0.6 } }}
+      whileTap={{ scale: 0.98, transition: { type: "spring", stiffness: 480, damping: 24, mass: 0.5 } }}
+      style={{ transform: "translate3d(0, 0, 0)", backfaceVisibility: "hidden" }}
       className={cn(
         "panel-hud group relative flex items-center gap-2.5 sm:gap-3 rounded-tactile px-3 py-2.5 sm:px-4 sm:py-3.5 shadow-tactile transition-shadow duration-200 hover:shadow-elevation1 hover:border-primary/40 cursor-default",
         isNative && "gap-2 sm:gap-2.5 md:gap-3 px-2.5 py-2 sm:px-3 sm:py-2.5 md:px-4 md:py-3"

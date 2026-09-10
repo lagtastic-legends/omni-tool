@@ -44,12 +44,13 @@ const ToolCard = memo(function ToolCard({
   return (
     <motion.button
       layout
-      initial={{ opacity: 0, y: 18 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
-      transition={{ delay: Math.min(index * 0.03, 0.4), duration: 0.4, ease: "easeOut" }}
-      whileHover={{ y: -4, transition: { type: "spring", stiffness: 380, damping: 28, mass: 0.7 } }}
-      whileTap={{ scale: 0.97, y: 1, transition: { type: "spring", stiffness: 380, damping: 28, mass: 0.7 } }}
+      transition={{ delay: Math.min(index * 0.025, 0.35), duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -3, transition: { type: "spring", stiffness: 420, damping: 26, mass: 0.6 } }}
+      whileTap={{ scale: 0.97, y: 0, transition: { type: "spring", stiffness: 480, damping: 24, mass: 0.5 } }}
+      style={{ transform: "translate3d(0, 0, 0)", backfaceVisibility: "hidden" }}
       onClick={() => {
         if (locked) {
           void haptics.warning();
@@ -190,10 +191,11 @@ export function ToolGrid() {
         {filters.map((f) => {
           const active = filter === f.id;
           return (
-            <button
+            <motion.button
               key={f.id}
               role="tab"
               aria-selected={active}
+              whileTap={{ scale: 0.95 }}
               onClick={() => {
                 void haptics.selectionChanged();
                 setFilter(f.id);
@@ -208,7 +210,8 @@ export function ToolGrid() {
                 <motion.span
                   layoutId="matrix-filter-pill"
                   className="absolute inset-0 rounded-full bg-gradient-to-r from-primary to-plasma"
-                  transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 30, mass: 0.6 }}
+                  style={{ willChange: "transform", transform: "translate3d(0, 0, 0)" }}
                 />
               )}
               <span className="relative z-10">
@@ -219,7 +222,7 @@ export function ToolGrid() {
                   {counts.get(f.id) ?? 0}
                 </span>
               </span>
-            </button>
+            </motion.button>
           );
         })}
       </div>
