@@ -1,4 +1,4 @@
-﻿# Contributing to Omni Tool
+# Contributing to Omni Tool
 
 Thank you for your interest in contributing to **Omni Tool**! We welcome contributions from developers, designers, and open-source enthusiasts.
 
@@ -14,22 +14,22 @@ Thank you for your interest in contributing to **Omni Tool**! We welcome contrib
 ## Development Setup
 
 1. **Clone the repository:**
-   `ash
+   ```bash
    git clone https://github.com/lagtastic-legends/omni-tool.git
    cd omni-tool
-   `
+   ```
 
 2. **Install dependencies:**
-   `ash
+   ```bash
    npm install
    # or
    bun install
-   `
+   ```
 
 3. **Start local development server:**
-   `ash
+   ```bash
    npm run dev
-   `
+   ```
    Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
@@ -39,30 +39,45 @@ Thank you for your interest in contributing to **Omni Tool**! We welcome contrib
 Omni Tool uses Capacitor to package the static Next.js export into an Android application:
 
 1. **Generate Static Export:**
-   `powershell
-   $env:MOBILE_EXPORT = "1"; npm run build
-   `
+   - **Windows (PowerShell):**
+     ```powershell
+     $env:MOBILE_EXPORT = "1"; npm run build
+     ```
+   - **Linux / macOS (Bash):**
+     ```bash
+     MOBILE_EXPORT=1 npm run build
+     ```
 
 2. **Sync Assets to Capacitor:**
-   `ash
+   ```bash
    npx cap sync android
-   `
+   ```
 
 3. **Build Android APK:**
-   `powershell
-   cd android
-   .\gradlew.bat assembleDebug
-   `
+   - **Debug Build:**
+     ```bash
+     cd android
+     ./gradlew assembleDebug      # Linux/macOS
+     .\gradlew.bat assembleDebug  # Windows
+     ```
+     Output: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+   - **Signed Release Build:**
+     ```bash
+     cd android
+     ./gradlew assembleRelease      # Linux/macOS
+     .\gradlew.bat assembleRelease  # Windows
+     ```
+     Output: `android/app/build/outputs/apk/release/app-release.apk`
 
 ---
 
 ## Pull Request Guidelines
 
-1. Create a feature branch (git checkout -b feature/my-new-tool).
+1. Create a feature branch (`git checkout -b feature/my-new-tool`).
 2. Follow existing TypeScript, Tailwind CSS, and component conventions.
 3. Ensure zero file data is ever dispatched to network sockets or external APIs.
-4. Test that 
-pm run build succeeds with 0 errors.
+4. Test that `npm run build` succeeds with 0 errors.
 5. Submit your PR with a clear summary of your changes.
 
 ---

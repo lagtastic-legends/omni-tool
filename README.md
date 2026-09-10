@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.5.7">
-    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release" alt="Release" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.5.9">
+    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release%20v2.5.9" alt="Release" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.5.7/omni-tool-v2.5.7.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.5.7-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.5.9/omni-tool-v2.5.9.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.5.9-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" />
@@ -38,8 +38,9 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
-| **🌐 Web App** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero install required. |
-| **📱 Android APK** | [**Download omni-tool-v2.5.7.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.5.7/omni-tool-v2.5.7.apk) | Direct install for normal phones, foldables, flips, and tablets. |
+| **🌐 Web App** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero install required. Run instantly in any modern browser. |
+| **📱 Android APK (Signed Release)** | [**Download omni-tool-v2.5.9.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.5.9/omni-tool-v2.5.9.apk) | Production signed APK (23.08 MB) optimized for phones, foldables, flips, and tablets. |
+| **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.5.9-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.5.9/omni-tool-v2.5.9-debug.apk) | Debug build (34.59 MB) with remote Chrome WebView debugging enabled for developers. |
 
 ---
 
@@ -71,8 +72,12 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 * **Local Vault**: Persistent client-side file archive using IndexedDB and native sandbox storage.
 * **Studio Recorder**: Screen recording, microphone audio capture, and live device streaming.
 
-### ⚡ 120Hz Motion & Native Android Experience
-* **120Hz GPU Micro-Interactions**: Zero layout thrashing via GPU-composited `scaleX`/`scaleY` transforms and near-critical damping spring physics (`stiffness: 380, damping: 28, mass: 0.7`).
+### ⚡ 120Hz Buttery Smooth Motion & Native Experience
+* **120Hz Fluid Motion & Zero Touch Latency**: Root-level CSS `touch-action: manipulation`, `-webkit-tap-highlight-color: transparent`, and `overscroll-behavior-y: none` eliminate 300ms mobile touch tap latency and eliminate rubber-banding interference.
+* **GPU Compositing & Layer Isolation**: GPU-accelerated backdrop transforms (`translate3d(0, 0, 0)`, `contain: layout style paint`, `backface-visibility: hidden`) prevent browser reflows and layout thrashing during continuous aurora animations.
+* **Hardware-Accelerated Panel HUD & Springs**: Custom cubic-bezier (`cubic-bezier(0.16, 1, 0.3, 1)`) and Framer Motion spring dynamics (`stiffness: 380, damping: 28, mass: 0.7`) on ToolCards, navigation bars, and category filter pills.
+* **Animated Lottie Search Button**: Custom interactive search trigger animation with instant reactive feedback and WCAG 2.1 AA compliant 44x44px touch targets on both web and mobile APK.
+* **5-Tier Universal Back Navigation Guard**: Mobile hardware back button, floating toolbar back, header back arrow, backdrop touch dismissal, and route stack management ensure seamless exit protection without accidental app termination.
 * **Dual-Tier Native Haptics**: `@capacitor/haptics` integration with light ticks on navigation and medium feedback on button taps.
 * **Expanding Floating Toolbar**: Sleek vertical glassmorphic pill menu with staggered pop-in animation, Android safe area conformance, and minimum 44x44px touch bounding boxes.
 * **Ask Omni AI Assistant**: On-device streaming assistant seamlessly integrated into the floating toolbar.
@@ -122,31 +127,48 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 ## 💻 Quick Start & Development
 
 ### 1. Clone & Install
-`ash
+```bash
 git clone https://github.com/lagtastic-legends/omni-tool.git
 cd omni-tool
 npm install
-`
+```
 
 ### 2. Run Local Development
-`ash
+```bash
 npm run dev
-`
+```
 Open [http://localhost:3000](http://localhost:3000) to view the workspace.
 
 ### 3. Build Web Static Export
-`powershell
- = "1"; npm run build
-`
+- **Windows (PowerShell):**
+  ```powershell
+  $env:MOBILE_EXPORT = "1"; npm run build
+  ```
+- **Linux / macOS (Bash):**
+  ```bash
+  MOBILE_EXPORT=1 npm run build
+  ```
 
 ### 4. Build Android APK
-`powershell
+Sync web assets to Capacitor and compile the APK:
+```bash
 npx cap sync android
 cd android
-.\gradlew.bat assembleDebug
-`
-The output APK will be generated at:
-ndroid/app/build/outputs/apk/debug/app-debug.apk
+```
+
+- **Signed Production APK:**
+  ```powershell
+  .\gradlew.bat assembleRelease   # Windows
+  ./gradlew assembleRelease       # Linux/macOS
+  ```
+  Output: `android/app/build/outputs/apk/release/app-release.apk`
+
+- **Development Debug APK:**
+  ```powershell
+  .\gradlew.bat assembleDebug     # Windows
+  ./gradlew assembleDebug         # Linux/macOS
+  ```
+  Output: `android/app/build/outputs/apk/debug/app-debug.apk`
 
 ---
 
