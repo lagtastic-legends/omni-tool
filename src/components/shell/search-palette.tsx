@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
-import { Search } from "lucide-react";
+import { useEffect, useCallback, useState } from "react";
+import { SearchLottieIcon } from "@/components/ui/search-lottie-icon";
 import {
   CommandDialog,
   CommandEmpty,
@@ -29,6 +29,7 @@ const ACCENT_MAP: Record<string, string> = {
 export function SearchPalette({ hideTrigger = false }: { hideTrigger?: boolean }) {
   const { isOpen, setOpen, toggle } = useSearchStore();
   const navigate = useNavStore((s) => s.navigate);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -61,10 +62,17 @@ export function SearchPalette({ hideTrigger = false }: { hideTrigger?: boolean }
       {!hideTrigger && (
         <button
           onClick={() => setOpen(true)}
-          className="flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3 py-1.5 text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className="group flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3 py-1.5 text-muted-foreground transition-all duration-200 hover:border-primary/40 hover:text-foreground hover:bg-card/90"
           title="Search Tools (Cmd+K)"
+          aria-label="Search Tools"
         >
-          <Search className="size-3.5" />
+          <SearchLottieIcon
+            isHovered={isHovered}
+            isOpen={isOpen}
+            className="size-4 text-muted-foreground group-hover:text-primary transition-colors"
+          />
           <span className="hidden font-mono text-[10px] uppercase tracking-[0.18em] sm:inline">
             SEARCH
           </span>

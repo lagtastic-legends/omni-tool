@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Command as CommandPrimitive } from "cmdk"
 import { SearchIcon } from "lucide-react"
+import { SearchLottieIcon } from "@/components/ui/search-lottie-icon"
 
 import { cn } from "@/lib/utils"
 import {
@@ -69,7 +70,7 @@ function CommandInput({
       data-slot="command-input-wrapper"
       className="flex h-9 items-center gap-2 border-b px-3"
     >
-      <SearchIcon className="size-4 shrink-0 opacity-50" />
+      <SearchLottieIcon className="size-4 shrink-0 text-muted-foreground/70" autoplay={true} loop={false} />
       <CommandPrimitive.Input
         data-slot="command-input"
         className={cn(

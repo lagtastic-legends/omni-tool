@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Wrench, Database, Search } from "lucide-react";
+import { Wrench, Database } from "lucide-react";
+import { SearchLottieIcon } from "@/components/ui/search-lottie-icon";
 import { useNavStore } from "@/lib/navigation/nav-store";
 import { useSearchStore } from "@/lib/search/search-store";
 import { cn } from "@/lib/utils";
@@ -54,9 +55,9 @@ export function StickyMobileCta() {
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.96 }}
             transition={{ type: "spring", stiffness: 450, damping: 22 }}
-            className="flex min-h-[44px] items-center justify-center gap-1.5 rounded-tactile border border-border/80 bg-card/70 py-2.5 px-4 font-mono text-[11px] font-medium text-muted-foreground shadow-tactile hover:text-foreground"
+            className="group flex min-h-[44px] items-center justify-center gap-1.5 rounded-tactile border border-border/80 bg-card/70 py-2.5 px-4 font-mono text-[11px] font-medium text-muted-foreground shadow-tactile hover:text-foreground hover:border-primary/40 transition-colors"
           >
-            <Search className="size-3.5 shrink-0" />
+            <SearchLottieIcon className="size-4 shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
             <span>Search</span>
           </motion.button>
 
