@@ -64,7 +64,7 @@ export function SearchPalette({ hideTrigger = false }: { hideTrigger?: boolean }
           onClick={() => setOpen(true)}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className="group flex items-center gap-2 rounded-full border border-border/70 bg-card/60 px-3 py-1.5 text-muted-foreground transition-all duration-200 hover:border-primary/40 hover:text-foreground hover:bg-card/90"
+          className="group flex min-h-11 min-w-11 sm:min-h-8 sm:min-w-0 items-center justify-center gap-2 rounded-full border border-border/70 bg-card/60 px-2.5 sm:px-3 py-1.5 text-muted-foreground transition-all duration-200 hover:border-primary/40 hover:text-foreground hover:bg-card/90"
           title="Search Tools (Cmd+K)"
           aria-label="Search Tools"
         >
