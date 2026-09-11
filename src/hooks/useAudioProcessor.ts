@@ -76,6 +76,9 @@ export function useAudioProcessor() {
   const busyRef = useRef(false);
   busyRef.current = busy;
 
+  const activeEngineRef = useRef<any>(engine);
+  if (engine) activeEngineRef.current = engine;
+
   const allocatedFilesRef = useRef<Set<string>>(new Set());
   const blobUrlsRef = useRef<string[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -89,10 +92,11 @@ export function useAudioProcessor() {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    if (engine && allocatedFilesRef.current.size > 0) {
+    const currentEng = activeEngineRef.current || engine;
+    if (currentEng && allocatedFilesRef.current.size > 0) {
       allocatedFilesRef.current.forEach((p) => {
         try {
-          void engine.deleteFile(p);
+          void currentEng.deleteFile(p);
         } catch {
           /* virtual file unlinked */
         }
@@ -101,6 +105,7 @@ export function useAudioProcessor() {
     }
   }, [engine]);
 
+  /* Clean up on unmount */
   useEffect(() => {
     return () => {
       releaseResources();
@@ -154,13 +159,16 @@ export function useAudioProcessor() {
       }
 
       // 3. Ensure FFmpeg engine is booted
-      let activeEngine = engine;
+      let activeEngine = activeEngineRef.current || engine;
       if (!activeEngine || engineState !== "ready") {
         setPhase("allocating");
         setCurrentPassLabel("Initializing WebAssembly DSP Engine...");
         try {
-          await boot();
-          // Engine will be available on the context after boot
+          const booted = await boot();
+          if (booted) {
+            activeEngine = booted;
+            activeEngineRef.current = booted;
+          }
         } catch (e: any) {
           const msg = e?.message || "Failed to boot WebAssembly audio engine.";
           setError(msg);
@@ -168,6 +176,10 @@ export function useAudioProcessor() {
           void haptics.error();
           return null;
         }
+      }
+
+      if (!activeEngine) {
+        throw new Error("FFmpeg WASM engine is not available.");
       }
 
       // 4. Setup timer & execution tracking
@@ -195,11 +207,7 @@ export function useAudioProcessor() {
         setCurrentPassLabel("Allocating Virtual Memory & Loading Audio...");
         const inputData = new Uint8Array(await file.arrayBuffer());
 
-        if (!engine) {
-          throw new Error("FFmpeg WASM engine is not available.");
-        }
-
-        await engine.writeFile(inputPath, inputData);
+        await activeEngine.writeFile(inputPath, inputData);
         allocatedFilesRef.current.add(inputPath);
         setProgress(15);
 
@@ -229,15 +237,15 @@ export function useAudioProcessor() {
           }
         };
 
-        engine.on("progress", onEngineProgress);
+        activeEngine.on("progress", onEngineProgress);
 
         try {
-          const exitCode = await engine.exec(execArgs);
+          const exitCode = await activeEngine.exec(execArgs);
           if (exitCode !== 0) {
             throw new Error(`FFmpeg exited with error code ${exitCode}.`);
           }
         } finally {
-          engine.off("progress", onEngineProgress);
+          activeEngine.off("progress", onEngineProgress);
         }
 
         // 8. Read result from WASM Virtual FS
@@ -247,7 +255,7 @@ export function useAudioProcessor() {
         await new Promise((resolve) => setTimeout(resolve, 15));
 
         allocatedFilesRef.current.add(outputPath);
-        const outData = (await engine.readFile(outputPath)) as Uint8Array;
+        const outData = (await activeEngine.readFile(outputPath)) as Uint8Array;
 
         // 9. Construct Blob & URL
         const outMime = mimeFor(outputFormat);

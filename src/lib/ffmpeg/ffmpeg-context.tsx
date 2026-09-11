@@ -57,7 +57,7 @@ export interface FFmpegEngineContextValue {
   state: EngineState;
   stage: BootStage;
   error: string | null;
-  boot: () => Promise<void>;
+  boot: () => Promise<FFmpeg | null>;
   shutdown: () => void;
   /** Total time the last successful boot took, in milliseconds. */
   bootMs: number | null;
@@ -94,6 +94,7 @@ export function FFmpegEngineProvider({ children }: { children: ReactNode }) {
   const [runtime, setRuntime] = useState<RuntimeProgress | null>(null);
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [engine, setEngine] = useState<FFmpeg | null>(null);
+  const engineRef = useRef<FFmpeg | null>(null);
   const [capabilities, setCapabilities] = useState<EngineCapabilities>({
     crossOriginIsolated: false,
     sharedArrayBuffer: false,
@@ -138,8 +139,17 @@ export function FFmpegEngineProvider({ children }: { children: ReactNode }) {
   /* -------------------------------------------------------------------------- */
   /* boot                                                                        */
   /* -------------------------------------------------------------------------- */
-  const boot = useCallback(async () => {
-    if (bootingRef.current || state === "ready") return;
+  const boot = useCallback(async (): Promise<FFmpeg | null> => {
+    if (engineRef.current && state === "ready") return engineRef.current;
+    if (bootingRef.current) {
+      // If boot is already in progress, wait for it to complete
+      let tries = 0;
+      while (bootingRef.current && tries < 100) {
+        await new Promise((r) => setTimeout(r, 150));
+        tries++;
+      }
+      return engineRef.current;
+    }
     bootingRef.current = true;
 
     setState("loading");
@@ -218,6 +228,7 @@ export function FFmpegEngineProvider({ children }: { children: ReactNode }) {
       });
 
       const elapsed = performance.now() - startedAt;
+      engineRef.current = instance;
       setEngine(instance);
       setStage("online");
       setState("ready");
@@ -227,15 +238,18 @@ export function FFmpegEngineProvider({ children }: { children: ReactNode }) {
         "success",
         `Engine online in ${(elapsed / 1000).toFixed(2)}s — tools unblocked.`,
       );
+      return instance;
     } catch (err) {
       const message =
         err instanceof Error ? err.message : String(err ?? "unknown error");
       instance.terminate();
+      engineRef.current = null;
       setEngine(null);
       setStage("standby");
       setState("error");
       setError(message);
       appendLog("system", "error", `Boot failed → ${message}`);
+      return null;
     } finally {
       bootingRef.current = false;
     }
@@ -245,7 +259,8 @@ export function FFmpegEngineProvider({ children }: { children: ReactNode }) {
   /* shutdown                                                                    */
   /* -------------------------------------------------------------------------- */
   const shutdown = useCallback(() => {
-    engine?.terminate();
+    engineRef.current?.terminate();
+    engineRef.current = null;
     setEngine(null);
     setState("idle");
     setStage("standby");
