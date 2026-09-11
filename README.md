@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.5.9">
-    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release%20v2.5.9" alt="Release" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.6.0">
+    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release%20v2.6.0" alt="Release" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.5.9/omni-tool-v2.5.9.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.5.9-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.6.0/omni-tool-v2.6.0.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.6.0-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" />
@@ -30,7 +30,7 @@
 
 **Omni Tool** is a high-performance, private media engineering suite and document workstation that runs entirely in your browser and on your Android device. 
 
-Unlike traditional cloud converters that upload your sensitive documents and videos to remote servers, Omni Tool executes everything **100% on-device** using self-hosted **WebAssembly (FFmpeg WASM)**. Not a single byte leaves your hardware.
+Unlike traditional cloud converters that upload your sensitive documents and videos to remote servers, Omni Tool executes everything **100% on-device** using self-hosted **WebAssembly (FFmpeg WASM)** and the native **Web Audio API**. Not a single byte leaves your hardware.
 
 ---
 
@@ -39,8 +39,8 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web App** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero install required. Run instantly in any modern browser. |
-| **📱 Android APK (Signed Release)** | [**Download omni-tool-v2.5.9.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.5.9/omni-tool-v2.5.9.apk) | Production signed APK (23.08 MB) optimized for phones, foldables, flips, and tablets. |
-| **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.5.9-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.5.9/omni-tool-v2.5.9-debug.apk) | Debug build (34.59 MB) with remote Chrome WebView debugging enabled for developers. |
+| **📱 Android APK (Signed Release)** | [**Download omni-tool-v2.6.0.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.6.0/omni-tool-v2.6.0.apk) | Production signed APK (24.22 MB) optimized for phones, foldables, flips, and tablets. |
+| **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.6.0-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.6.0/omni-tool-v2.6.0-debug.apk) | Debug build (~36.2 MB) with remote Chrome WebView debugging enabled for developers. |
 
 ---
 
@@ -51,14 +51,20 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 * **Universal Media Converter**: Transcode MP4, MKV, WebM, AVI, MOV, and more client-side.
 * **GIF Studio**: Convert video segments into optimized animated GIFs with custom framerate and palette control.
 
-### 🎵 Audio Workbench & Sound Lab
-* **Audio Workbench**: Waveform slicing, trimming, bitrate control, and format transcoding.
-* **Spatial 8D Audio**: Circular binaural panning engine that rotates sound around the listener.
-* **Bass Booster**: Deep low-end acoustic amplification and harmonic enhancement.
-* **Studio Equalizer**: 5-band frequency graphic EQ with real-time gain adjustment.
-* **Slowed + Reverb**: Transform tracks into ambient, dreamy slowed-down soundscapes.
-* **Reverse Audio**: Exact reverse-playback audio generator.
-* **Ringtone Maker**: Precise audio trimming with lossless m4r/mp3 exports.
+### 🎛️ Unified Audio DSP Suite (13 Engines)
+* **Flagship Dual-Engine Workstation**: Audition in real-time with zero latency via native **Web Audio API nodes**, then render studio-grade files through the client-side **WASM FFmpeg pipeline**.
+* **Bass Booster (5 Progressive Tiers)**: From subtle punch (+3dB) to extreme sub-bass (+18dB) with an automatic 8kHz high-shelf clarity filter to prevent muddy playback.
+* **Reverb Studio (8 Acoustic Spaces)**: Intimate Room, Small Room, Medium Room, Large Concert Hall, Church Hall, Cathedral, Slowed + Reverb, and Spatial 8D Reverb.
+* **Vocal Remover & Karaoke Maker**: Out-of-Phase Stereo (OOPS) cancellation with a 120Hz crossover filter preserving kick drums and bass lines while removing centered vocals.
+* **Spatial 8D Audio**: Circular binaural panning engine that dynamically orbits sound around the listener.
+* **Auto Panner**: Automated rhythmic stereo soundstage motion with customizable LFO rate and depth.
+* **Studio Graphic Equalizer**: 6 precision frequency bands (60Hz, 150Hz, 400Hz, 1kHz, 2.4kHz, 15kHz) with pre-modeled presets (Bass Heavy, Vocal Focus, Treble Sparkle, Flat).
+* **Adaptive Noise Reducer**: Spectral FFT denoising with customizable noise reduction dB, floor gate, and rumble/hiss filters.
+* **Semitone Pitch Shifter**: Independent pitch transposition (-12 to +12 semitones) without altering playback duration.
+* **Tempo Changer**: Clean pitch-preserving time stretching from 0.5x to 2.0x.
+* **Audio Trimmer & Slicer**: Millisecond-accurate start/end cutting and lossless segment extraction.
+* **Reverse Audio**: Precise inverted waveform playback generator.
+* **Stereo Panner & Volume Changer**: Left/Right balance positioning and dynamic master gain staging.
 
 ### 📄 Document & PDF Forge
 * **Image to PDF**: Combine multiple PNGs, JPEGs, and WebPs into a unified document.

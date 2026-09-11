@@ -48,6 +48,22 @@ const WatermarkRemover = lazy(() => import("@/components/tools/watermark-remover
 const VaultView = lazy(() => import("@/components/vault/vault-view").then((m) => ({ default: m.VaultView })));
 const StudioRecorder = lazy(() => import("@/components/tools/studio-recorder").then((m) => ({ default: m.StudioRecorder })));
 const QrStudio = lazy(() => import("@/components/tools/qr-studio").then((m) => ({ default: m.QrStudio })));
+const UnifiedAudioStudio = lazy(() => import("@/components/audio/UnifiedAudioStudio").then((m) => ({ default: m.UnifiedAudioStudio })));
+
+const AudioDspTool = () => <UnifiedAudioStudio initialToolId="bass-booster" />;
+const VocalRemoverTool = () => <UnifiedAudioStudio initialToolId="vocal-remover" />;
+const ReverbTool = () => <UnifiedAudioStudio initialToolId="reverb" />;
+const AutoPannerTool = () => <UnifiedAudioStudio initialToolId="auto-panner" />;
+const NoiseReducerTool = () => <UnifiedAudioStudio initialToolId="noise-reducer" />;
+const PitchShifterTool = () => <UnifiedAudioStudio initialToolId="pitch-shifter" />;
+const TempoChangerTool = () => <UnifiedAudioStudio initialToolId="tempo-changer" />;
+const Spatial8DStudioTool = () => <UnifiedAudioStudio initialToolId="spatial-8d" />;
+const BassBoosterStudioTool = () => <UnifiedAudioStudio initialToolId="bass-booster" />;
+const EqualizerStudioTool = () => <UnifiedAudioStudio initialToolId="equalizer" />;
+const ReverseAudioStudioTool = () => <UnifiedAudioStudio initialToolId="reverse-audio" />;
+const StereoPannerStudioTool = () => <UnifiedAudioStudio initialToolId="stereo-panner" />;
+const VolumeChangerStudioTool = () => <UnifiedAudioStudio initialToolId="volume-changer" />;
+const TrimmerStudioTool = () => <UnifiedAudioStudio initialToolId="trimmer" />;
 
 function ToolSkeleton() {
   return (
@@ -71,12 +87,13 @@ const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "gif-maker": GifMaker,
   "audio-editor": AudioEditor,
   "slowed-reverb": SlowedReverb,
-  "bass-booster": BassBooster,
-  "spatial-8d": Spatial8D,
-  "equalizer": EqualizerTool,
-  "reverse-audio": ReverseAudio,
-  "stereo-panner": StereoPanner,
-  "volume-changer": VolumeChanger,
+  "bass-booster": BassBoosterStudioTool,
+  "spatial-8d": Spatial8DStudioTool,
+  "equalizer": EqualizerStudioTool,
+  "reverse-audio": ReverseAudioStudioTool,
+  "stereo-panner": StereoPannerStudioTool,
+  "volume-changer": VolumeChangerStudioTool,
+  "trimmer": TrimmerStudioTool,
   "ringtone-maker": RingtoneMaker,
   "image-to-pdf": ImageToPdf,
   "text-to-pdf": TextToPdf,
@@ -89,6 +106,13 @@ const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
   "studio-recorder": StudioRecorder,
   "qr-studio": QrStudio,
   "auth-gateway": AuthGateway,
+  "audio-dsp": AudioDspTool,
+  "vocal-remover": VocalRemoverTool,
+  "reverb": ReverbTool,
+  "auto-panner": AutoPannerTool,
+  "noise-reducer": NoiseReducerTool,
+  "pitch-shifter": PitchShifterTool,
+  "tempo-changer": TempoChangerTool,
 };
 
 function ToolView({ toolId }: { toolId: string }) {
