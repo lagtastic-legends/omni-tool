@@ -308,7 +308,7 @@ export function DesktopSidebar() {
             </div>
             <div className="pt-1 text-[9px] text-muted-foreground/60 flex items-center gap-1">
               <Zap className="size-3 text-chart-5 shrink-0" />
-              <span>Zero Remote Egress · v2.6.0</span>
+              <span>Zero Remote Egress</span>
             </div>
           </div>
         ) : (

@@ -17,9 +17,6 @@ export function AppFooter() {
               <span className="font-display text-xs font-bold tracking-[0.24em] text-foreground uppercase">
                 OMNI TOOL LABS
               </span>
-              <span className="rounded-full border border-pulse/30 bg-pulse/10 px-2 py-0.5 font-mono text-[9px] font-semibold text-pulse">
-                v2.5.9
-              </span>
             </div>
 
             <p className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
