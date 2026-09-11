@@ -20,6 +20,7 @@ import { useNavStore } from "@/lib/navigation/nav-store";
 import { useHaptics } from "@/hooks/use-haptics";
 import { useStdoutTelemetry } from "@/hooks/useStdoutTelemetry";
 import { useWorkstationStore } from "@/hooks/useWorkstationStore";
+import { useAiStore } from "@/store/useAiStore";
 
 interface NavItem {
   id: string;
@@ -42,6 +43,7 @@ export function DesktopSidebar() {
   const { sidebarCollapsed, toggleSidebar, toggleInspector, toggleFocusMode } = useWorkstationStore();
   const { view, navigate } = useNavStore();
   const { simdThreads, heapUsedMb, flushHeap } = useStdoutTelemetry();
+  const { isOpen: isAiOpen, toggleOpen: toggleAi } = useAiStore();
   const haptics = useHaptics();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
@@ -90,12 +92,16 @@ export function DesktopSidebar() {
         e.preventDefault();
         haptics.light();
         toggleFocusMode();
+      } else if (e.key.toLowerCase() === "o" && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        haptics.light();
+        toggleAi();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [navigate, toggleSidebar, toggleInspector, toggleFocusMode, haptics]);
+  }, [navigate, toggleSidebar, toggleInspector, toggleFocusMode, toggleAi, haptics]);
 
   const handleNav = (id: string) => {
     haptics.light();
@@ -240,6 +246,37 @@ export function DesktopSidebar() {
           );
         })}
       </nav>
+
+      {/* Ask Omni AI Quick Launcher */}
+      <div className="p-2 border-t border-border/70">
+        <button
+          onClick={() => {
+            haptics.light();
+            toggleAi();
+          }}
+          className={`w-full group flex items-center gap-2 rounded-xl border p-2 text-xs font-mono transition-all select-none ${
+            isAiOpen
+              ? "bg-primary text-primary-foreground border-primary shadow-sm font-bold"
+              : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/60"
+          } ${sidebarCollapsed ? "justify-center" : "justify-between"}`}
+          title="Ask Omni AI Co-Pilot ([O] key)"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <Sparkles className="size-4 shrink-0 text-current animate-pulse" />
+            {!sidebarCollapsed && (
+              <span className="font-bold text-xs truncate">Ask Omni AI</span>
+            )}
+          </div>
+          {!sidebarCollapsed && (
+            <div className="flex items-center gap-1">
+              <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-primary/20 border border-primary/30 uppercase">
+                AI
+              </span>
+              <span className="text-[9px] opacity-60">[O]</span>
+            </div>
+          )}
+        </button>
+      </div>
 
       {/* Bottom Telemetry & Runtime Status */}
       <div className="border-t border-border/70 p-2.5 font-mono text-[10px] bg-background/30">

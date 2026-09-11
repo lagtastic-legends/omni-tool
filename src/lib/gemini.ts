@@ -1,8 +1,10 @@
 export type MessageRole = "user" | "model";
 
 export interface ChatMessage {
+  id?: string;
   role: MessageRole;
   content: string;
+  timestamp?: number;
 }
 
 export const generateAiResponse = async (messages: ChatMessage[]) => {
@@ -34,7 +36,7 @@ export const generateAiResponse = async (messages: ChatMessage[]) => {
   }
 };
 
-export const streamAiResponse = async function* (messages: ChatMessage[]) {
+export const streamAiResponse = async function* (messages: ChatMessage[], signal?: AbortSignal) {
   try {
     const contents = messages.map(msg => ({
       role: msg.role,
@@ -48,6 +50,7 @@ export const streamAiResponse = async function* (messages: ChatMessage[]) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ contents }),
+      signal,
     });
 
     if (!response.ok) {
@@ -62,6 +65,7 @@ export const streamAiResponse = async function* (messages: ChatMessage[]) {
     let buffer = "";
 
     while (true) {
+      if (signal?.aborted) break;
       const { done, value } = await reader.read();
       if (done) break;
 
@@ -70,6 +74,7 @@ export const streamAiResponse = async function* (messages: ChatMessage[]) {
       buffer = lines.pop() || "";
 
       for (const line of lines) {
+        if (signal?.aborted) break;
         const trimmed = line.trim();
         if (trimmed === "") continue;
         if (trimmed.startsWith("data: ")) {
@@ -89,6 +94,9 @@ export const streamAiResponse = async function* (messages: ChatMessage[]) {
       }
     }
   } catch (error: any) {
+    if (signal?.aborted || error?.name === "AbortError") {
+      return;
+    }
     console.error("Gemini API Error:", error);
     yield `\n\n[Connection failed: ${error?.message || "Unknown error"}]`;
   }

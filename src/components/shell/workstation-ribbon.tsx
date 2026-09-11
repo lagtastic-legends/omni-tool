@@ -22,6 +22,7 @@ import { useWorkstationStore, type WorkstationLayoutMode } from "@/hooks/useWork
 import { useStdoutTelemetry } from "@/hooks/useStdoutTelemetry";
 import { useHaptics } from "@/hooks/use-haptics";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
+import { useAiStore } from "@/store/useAiStore";
 
 const VIEW_TITLES: Record<string, { label: string; tag: string }> = {
   dashboard: { label: "DASHBOARD HUB", tag: "CORE" },
@@ -61,6 +62,7 @@ export function WorkstationRibbon() {
     toggleFocusMode,
   } = useWorkstationStore();
   const { simdThreads } = useStdoutTelemetry();
+  const { isOpen: isAiOpen, toggleOpen: toggleAi } = useAiStore();
   const haptics = useHaptics();
 
   const currentMeta = VIEW_TITLES[view] || {
@@ -201,6 +203,23 @@ export function WorkstationRibbon() {
 
         {/* Dual Theme Fast Switcher */}
         <ThemeToggle />
+
+        {/* Quick Launch Ask Omni AI */}
+        <button
+          onClick={() => {
+            haptics.light();
+            toggleAi();
+          }}
+          className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[10px] font-mono transition-all ${
+            isAiOpen
+              ? "bg-primary text-primary-foreground border-primary shadow-sm font-bold"
+              : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/60"
+          }`}
+          title="Ask Omni AI Co-Pilot"
+        >
+          <Sparkles className="size-3 text-current animate-pulse" />
+          <span className="font-semibold">OMNI AI</span>
+        </button>
       </div>
     </div>
   );
