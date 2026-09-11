@@ -46,7 +46,7 @@ export function TopBar() {
       initial={{ y: -24, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-      className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl"
+      className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl shrink-0"
     >
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-2 sm:gap-3 px-3 sm:px-6">
         {/* Brand */}

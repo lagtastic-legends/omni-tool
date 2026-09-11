@@ -110,7 +110,7 @@ export function DesktopSidebar() {
 
   return (
     <aside
-      className={`hidden lg:flex flex-col border-r border-border/80 bg-card/60 backdrop-blur-xl transition-all duration-300 ease-out select-none relative z-30 shrink-0 ${
+      className={`hidden lg:flex flex-col border-r border-border/80 bg-card/60 backdrop-blur-xl transition-all duration-300 ease-out select-none relative z-30 shrink-0 h-full overflow-hidden ${
         sidebarCollapsed ? "w-16" : "w-60"
       }`}
     >

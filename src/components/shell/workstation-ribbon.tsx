@@ -76,7 +76,7 @@ export function WorkstationRibbon() {
   };
 
   return (
-    <div className="hidden lg:flex items-center justify-between gap-3 border-b border-border/70 bg-card/60 px-4 py-2 text-xs backdrop-blur-md select-none font-mono">
+    <div className="hidden lg:flex items-center justify-between gap-3 border-b border-border/70 bg-card/80 px-4 py-2 text-xs backdrop-blur-md select-none font-mono sticky top-0 z-20 shrink-0">
       {/* Left: Breadcrumbs & Module Stage Identification */}
       <div className="flex items-center gap-2 min-w-0">
         <button

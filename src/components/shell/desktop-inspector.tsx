@@ -15,7 +15,7 @@ export function DesktopInspector() {
   // Collapsed Minimal Vertical Dock
   if (inspectorCollapsed) {
     return (
-      <div className="hidden xl:flex flex-col border-l border-border/80 bg-card/50 backdrop-blur-xl p-2 select-none items-center justify-between shrink-0 relative z-30">
+      <div className="hidden xl:flex flex-col border-l border-border/80 bg-card/50 backdrop-blur-xl p-2 select-none items-center justify-between shrink-0 relative z-30 h-full overflow-hidden">
         <div className="flex flex-col items-center gap-3">
           <button
             onClick={() => {
@@ -53,7 +53,7 @@ export function DesktopInspector() {
 
   return (
     <aside
-      className={`hidden xl:flex shrink-0 flex-col border-l border-border/80 bg-card/50 backdrop-blur-xl p-3 space-y-3 select-none overflow-y-auto transition-all duration-300 relative z-30 ${
+      className={`hidden xl:flex shrink-0 flex-col border-l border-border/80 bg-card/50 backdrop-blur-xl p-3 space-y-3 select-none overflow-y-auto transition-all duration-300 relative z-30 h-full ${
         isWide ? "w-96" : "w-80"
       }`}
     >

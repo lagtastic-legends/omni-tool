@@ -211,15 +211,15 @@ export function AppShell() {
   ];
 
   return (
-    <div className="relative flex min-h-screen flex-col">
+    <div className="relative flex min-h-screen flex-col lg:h-screen lg:overflow-hidden">
       <AuroraBackground />
       <TopBar />
       <AskOmni />
 
-      <div className="flex flex-1 w-full overflow-hidden">
+      <div className="flex flex-1 w-full overflow-hidden min-h-0">
         <DesktopSidebar />
 
-        <div className="flex flex-1 flex-col min-w-0 overflow-y-auto">
+        <div className="flex flex-1 flex-col min-w-0 min-h-0 overflow-y-auto h-full scrollbar-thin scrollbar-thumb-border">
           <WorkstationRibbon />
 
           <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-3 py-4 sm:px-6 sm:py-8">
@@ -248,6 +248,11 @@ export function AppShell() {
               </motion.div>
             </AnimatePresence>
           </main>
+
+          {/* Desktop Footer inside middle scroll container */}
+          <div className="hidden lg:block">
+            <AppFooter />
+          </div>
         </div>
 
         <DesktopInspector />
@@ -256,7 +261,11 @@ export function AppShell() {
       {!isAiOpen && <FloatingToolbar actions={floatingActions} />}
       <StickyMobileCta />
       <BackConfirmDialog />
-      <AppFooter />
+
+      {/* Mobile Footer outside workstation columns */}
+      <div className="lg:hidden">
+        <AppFooter />
+      </div>
     </div>
   );
 }
