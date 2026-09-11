@@ -38,6 +38,7 @@ export function StdoutConsole({
     heapUsedMb,
     heapMaxMb,
     simdThreads,
+    activeWorkers,
     isStreaming,
     flushHeap,
     benchmarkCpu,
@@ -325,23 +326,33 @@ export function StdoutConsole({
                 <Cpu className="size-3.5 text-chart-2" />
                 SIMD Pthread Workers
               </span>
-              <span className="font-bold text-chart-5">{simdThreads} Active</span>
+              <span className="font-bold text-chart-5">
+                {activeWorkers > 0 ? `${activeWorkers} Active` : `${simdThreads} Ready`}
+              </span>
             </div>
 
             <div className="grid grid-cols-4 gap-1.5 pt-1">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`flex flex-col items-center justify-center py-1.5 rounded border text-[9px] font-bold ${
-                    i < simdThreads
-                      ? "border-chart-5/40 bg-chart-5/10 text-chart-5"
-                      : "border-border/40 bg-background/40 text-muted-foreground/40"
-                  }`}
-                >
-                  <span>T{i + 1}</span>
-                  <span className="text-[7.5px] opacity-80">{i < simdThreads ? "READY" : "IDLE"}</span>
-                </div>
-              ))}
+              {Array.from({ length: Math.min(Math.max(simdThreads, 4), 16) }).map((_, i) => {
+                const isWorking = i < activeWorkers;
+                const isReady = i < simdThreads;
+                return (
+                  <div
+                    key={i}
+                    className={`flex flex-col items-center justify-center py-1.5 rounded border text-[9px] font-bold transition-all ${
+                      isWorking
+                        ? "border-primary bg-primary/20 text-primary animate-pulse"
+                        : isReady
+                        ? "border-chart-5/40 bg-chart-5/10 text-chart-5"
+                        : "border-border/40 bg-background/40 text-muted-foreground/40"
+                    }`}
+                  >
+                    <span>T{i + 1}</span>
+                    <span className="text-[7.5px] opacity-80">
+                      {isWorking ? "BUSY" : isReady ? "READY" : "IDLE"}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
 
             <button
@@ -371,15 +382,35 @@ export function StdoutConsole({
             <div className="space-y-1.5 pt-1 border-t border-border/40 text-[10px]">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Cross-Origin Isolation:</span>
-                <span className="font-bold text-chart-5">VERIFIED (COOP/COEP)</span>
+                <span
+                  className={`font-bold ${
+                    typeof window !== "undefined" && window.crossOriginIsolated
+                      ? "text-chart-5"
+                      : "text-amber-400"
+                  }`}
+                >
+                  {typeof window !== "undefined" && window.crossOriginIsolated
+                    ? "VERIFIED (COOP/COEP)"
+                    : "STANDARD DOM"}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">SharedArrayBuffer:</span>
-                <span className="font-bold text-chart-5">AVAILABLE</span>
+                <span
+                  className={`font-bold ${
+                    typeof SharedArrayBuffer !== "undefined" ? "text-chart-5" : "text-amber-400"
+                  }`}
+                >
+                  {typeof SharedArrayBuffer !== "undefined" ? "AVAILABLE" : "UNAVAILABLE"}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Local Storage API:</span>
-                <span className="font-bold text-foreground">OPFS + IndexedDB</span>
+                <span className="font-bold text-foreground">
+                  {typeof navigator !== "undefined" && typeof navigator.storage?.getDirectory === "function"
+                    ? "OPFS V2 + IndexedDB"
+                    : "IndexedDB"}
+                </span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Remote Network Egress:</span>

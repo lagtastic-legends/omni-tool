@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Camera, Scissors, Play, Pause, RotateCcw, Maximize2, Sparkles } from "lucide-react";
 import { useHaptics } from "@/hooks/use-haptics";
 
 export function VideoTimelineTrimmer({
-  duration = 42.15,
-  currentTime = 14.32,
+  duration = 10,
+  currentTime = 0,
   onSeek,
   onTrimChange,
   onSnapshot,
@@ -18,9 +18,16 @@ export function VideoTimelineTrimmer({
   onSnapshot?: () => void;
 }) {
   const haptics = useHaptics();
-  const [inPoint, setInPoint] = useState(4.1);
-  const [outPoint, setOutPoint] = useState(32.4);
-  const [frameNumber, setFrameNumber] = useState(Math.round(currentTime * 30));
+  const [inPoint, setInPoint] = useState(0);
+  const [outPoint, setOutPoint] = useState(duration || 10);
+  const frameNumber = Math.round(currentTime * 30);
+
+  useEffect(() => {
+    if (duration > 0) {
+      setOutPoint(duration);
+      onTrimChange?.(0, duration);
+    }
+  }, [duration]);
 
   const formatTime = (sec: number) => {
     const m = Math.floor(sec / 60);
@@ -31,7 +38,7 @@ export function VideoTimelineTrimmer({
 
   const handleSetIn = () => {
     haptics.light();
-    const newIn = Math.min(currentTime, outPoint - 0.5);
+    const newIn = Math.min(currentTime, Math.max(0, outPoint - 0.5));
     setInPoint(newIn);
     onTrimChange?.(newIn, outPoint);
   };
@@ -43,9 +50,17 @@ export function VideoTimelineTrimmer({
     onTrimChange?.(inPoint, newOut);
   };
 
-  const inPct = Math.min(100, Math.max(0, (inPoint / duration) * 100));
-  const outPct = Math.min(100, Math.max(0, (outPoint / duration) * 100));
-  const playheadPct = Math.min(100, Math.max(0, (currentTime / duration) * 100));
+  const handleReset = () => {
+    haptics.light();
+    setInPoint(0);
+    setOutPoint(duration);
+    onTrimChange?.(0, duration);
+  };
+
+  const safeDuration = duration > 0 ? duration : 1;
+  const inPct = Math.min(100, Math.max(0, (inPoint / safeDuration) * 100));
+  const outPct = Math.min(100, Math.max(0, (outPoint / safeDuration) * 100));
+  const playheadPct = Math.min(100, Math.max(0, (currentTime / safeDuration) * 100));
 
   return (
     <div className="panel-hud rounded-tactile border border-border/80 bg-card/85 p-3 text-card-foreground shadow-tactile backdrop-blur-md">
@@ -74,9 +89,16 @@ export function VideoTimelineTrimmer({
       </div>
 
       {/* Visual Filmstrip & Timeline Scrubber */}
-      <div className="relative my-3 h-10 w-full rounded-md border border-border/70 bg-background/90 overflow-hidden select-none">
+      <div
+        onClick={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+          onSeek?.(pct * safeDuration);
+        }}
+        className="relative my-3 h-10 w-full rounded-md border border-border/70 bg-background/90 overflow-hidden select-none cursor-pointer"
+      >
         {/* Filmstrip frame grid placeholders */}
-        <div className="absolute inset-0 flex divide-x divide-border/20 opacity-25">
+        <div className="absolute inset-0 flex divide-x divide-border/20 opacity-25 pointer-events-none">
           {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className="flex-1 bg-gradient-to-b from-secondary/50 to-transparent" />
           ))}
@@ -88,13 +110,13 @@ export function VideoTimelineTrimmer({
             left: `${inPct}%`,
             width: `${outPct - inPct}%`,
           }}
-          className="absolute inset-y-0 bg-primary/20 border-x-2 border-primary"
+          className="absolute inset-y-0 bg-primary/20 border-x-2 border-primary pointer-events-none"
         />
 
         {/* In Point Handle Marker */}
         <div
           style={{ left: `${inPct}%` }}
-          className="absolute inset-y-0 w-1 bg-chart-2 cursor-ew-resize z-20"
+          className="absolute inset-y-0 w-1 bg-chart-2 z-20 pointer-events-none"
         >
           <span className="absolute -top-4 -left-3 rounded bg-chart-2 px-1 font-mono text-[8px] font-bold text-background uppercase">
             IN
@@ -104,7 +126,7 @@ export function VideoTimelineTrimmer({
         {/* Out Point Handle Marker */}
         <div
           style={{ left: `${outPct}%` }}
-          className="absolute inset-y-0 w-1 bg-chart-2 cursor-ew-resize z-20"
+          className="absolute inset-y-0 w-1 bg-chart-2 z-20 pointer-events-none"
         >
           <span className="absolute -top-4 -left-4 rounded bg-chart-2 px-1 font-mono text-[8px] font-bold text-background uppercase">
             OUT
@@ -114,7 +136,7 @@ export function VideoTimelineTrimmer({
         {/* Playhead */}
         <div
           style={{ left: `${playheadPct}%` }}
-          className="absolute inset-y-0 w-0.5 bg-foreground z-30 shadow-[0_0_8px_rgba(255,255,255,0.8)]"
+          className="absolute inset-y-0 w-0.5 bg-foreground z-30 shadow-[0_0_8px_rgba(255,255,255,0.8)] pointer-events-none"
         />
       </div>
 
@@ -134,6 +156,14 @@ export function VideoTimelineTrimmer({
           >
             <Scissors className="size-3.5 rotate-180" />
             <span>MARK OUT [O]</span>
+          </button>
+          <button
+            onClick={handleReset}
+            className="flex items-center gap-1 rounded border border-border/70 bg-card/60 px-2 py-1 text-muted-foreground hover:text-foreground active:scale-95 transition-all"
+            title="Reset trim markers"
+          >
+            <RotateCcw className="size-3" />
+            <span>RESET</span>
           </button>
         </div>
 

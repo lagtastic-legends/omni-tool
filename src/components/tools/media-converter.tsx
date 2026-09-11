@@ -60,13 +60,21 @@ function buildVideoArgs(
   format: VideoFormat,
   quality: Quality,
   audioKbps: number,
+  trim?: { start: number; end: number } | null,
 ): string[] {
   const q = QUALITY_META[quality];
+  const trimArgs: string[] = [];
+  if (trim && trim.end > trim.start && (trim.start > 0 || trim.end > 0)) {
+    if (trim.start > 0) trimArgs.push("-ss", trim.start.toFixed(2));
+    if (trim.end > 0) trimArgs.push("-to", trim.end.toFixed(2));
+  }
+
   switch (format) {
     case "mp4":
     case "mov":
     case "mkv":
       return [
+        ...trimArgs,
         "-i", input,
         "-c:v", "libx264",
         "-preset", "ultrafast",
@@ -131,19 +139,67 @@ export function MediaConverter() {
   const [audioFormat, setAudioFormat] = useState<AudioFormat>("mp3");
   const [quality, setQuality] = useState<Quality>("balanced");
   const [audioKbps, setAudioKbps] = useState("192");
+  const [videoDuration, setVideoDuration] = useState<number>(0);
+  const [currentTime, setCurrentTime] = useState<number>(0);
+  const [trimRange, setTrimRange] = useState<{ start: number; end: number } | null>(null);
+
+  // Load real video metadata and duration
+  useEffect(() => {
+    if (!file || !file.type.startsWith("video/")) {
+      setVideoDuration(0);
+      setCurrentTime(0);
+      setTrimRange(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.src = url;
+    video.onloadedmetadata = () => {
+      const dur = video.duration || 0;
+      setVideoDuration(dur);
+      setCurrentTime(0);
+      setTrimRange({ start: 0, end: dur });
+      URL.revokeObjectURL(url);
+    };
+  }, [file]);
 
   const targetExt = mode === "video" ? videoFormat : audioFormat;
   const inputPath = file ? `input.${extOf(file.name) || "bin"}` : "";
   const outputName = file ? `${baseName(file.name)}.${targetExt}` : "";
   const outputPath = `output.${targetExt}`;
 
+  const handleSnapshot = () => {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.src = url;
+    video.currentTime = currentTime;
+    video.onseeked = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth || 1280;
+      canvas.height = video.videoHeight || 720;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            import("@/lib/native-save").then((m) =>
+              m.nativeSave(blob, `${file.name.replace(/\.[^.]+$/, "")}_frame_${Math.round(currentTime)}s.png`)
+            );
+          }
+          URL.revokeObjectURL(url);
+        }, "image/png");
+      }
+    };
+  };
 
   const start = async () => {
     if (!file) return;
     const kbps = Number(audioKbps);
     const args =
       mode === "video"
-        ? buildVideoArgs(inputPath, outputPath, videoFormat, quality, kbps)
+        ? buildVideoArgs(inputPath, outputPath, videoFormat, quality, kbps, trimRange)
         : buildAudioArgs(inputPath, outputPath, audioFormat, kbps);
 
     const buffer = new Uint8Array(await file.arrayBuffer());
@@ -185,8 +241,14 @@ export function MediaConverter() {
           disabled={busy}
         />
 
-        {file && mode === "video" && (
-          <VideoTimelineTrimmer />
+        {file && mode === "video" && videoDuration > 0 && (
+          <VideoTimelineTrimmer
+            duration={videoDuration}
+            currentTime={currentTime}
+            onSeek={(t) => setCurrentTime(t)}
+            onTrimChange={(inSec, outSec) => setTrimRange({ start: inSec, end: outSec })}
+            onSnapshot={handleSnapshot}
+          />
         )}
 
         {/* mode tabs */}

@@ -18,6 +18,10 @@ import {
   HardDrive,
   Search,
   Trash2,
+  Upload,
+  Plus,
+  FilePlus,
+  Sparkles,
 } from "lucide-react";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -37,6 +41,7 @@ import { formatBytes } from "@/lib/format";
 import { useVault } from "@/lib/vault/vault-context";
 import type { VaultItem, VaultKind } from "@/lib/vault/vault-db";
 import { StorageQuotaMatrix } from "@/components/vault/storage-quota-matrix";
+import { emitTelemetry } from "@/hooks/useStdoutTelemetry";
 
 type KindFilter = "all" | VaultKind;
 type SortMode = "recent" | "oldest" | "largest" | "smallest";
@@ -169,11 +174,76 @@ const VaultRow = memo(function VaultRow({ item, onDelete }: { item: VaultItem; o
 });
 
 export function VaultView() {
-  const { items, ready, totalBytes, estimate, remove, clearAll } = useVault();
+  const { items, ready, totalBytes, estimate, save, remove, clearAll } = useVault();
   const { toast } = useToast();
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<KindFilter>("all");
   const [sort, setSort] = useState<SortMode>("recent");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const res = await save({
+        name: file.name,
+        blob: file,
+        mime: file.type || "application/octet-stream",
+        size: file.size,
+      });
+      if (res) {
+        emitTelemetry(`[VAULT] Ingested ${file.name} (${formatBytes(file.size)}) into IndexedDB`, "ok");
+        toast({ title: "Vaulted", description: `${file.name} saved to local device IndexedDB.` });
+      }
+    }
+  };
+
+  const handleGenerateSampleMedia = async () => {
+    // Generate a real WebAudio synthesizer WAV sample
+    const sampleRate = 44100;
+    const duration = 2; // 2 seconds
+    const numSamples = sampleRate * duration;
+    const buffer = new ArrayBuffer(44 + numSamples * 2);
+    const view = new DataView(buffer);
+
+    // WAV header
+    const writeString = (offset: number, str: string) => {
+      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    };
+    writeString(0, "RIFF");
+    view.setUint32(4, 36 + numSamples * 2, true);
+    writeString(8, "WAVE");
+    writeString(12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); // PCM
+    view.setUint16(22, 1, true); // Mono
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeString(36, "data");
+    view.setUint32(40, numSamples * 2, true);
+
+    // Generate 440Hz A tone with exponential decay
+    for (let i = 0; i < numSamples; i++) {
+      const t = i / sampleRate;
+      const decay = Math.exp(-2.5 * t);
+      const sample = Math.sin(2 * Math.PI * 440 * t) * decay * 0.75;
+      view.setInt16(44 + i * 2, Math.max(-32768, Math.min(32767, sample * 32767)), true);
+    }
+
+    const wavBlob = new Blob([buffer], { type: "audio/wav" });
+    const fileName = `omni_audio_sample_${Date.now().toString().slice(-4)}.wav`;
+    await save({
+      name: fileName,
+      blob: wavBlob,
+      mime: "audio/wav",
+      size: wavBlob.size,
+    });
+    emitTelemetry(`[VAULT] Ingested ${fileName} (${formatBytes(wavBlob.size)}) test audio`, "ok");
+    toast({ title: "Sample Ingested", description: `Synthesized & vaulted ${fileName}.` });
+  };
 
   const filtered = useMemo(() => {
     let list = items;
@@ -201,12 +271,18 @@ export function VaultView() {
   }, [items, kind, query, sort]);
 
   const handleDelete = async (id: string) => {
+    const item = items.find((i) => i.id === id);
     await remove(id);
+    if (item) {
+      emitTelemetry(`[VAULT] Deleted ${item.name} (${formatBytes(item.size)}) from IndexedDB`, "warn");
+    }
     toast({ title: "Removed from vault" });
   };
 
   const handleClear = async () => {
+    const count = items.length;
     await clearAll();
+    emitTelemetry(`[VAULT] Cleared entire vault (${count} files erased)`, "error");
     toast({ title: "Vault cleared", description: "All stored files were erased from this device." });
   };
 
@@ -240,7 +316,42 @@ export function VaultView() {
 
   return (
     <div className="space-y-5">
+      {/* Hidden native file input for direct file ingestion */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={(e) => void handleFileUpload(e.target.files)}
+      />
+
       <StorageQuotaMatrix />
+
+      {/* Direct Ingest & Action Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-lg border border-border/70 bg-card/60 p-3 font-mono text-xs">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="flex items-center gap-1.5 rounded-md border border-primary/50 bg-primary px-3 py-1.5 font-bold text-primary-foreground hover:bg-primary/90 active:scale-95 transition-all shadow-sm"
+          >
+            <Upload className="size-3.5" />
+            <span>Ingest Media / Files</span>
+          </button>
+
+          <button
+            onClick={() => void handleGenerateSampleMedia()}
+            className="flex items-center gap-1.5 rounded-md border border-border/70 bg-secondary px-3 py-1.5 text-muted-foreground hover:text-foreground active:scale-95 transition-all"
+            title="Synthesize and vault a real WebAudio test track"
+          >
+            <Sparkles className="size-3.5 text-chart-2" />
+            <span>Add Test Audio Sample</span>
+          </button>
+        </div>
+
+        <span className="text-[10px] text-muted-foreground hidden sm:inline">
+          Files persist locally in IndexedDB · Zero network egress
+        </span>
+      </div>
 
       {/* storage telemetry ------------------------------------------------ */}
       <div className="panel-hud grid gap-4 rounded-xl p-4 sm:grid-cols-3">
@@ -374,14 +485,43 @@ export function VaultView() {
           </div>
         </>
       ) : ready ? (
-        <div className="flex min-h-52 flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border/60 text-center">
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragging(false);
+            void handleFileUpload(e.dataTransfer.files);
+          }}
+          className={`flex min-h-56 flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-6 text-center transition-all ${
+            isDragging ? "border-primary bg-primary/10" : "border-border/60 hover:border-primary/40"
+          }`}
+        >
           <Database className="size-8 text-muted-foreground/50" />
           <div>
-            <p className="font-display text-sm font-bold text-foreground">vault empty</p>
-            <p className="mt-1 max-w-xs font-mono text-[11px] leading-relaxed text-muted-foreground">
-              Process anything in the suite, then hit <span className="text-primary">VAULT</span> on
-              the output card — it lands here, stored on-device in IndexedDB.
+            <p className="font-display text-sm font-bold text-foreground">vault is empty</p>
+            <p className="mt-1 max-w-sm font-mono text-[11px] leading-relaxed text-muted-foreground">
+              Drop any video, audio, image, or PDF here to save directly into local IndexedDB, or generate a test sample.
             </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/15 px-3 py-1.5 font-mono text-xs font-semibold text-primary hover:bg-primary/25 active:scale-95 transition-all"
+            >
+              <Upload className="size-3.5" />
+              <span>Browse & Ingest Files</span>
+            </button>
+            <button
+              onClick={() => void handleGenerateSampleMedia()}
+              className="flex items-center gap-1.5 rounded-lg border border-border/70 bg-card px-3 py-1.5 font-mono text-xs text-muted-foreground hover:text-foreground active:scale-95 transition-all"
+            >
+              <Sparkles className="size-3.5 text-chart-2" />
+              <span>Synthesize Test Audio</span>
+            </button>
           </div>
         </div>
       ) : (
