@@ -42,7 +42,7 @@ export type AuthMode = "probing" | "unconfigured" | "configured";
 export type AuthUser = Pick<
   User,
   "uid" | "displayName" | "email" | "photoURL"
-> & { providerId: string };
+> & { providerId: string; isGuest?: boolean };
 
 interface AuthContextValue {
   mode: AuthMode;
@@ -52,6 +52,7 @@ interface AuthContextValue {
   isNative: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithIdToken: (idToken: string) => Promise<void>;
+  continueAsGuest: () => void;
   signOut: () => Promise<void>;
 }
 
@@ -80,6 +81,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let unsubscribeWeb: (() => void) | undefined;
     let unsubscribeNative: (() => void) | undefined;
+
+    // Check if user previously elected guest session
+    if (typeof window !== "undefined" && sessionStorage.getItem("omni_guest_session") === "true") {
+      setUser({
+        uid: "guest-user",
+        displayName: "Guest Explorer",
+        email: "guest@omnitool.local",
+        photoURL: null,
+        providerId: "guest.local",
+        isGuest: true,
+      });
+    }
 
     void (async () => {
       const config = await loadFirebaseConfig();
@@ -120,7 +133,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       
       unsubscribeWeb = onAuthStateChanged(auth, (u) => {
-        setUser(u ? toAuthUser(u) : null);
+        if (u) {
+          if (typeof window !== "undefined") {
+            sessionStorage.removeItem("omni_guest_session");
+          }
+          setUser(toAuthUser(u));
+        } else {
+          // If in guest session, preserve guest user; otherwise set null
+          if (typeof window !== "undefined" && sessionStorage.getItem("omni_guest_session") === "true") {
+            setUser({
+              uid: "guest-user",
+              displayName: "Guest Explorer",
+              email: "guest@omnitool.local",
+              photoURL: null,
+              providerId: "guest.local",
+              isGuest: true,
+            });
+          } else {
+            setUser(null);
+          }
+        }
       });
     })();
 
@@ -130,19 +162,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [isNative]);
 
+  const continueAsGuest = useCallback(() => {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("omni_guest_session", "true");
+    }
+    setUser({
+      uid: "guest-user",
+      displayName: "Guest Explorer",
+      email: "guest@omnitool.local",
+      photoURL: null,
+      providerId: "guest.local",
+      isGuest: true,
+    });
+  }, []);
+
   const signInWithGoogle = useCallback(async () => {
     setError(null);
     setBusy(true);
     try {
       if (isNative) {
         // Native Android: OS-level Google account picker.
-        // We disable useCredentialManager because it causes "No credentials available"
-        // on many devices and sometimes doesn't list all Gmail accounts.
         const result = await FirebaseAuthentication.signInWithGoogle({
           useCredentialManager: false,
         });
         const u = result.user;
         if (u) {
+          if (typeof window !== "undefined") {
+            sessionStorage.removeItem("omni_guest_session");
+          }
           setUser({
             uid: u.uid,
             displayName: u.displayName ?? null,
@@ -164,7 +211,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         prompt: 'select_account'
       });
       try {
-        await signInWithPopup(auth, provider);
+        const res = await signInWithPopup(auth, provider);
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("omni_guest_session");
+        }
+        setUser(toAuthUser(res.user));
       } catch (err: any) {
         if (err.code === "auth/popup-blocked") {
           const auth = getFirebaseAuth();
@@ -196,6 +247,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!auth) throw new Error("Firebase unconfigured");
       const credential = GoogleAuthProvider.credential(idToken);
       const res = await signInWithCredential(auth, credential);
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("omni_guest_session");
+      }
       setUser(toAuthUser(res.user));
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -207,6 +261,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(async () => {
     setError(null);
     setBusy(true);
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("omni_guest_session");
+    }
     try {
       if (isNative) {
         await FirebaseAuthentication.signOut();
@@ -215,6 +272,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const auth = getFirebaseAuth();
         if (auth) {
           await webSignOut(auth);
+          setUser(null);
+        } else {
           setUser(null);
         }
       }
@@ -226,8 +285,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [isNative]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ mode, user, busy, error, isNative, signInWithGoogle, signInWithIdToken, signOut }),
-    [mode, user, busy, error, isNative, signInWithGoogle, signInWithIdToken, signOut],
+    () => ({ mode, user, busy, error, isNative, signInWithGoogle, signInWithIdToken, continueAsGuest, signOut }),
+    [mode, user, busy, error, isNative, signInWithGoogle, signInWithIdToken, continueAsGuest, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

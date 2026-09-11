@@ -25,6 +25,15 @@ export interface FirebaseClientConfig {
   appId: string;
 }
 
+export const DEFAULT_FIREBASE_CONFIG: FirebaseClientConfig = {
+  apiKey: "AIzaSyCgMmIHw2s_W6ldWtPmnXTi_YdehNHKzN4",
+  authDomain: "omni-tool-7ba2d.firebaseapp.com",
+  projectId: "omni-tool-7ba2d",
+  storageBucket: "omni-tool-7ba2d.firebasestorage.app",
+  messagingSenderId: "1006411301114",
+  appId: "1:1006411301114:web:956666ec5eda39b225c943",
+};
+
 const CONFIG_URL = "/firebase-config.json";
 
 function configFromEnv(): FirebaseClientConfig | null {
@@ -50,17 +59,20 @@ export function isFirebaseConfigured(): boolean {
   return cachedConfig !== null && cachedConfig !== undefined;
 }
 
-/** Loads config once (env first, then the runtime JSON), memoized. */
+/** Loads config once (env first, then runtime JSON, then default project), memoized. */
 export async function loadFirebaseConfig(): Promise<FirebaseClientConfig | null> {
   if (cachedConfig !== undefined) return cachedConfig;
   if (configPromise) return configPromise;
 
   configPromise = (async () => {
+    // 1. Check environment variables
     let config = configFromEnv();
-    if (!config) {
+
+    // 2. Try runtime config file fetch if in browser
+    if (!config && typeof window !== "undefined") {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 1000);
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
         
         const res = await fetch(CONFIG_URL, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -72,10 +84,16 @@ export async function loadFirebaseConfig(): Promise<FirebaseClientConfig | null>
           }
         }
       } catch {
-        /* no runtime config file or fetch timed out — open mode */
+        /* fetch failed or timed out */
       }
     }
-    cachedConfig = config ?? null;
+
+    // 3. Fallback to embedded production project credentials (omni-tool-7ba2d)
+    if (!config) {
+      config = DEFAULT_FIREBASE_CONFIG;
+    }
+
+    cachedConfig = config;
     return cachedConfig;
   })();
 

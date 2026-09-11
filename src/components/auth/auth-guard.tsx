@@ -28,7 +28,7 @@ function GoogleMark({ className }: { className?: string }) {
 }
 
 export function AuthGuard({ children }: { children: ReactNode }) {
-  const { mode, user, busy, error, isNative, signInWithGoogle, signInWithIdToken } = useAuth();
+  const { mode, user, busy, error, isNative, signInWithGoogle, signInWithIdToken, continueAsGuest } = useAuth();
 
   useEffect(() => {
     if (mode === "configured" && !user && !isNative) {
@@ -123,15 +123,25 @@ export function AuthGuard({ children }: { children: ReactNode }) {
             </p>
           </div>
 
-          <motion.button
-            onClick={handleSignInClick}
-            disabled={busy}
-            whileTap={busy ? undefined : { scale: 0.97 }}
-            className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-transparent bg-white px-4 font-headline text-sm font-semibold tracking-wider text-zinc-900 shadow-sm transition-transform hover:scale-[1.02] disabled:opacity-60"
-          >
-            <GoogleMark className="size-5" />
-            {busy ? "CONNECTING..." : "SIGN IN WITH GOOGLE"}
-          </motion.button>
+          <div className="flex flex-col gap-2.5 w-full">
+            <motion.button
+              onClick={handleSignInClick}
+              disabled={busy}
+              whileTap={busy ? undefined : { scale: 0.97 }}
+              className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-transparent bg-white px-4 font-headline text-sm font-semibold tracking-wider text-zinc-900 shadow-sm transition-transform hover:scale-[1.02] disabled:opacity-60 cursor-pointer"
+            >
+              <GoogleMark className="size-5" />
+              {busy ? "CONNECTING..." : "SIGN IN WITH GOOGLE"}
+            </motion.button>
+
+            <button
+              onClick={() => continueAsGuest()}
+              type="button"
+              className="text-xs font-mono text-muted-foreground hover:text-foreground transition-colors py-1.5 underline underline-offset-4 cursor-pointer"
+            >
+              Continue as Guest (Offline Sandbox Mode)
+            </button>
+          </div>
 
           <AnimatePresence>
             {error && (

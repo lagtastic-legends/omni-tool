@@ -169,24 +169,83 @@ export function AuthGateway() {
           <div className="space-y-2 font-mono text-[11px]">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">firebase project</span>
-              <span className={configured ? "text-pulse" : "text-amber-300"}>
+              <span className={configured ? "text-emerald-400 font-semibold" : "text-amber-300"}>
                 {configured ? "linked" : "not linked"}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">dashboard gate</span>
-              <span className={configured ? "text-pulse" : "text-amber-300"}>
+              <span className={configured ? "text-emerald-400 font-semibold" : "text-amber-300"}>
                 {configured ? "enforced" : "open mode"}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">media processing</span>
-              <span className="text-pulse">always on-device</span>
+              <span className="text-emerald-400">always on-device</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">vault storage</span>
-              <span className="text-pulse">indexeddb · local</span>
+              <span className="text-emerald-400">indexeddb · local</span>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ------------------------------------------------------ project telemetry side */}
+      <div className="space-y-5">
+        <div className="panel-hud scanlines space-y-5 rounded-2xl p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="grid size-12 shrink-0 place-items-center rounded-xl border border-primary/40 bg-primary/10 glow-box-violet">
+                <ShieldCheck className="size-6 text-primary" strokeWidth={1.75} />
+              </div>
+              <div>
+                <h2 className="font-display text-lg font-bold tracking-wide text-foreground">
+                  Cloud Infrastructure
+                </h2>
+                <p className="mt-0.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                  Google Identity & Authentication
+                </p>
+              </div>
+            </div>
+
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-mono font-semibold uppercase tracking-wider text-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.2)]">
+              <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              LINKED
+            </span>
+          </div>
+
+          <div className="rounded-xl border border-border/70 bg-card/40 p-4 space-y-3 font-mono text-[11px]">
+            <div className="flex items-center justify-between py-1 border-b border-border/50">
+              <span className="text-muted-foreground">Project ID</span>
+              <span className="text-foreground font-semibold">omni-tool-7ba2d</span>
+            </div>
+            <div className="flex items-center justify-between py-1 border-b border-border/50">
+              <span className="text-muted-foreground">Auth Domain</span>
+              <span className="text-foreground">omni-tool-7ba2d.firebaseapp.com</span>
+            </div>
+            <div className="flex items-center justify-between py-1 border-b border-border/50">
+              <span className="text-muted-foreground">Android Client</span>
+              <span className="text-foreground truncate max-w-[200px]">com.omnitool.app (SHA-1)</span>
+            </div>
+            <div className="flex items-center justify-between py-1 border-b border-border/50">
+              <span className="text-muted-foreground">OAuth Platform</span>
+              <span className="text-foreground">{isNative ? "Native Android Credential Picker" : "Google Identity Services GIS"}</span>
+            </div>
+            <div className="flex items-center justify-between py-1">
+              <span className="text-muted-foreground">Data Privacy</span>
+              <span className="text-emerald-400 font-semibold">Zero-Egress WASM Sandbox</span>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border/60 bg-secondary/30 p-4 space-y-2 text-xs font-mono text-muted-foreground leading-relaxed">
+            <p className="font-semibold text-foreground flex items-center gap-1.5">
+              <KeyRound className="size-3.5 text-primary" />
+              Client-Side Privacy Guarantee
+            </p>
+            <p className="text-[11px]">
+              Authentication strictly verifies your identity session. All audio DSP, video encoding, and document cryptographic conversions run locally on your device hardware without transmitting bytes to external servers.
+            </p>
           </div>
         </div>
       </div>
