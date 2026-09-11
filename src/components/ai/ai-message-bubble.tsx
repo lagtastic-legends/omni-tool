@@ -79,6 +79,11 @@ export function AiMessageBubble({
   isStreaming,
   onRegenerate,
 }: AiMessageBubbleProps) {
+  // Never render a blank message bubble unless it is actively streaming tokens
+  if (!message.content?.trim() && !isStreaming) {
+    return null;
+  }
+
   const [copied, setCopied] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const haptics = useHaptics();
@@ -226,14 +231,9 @@ export function AiMessageBubble({
           )}
         </div>
 
-        {/* Action Bar Below Bubble */}
-        <div
-          className={`flex items-center gap-2 mt-1 px-1 text-[10px] font-mono text-muted-foreground ${
-            isUser ? "justify-end" : "justify-between"
-          }`}
-        >
-          {/* Left Actions for Model Replies */}
-          {!isUser && (
+        {/* Action Bar Below Model Bubble */}
+        {!isUser && !isStreaming && Boolean(message.content?.trim()) && (
+          <div className="flex items-center justify-between gap-2 mt-1 px-1 text-[10px] font-mono text-muted-foreground">
             <div className="flex items-center gap-1">
               {/* Copy Message */}
               <button
@@ -277,8 +277,8 @@ export function AiMessageBubble({
                 )}
               </button>
 
-              {/* Regenerate Button (Only for latest model message when not streaming) */}
-              {isLatest && !isStreaming && onRegenerate && (
+              {/* Regenerate Button (Only for latest model message) */}
+              {isLatest && onRegenerate && (
                 <button
                   onClick={() => {
                     haptics.light();
@@ -292,15 +292,24 @@ export function AiMessageBubble({
                 </button>
               )}
             </div>
-          )}
 
-          {/* Timestamp */}
-          {message.timestamp && (
+            {/* Timestamp */}
+            {message.timestamp && (
+              <span className="opacity-60 text-[9px]">
+                {formatTime(message.timestamp)}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* User Timestamp */}
+        {isUser && message.timestamp && (
+          <div className="flex items-center justify-end gap-2 mt-1 px-1 text-[10px] font-mono text-muted-foreground">
             <span className="opacity-60 text-[9px]">
               {formatTime(message.timestamp)}
             </span>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* User Avatar (for user messages) */}

@@ -96,18 +96,20 @@ export default function AskOmni({ showTrigger = false }: AskOmniProps) {
     haptics.light();
   };
 
-  const handleSendPrompt = async (promptText: string) => {
+  const handleSendPrompt = async (promptText: string, isRetry = false) => {
     if (!promptText.trim() || isLoading || isStreaming) return;
 
     haptics.light();
     const userText = promptText.trim();
     setInput('');
 
-    addMessage({
-      role: 'user',
-      content: userText,
-      timestamp: Date.now(),
-    });
+    if (!isRetry) {
+      addMessage({
+        role: 'user',
+        content: userText,
+        timestamp: Date.now(),
+      });
+    }
 
     setLoading(true);
     setStreaming(false);
@@ -116,18 +118,14 @@ export default function AskOmni({ showTrigger = false }: AskOmniProps) {
     abortControllerRef.current = controller;
 
     try {
-      const updatedMessages = [
-        ...messages,
-        { role: 'user' as const, content: userText, timestamp: Date.now() },
-      ];
+      // Gather non-empty messages to provide pristine conversation context
+      const currentMessages = useAiStore
+        .getState()
+        .messages.filter(
+          (m) => m && typeof m.content === 'string' && m.content.trim().length > 0
+        );
 
-      addMessage({
-        role: 'model',
-        content: '',
-        timestamp: Date.now(),
-      });
-
-      const stream = streamAiResponse(updatedMessages, controller.signal);
+      const stream = streamAiResponse(currentMessages, controller.signal);
 
       let fullContent = '';
       let isFirstChunk = true;
@@ -139,19 +137,46 @@ export default function AskOmni({ showTrigger = false }: AskOmniProps) {
           setLoading(false);
           setStreaming(true);
           isFirstChunk = false;
+          fullContent = chunk;
+          addMessage({
+            role: 'model',
+            content: fullContent,
+            timestamp: Date.now(),
+          });
+        } else {
+          fullContent += chunk;
+          updateLastMessage(fullContent);
         }
+      }
 
-        fullContent += chunk;
-        updateLastMessage(fullContent);
+      // If stream ended without any chunks received and wasn't aborted
+      if (isFirstChunk && !controller.signal.aborted) {
+        setLoading(false);
+        addMessage({
+          role: 'model',
+          content: "I apologize, but I couldn't generate a response. Please try asking again.",
+          timestamp: Date.now(),
+        });
       }
     } catch (error: any) {
       if (!controller.signal.aborted) {
-        updateLastMessage('Connection to Omni network failed. Please verify connection and try again.');
+        setLoading(false);
+        addMessage({
+          role: 'model',
+          content: 'Connection to Omni network failed. Please verify connection and try again.',
+          timestamp: Date.now(),
+        });
       }
     } finally {
       setLoading(false);
       setStreaming(false);
       abortControllerRef.current = null;
+      // Safeguard: remove any trailing empty model message if aborted prematurely
+      const state = useAiStore.getState();
+      const lastMsg = state.messages[state.messages.length - 1];
+      if (lastMsg && lastMsg.role === 'model' && !lastMsg.content?.trim()) {
+        state.removeLastMessage();
+      }
     }
   };
 
@@ -165,8 +190,8 @@ export default function AskOmni({ showTrigger = false }: AskOmniProps) {
     // Remove the current last model message
     removeLastMessage();
 
-    // Re-trigger with user message content
-    handleSendPrompt(lastUserMsg.content);
+    // Re-trigger with isRetry = true so user prompt is not duplicated
+    handleSendPrompt(lastUserMsg.content, true);
   };
 
   return (
@@ -290,18 +315,20 @@ export default function AskOmni({ showTrigger = false }: AskOmniProps) {
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background/40 scrollbar-thin scrollbar-thumb-border">
-              {messages.map((msg, idx) => {
-                const isLatest = idx === messages.length - 1;
-                return (
-                  <AiMessageBubble
-                    key={msg.id || idx}
-                    message={msg}
-                    isLatest={isLatest}
-                    isStreaming={isLatest && isStreaming}
-                    onRegenerate={handleRegenerate}
-                  />
-                );
-              })}
+              {messages
+                .filter((msg) => Boolean(msg.content && msg.content.trim()))
+                .map((msg, idx, arr) => {
+                  const isLatest = idx === arr.length - 1;
+                  return (
+                    <AiMessageBubble
+                      key={msg.id || idx}
+                      message={msg}
+                      isLatest={isLatest}
+                      isStreaming={isLatest && isStreaming}
+                      onRegenerate={handleRegenerate}
+                    />
+                  );
+                })}
 
               {/* Animated Thinking Bar when waiting for response */}
               <AnimatePresence>

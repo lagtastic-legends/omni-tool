@@ -40,16 +40,21 @@ export const useAiStore = create<AiState>()(
       setIsExpanded: (isExpanded) => set({ isExpanded }),
       toggleExpanded: () => set((state) => ({ isExpanded: !state.isExpanded })),
       setStreaming: (isStreaming) => set({ isStreaming }),
-      addMessage: (message) => set((state) => ({
-        messages: [
-          ...state.messages,
-          {
-            ...message,
-            id: message.id || `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-            timestamp: message.timestamp || Date.now(),
-          }
-        ]
-      })),
+      addMessage: (message) => set((state) => {
+        if (!message.content || !message.content.trim()) {
+          return state;
+        }
+        return {
+          messages: [
+            ...state.messages,
+            {
+              ...message,
+              id: message.id || `msg-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+              timestamp: message.timestamp || Date.now(),
+            }
+          ]
+        };
+      }),
       updateLastMessage: (content) => set((state) => {
         const newMessages = [...state.messages];
         if (newMessages.length > 0) {
@@ -78,6 +83,21 @@ export const useAiStore = create<AiState>()(
     {
       name: 'omni-ai-storage',
       partialize: (state) => ({ messages: state.messages, isExpanded: state.isExpanded }),
+      merge: (persistedState: any, currentState: AiState) => {
+        const raw = persistedState?.messages;
+        const validMessages = Array.isArray(raw)
+          ? raw.filter(
+              (m: ChatMessage) =>
+                m && typeof m.content === 'string' && m.content.trim().length > 0
+            )
+          : currentState.messages;
+
+        return {
+          ...currentState,
+          ...persistedState,
+          messages: validMessages.length > 0 ? validMessages : currentState.messages,
+        };
+      },
     }
   )
 );
