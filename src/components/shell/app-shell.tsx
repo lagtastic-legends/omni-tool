@@ -23,6 +23,8 @@ import { useAiStore } from "@/store/useAiStore";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { BackConfirmDialog } from "@/components/navigation/back-confirm-dialog";
+import { DesktopSidebar } from "@/components/shell/desktop-sidebar";
+import { DesktopInspector } from "@/components/shell/desktop-inspector";
 
 /* Dynamic code-split tool modules to control memory & isolate thread workloads */
 const MediaConverter = lazy(() => import("@/components/tools/media-converter").then((m) => ({ default: m.MediaConverter })));
@@ -50,7 +52,7 @@ const StudioRecorder = lazy(() => import("@/components/tools/studio-recorder").t
 const QrStudio = lazy(() => import("@/components/tools/qr-studio").then((m) => ({ default: m.QrStudio })));
 const UnifiedAudioStudio = lazy(() => import("@/components/audio/UnifiedAudioStudio").then((m) => ({ default: m.UnifiedAudioStudio })));
 
-const AudioDspTool = () => <UnifiedAudioStudio initialToolId="bass-booster" />;
+const AudioDspTool = () => <UnifiedAudioStudio initialToolId="spatial-8d" />;
 const VocalRemoverTool = () => <UnifiedAudioStudio initialToolId="vocal-remover" />;
 const ReverbTool = () => <UnifiedAudioStudio initialToolId="reverb" />;
 const AutoPannerTool = () => <UnifiedAudioStudio initialToolId="auto-panner" />;
@@ -213,32 +215,38 @@ export function AppShell() {
       <TopBar />
       <AskOmni />
 
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-4 py-8 sm:px-6 sm:py-12">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={view}
-            initial={{ opacity: 0, y: 14, scale: 0.992 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.995 }}
-            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
-            style={{ transform: "translate3d(0, 0, 0)", backfaceVisibility: "hidden" }}
-            className="flex-1 will-change-[transform,opacity]"
-          >
-            {/* The Auth Gateway stays reachable above the security gate —
-             * it hosts the setup instructions (open mode) and profile
-             * management (signed in). Every other surface is guarded. */}
-            {view === "auth-gateway" ? (
-              <ToolShell toolId="auth-gateway">
-                <AuthGateway />
-              </ToolShell>
-            ) : (
-              <AuthGuard>
-                {view === "dashboard" ? <DashboardView /> : <ToolView toolId={view} />}
-              </AuthGuard>
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+      <div className="flex flex-1 w-full overflow-hidden">
+        <DesktopSidebar />
+
+        <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-3 py-6 sm:px-6 sm:py-10 overflow-y-auto">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={view}
+              initial={{ opacity: 0, y: 14, scale: 0.992 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, scale: 0.995 }}
+              transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              style={{ transform: "translate3d(0, 0, 0)", backfaceVisibility: "hidden" }}
+              className="flex-1 will-change-[transform,opacity]"
+            >
+              {/* The Auth Gateway stays reachable above the security gate —
+               * it hosts the setup instructions (open mode) and profile
+               * management (signed in). Every other surface is guarded. */}
+              {view === "auth-gateway" ? (
+                <ToolShell toolId="auth-gateway">
+                  <AuthGateway />
+                </ToolShell>
+              ) : (
+                <AuthGuard>
+                  {view === "dashboard" ? <DashboardView /> : <ToolView toolId={view} />}
+                </AuthGuard>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+
+        <DesktopInspector />
+      </div>
 
       {!isAiOpen && <FloatingToolbar actions={floatingActions} />}
       <StickyMobileCta />

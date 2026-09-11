@@ -25,6 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { VideoTimelineTrimmer } from "@/components/media/video-timeline-trimmer";
 
 type Mode = "video" | "audio";
 type VideoFormat = "mp4" | "mov" | "mkv" | "avi" | "webm";
@@ -183,6 +184,10 @@ export function MediaConverter() {
           label="Drop a video to convert"
           disabled={busy}
         />
+
+        {file && mode === "video" && (
+          <VideoTimelineTrimmer />
+        )}
 
         {/* mode tabs */}
         <Tabs value={mode} onValueChange={(v) => setMode(v as Mode)}>

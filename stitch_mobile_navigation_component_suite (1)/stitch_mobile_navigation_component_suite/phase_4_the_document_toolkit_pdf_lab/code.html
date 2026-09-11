@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-container-low": "#1a1b22",
+          "secondary-fixed-dim": "#4cd7f6",
+          "surface-dim": "#121319",
+          "on-tertiary-fixed": "#002113",
+          "tertiary-container": "#00a572",
+          "on-background": "#e3e1eb",
+          "on-primary-fixed": "#23005c",
+          "on-error-container": "#ffdad6",
+          "inverse-primary": "#6d3bd7",
+          "secondary-fixed": "#acedff",
+          "surface-variant": "#34343b",
+          "on-primary": "#3c0091",
+          "on-primary-fixed-variant": "#5516be",
+          "surface": "#121319",
+          "on-tertiary-container": "#00311f",
+          "surface-container-lowest": "#0d0e14",
+          "outline": "#958ea0",
+          "surface-bright": "#383940",
+          "on-error": "#690005",
+          "surface-container": "#1e1f26",
+          "surface-container-highest": "#34343b",
+          "error-container": "#93000a",
+          "secondary-container": "#03b5d3",
+          "surface-container-high": "#292930",
+          "secondary": "#4cd7f6",
+          "on-primary-container": "#340080",
+          "on-surface-variant": "#cbc3d7",
+          "background": "#121319",
+          "surface-tint": "#d0bcff",
+          "on-surface": "#e3e1eb",
+          "on-secondary": "#003640",
+          "on-tertiary": "#003824",
+          "on-secondary-fixed": "#001f26",
+          "error": "#ffb4ab",
+          "primary-container": "#a078ff",
+          "on-secondary-fixed-variant": "#004e5c",
+          "on-tertiary-fixed-variant": "#005236",
+          "inverse-on-surface": "#2f3037",
+          "on-secondary-container": "#00424e",
+          "primary-fixed-dim": "#d0bcff",
+          "tertiary-fixed-dim": "#4edea3",
+          "primary-fixed": "#e9ddff",
+          "outline-variant": "#494454",
+          "inverse-surface": "#e3e1eb",
+          "tertiary": "#4edea3",
+          "primary": "#d0bcff",
+          "tertiary-fixed": "#6ffbbe"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-sm": "0.5rem",
+          "gutter-sm": "0.5rem",
+          "margin-lg": "2.5rem",
+          "margin-sm": "0.75rem",
+          "space-xl": "2.5rem",
+          "space-md": "1rem",
+          "space-xs": "0.25rem",
+          "margin": "1.5rem",
+          "space-lg": "1.5rem",
+          "gutter-lg": "1.5rem",
+          "gutter": "1rem"
+        },
+        "fontFamily": {
+          "telemetry-lg": [
+            "JetBrains Mono"
+          ],
+          "headline-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-lg-mobile": [
+            "Plus Jakarta Sans"
+          ],
+          "telemetry-md": [
+            "JetBrains Mono"
+          ],
+          "display-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-sm": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-md": [
+            "Plus Jakarta Sans"
+          ],
+          "display-lg-mobile": [
+            "Plus Jakarta Sans"
+          ],
+          "label-md": [
+            "JetBrains Mono"
+          ],
+          "body-md": [
+            "Plus Jakarta Sans"
+          ],
+          "body-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "label-sm": [
+            "JetBrains Mono"
+          ],
+          "telemetry-sm": [
+            "JetBrains Mono"
+          ],
+          "body-sm": [
+            "Plus Jakarta Sans"
+          ]
+        },
+        "fontSize": {
+          "telemetry-lg": [
+            "15px",
+            {
+              "lineHeight": "20px",
+              "letterSpacing": "0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-lg": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-lg-mobile": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "700"
+            }
+          ],
+          "telemetry-md": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.03em",
+              "fontWeight": "500"
+            }
+          ],
+          "display-lg": [
+            "48px",
+            {
+              "lineHeight": "56px",
+              "letterSpacing": "-0.03em",
+              "fontWeight": "800"
+            }
+          ],
+          "headline-sm": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-md": [
+            "22px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "display-lg-mobile": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "800"
+            }
+          ],
+          "label-md": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.08em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "400"
+            }
+          ],
+          "body-lg": [
+            "16px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.1em",
+              "fontWeight": "600"
+            }
+          ],
+          "telemetry-sm": [
+            "11px",
+            {
+              "lineHeight": "14px",
+              "letterSpacing": "0.05em",
+              "fontWeight": "500"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  }</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased selection:bg-primary selection:text-on-primary"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="h-16 flex items-center gap-space-sm px-gutter bg-surface-container-low"><div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center shadow-[0_0_14px_rgba(160,120,255,0.4)]"><span class="material-symbols-outlined text-on-primary-container text-[20px]">terminal</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface uppercase">OMNI TOOL</span><span class="font-label-sm text-label-sm text-secondary uppercase">CLIENT-SIDE WASM CORE</span></div></div><div class="px-gutter pt-space-md pb-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Process Modules</span></div><nav class="flex flex-col gap-space-xs px-gutter-sm" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded-lg shadow-[0_0_14px_rgba(160,120,255,0.25)]"><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm transition-all bg-primary-container text-on-primary-container font-semibold rounded-lg shadow-[0_0_14px_rgba(160,120,255,0.25)]" data-path="dashboard-hub" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span class="font-body-md text-body-md">Dashboard Hub</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="video-and-media-converter" href="#"><span class="material-symbols-outlined text-[20px]">movie</span><span class="font-body-md text-body-md">Video &amp; Media Converter</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="audio-studio-and-8d-lab" href="#"><span class="material-symbols-outlined text-[20px]">graphic_eq</span><span class="font-body-md text-body-md">Audio Studio &amp; 8D Lab</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="pdf-and-doc-suite" href="#"><span class="material-symbols-outlined text-[20px]">description</span><span class="font-body-md text-body-md">PDF &amp; Doc Suite</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="local-vault-indexeddb" href="#"><span class="material-symbols-outlined text-[20px]">lock</span><span class="font-body-md text-body-md">Local Vault (IndexedDB)</span></a></nav></div><div class="p-gutter bg-surface-container-low flex flex-col gap-space-xs"><div class="flex items-center justify-between font-telemetry-sm text-telemetry-sm"><span class="text-outline">WASM RUNTIME</span><span class="text-tertiary flex items-center gap-space-xs"><span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>ONLINE</span></div><div class="flex items-center justify-between font-telemetry-sm text-telemetry-sm bg-surface-container-lowest px-space-sm py-space-xs rounded"><span class="text-on-surface-variant">Worker Pool</span><span class="text-secondary font-semibold">Threads: 8/8 Ready</span></div><div class="flex items-center justify-between font-label-sm text-label-sm text-outline pt-space-xs"><span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-tertiary">shield</span>Zero-Telemetry</span><span class="text-on-surface-variant">v2.4.1-local</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 z-40 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-gutter-lg flex items-center justify-between gap-gutter"><div class="flex items-center gap-gutter"><div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-full"><span class="w-2 h-2 rounded-full bg-tertiary animate-ping"></span><span class="w-2 h-2 rounded-full bg-tertiary -ml-3"></span><span class="font-telemetry-sm text-telemetry-sm text-tertiary font-medium">FFmpeg.wasm: INITIALIZED (SharedArrayBuffer Active)</span></div><div class="hidden xl:flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded font-telemetry-sm text-telemetry-sm"><span class="material-symbols-outlined text-[16px] text-secondary">memory</span><span class="text-on-surface-variant">RAM:</span><span class="text-secondary font-semibold">420MB / Safe</span></div></div><div class="flex items-center gap-space-sm"><nav class="flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded"><a class="font-label-md text-label-md uppercase px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="batch-queue" href="#">Batch Queue</a><a class="font-label-md text-label-md uppercase px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="documentation" href="#">Documentation</a><a class="font-label-md text-label-md uppercase px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="settings" href="#">Settings</a></nav><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-space-xs"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface"><div class="flex flex-col w-full">
+<div class="px-gutter-lg py-space-md flex flex-col gap-space-md">
+<!-- Top Metadata Breadcrumb & Title Section -->
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-sm font-telemetry-sm text-telemetry-sm">
+<span class="text-primary tracking-wider uppercase font-semibold">LOCAL WASM SUBSYSTEM V0.12.8</span>
+<span class="text-outline">/</span>
+<span class="text-secondary tracking-wider uppercase font-medium">PDF-LIB &amp; POPPLER WASM</span>
+<span class="text-outline">/</span>
+<span class="text-tertiary tracking-wider uppercase font-semibold">JIT-COMPILED SIMD</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">
+          Client Document Suite &amp; PDF Lab
+        </h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-4xl">
+          Zero-server PDF assembly, drag-and-drop image compiler, page reordering, OCR extraction, and 256-bit AES cryptographic client locking via pdf-lib and WebAssembly runtime.
+        </p>
+</div>
+<!-- Telemetry Status Pills -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+<span class="font-telemetry-sm text-telemetry-sm text-primary">PDF-LIB v1.17</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-full">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="font-telemetry-sm text-telemetry-sm text-secondary">WASM-SIMD</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-full">
+<span class="material-symbols-outlined text-[14px] text-tertiary">shield</span>
+<span class="font-telemetry-sm text-telemetry-sm text-tertiary">AES-256 GCM READY</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-full">
+<span class="material-symbols-outlined text-[14px] text-on-surface-variant">cloud_off</span>
+<span class="font-telemetry-sm text-telemetry-sm text-on-surface-variant">ZERO CLOUD UPLOADS</span>
+</div>
+</div>
+</div>
+<!-- Tool Mode Switcher Ribbon -->
+<div class="w-full bg-surface-container-lowest p-space-xs rounded-xl flex items-center gap-space-xs overflow-x-auto shadow-sm">
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-primary-container text-on-primary-container shadow-md transition-all font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">photo_library</span>
+<span>Image to PDF</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">auto_stories</span>
+<span>Page Organizer &amp; Merge</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">enhanced_encryption</span>
+<span>PDF Lock &amp; Encrypt (AES-256)</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">markdown</span>
+<span>Text &amp; Markdown to PDF</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-md py-space-sm rounded-lg bg-surface-container-low text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all font-label-md text-label-md">
+<span class="material-symbols-outlined text-[18px]">document_scanner</span>
+<span>OCR &amp; Text Extractor (Tesseract)</span>
+</button>
+</div>
+<!-- Main Workspace Studio Grid (9 Cols Center / 7 Cols Right on 16-Col Logic, or 8/4) -->
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-gutter">
+<!-- Stage Left & Center: Canvas / Arranger Grid (xl:col-span-8) -->
+<div class="xl:col-span-8 flex flex-col gap-space-md">
+<!-- Active Batch Buffer Telemetry Bar -->
+<div class="bg-surface-container-low px-gutter py-space-sm rounded-xl flex flex-wrap items-center justify-between gap-space-sm shadow-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<span class="material-symbols-outlined text-secondary text-[22px]">folder_zip</span>
+<div class="flex flex-col min-w-0">
+<span class="font-telemetry-md text-telemetry-md text-on-surface font-semibold truncate">
+                annual_report_scans_2025.bundle
+              </span>
+<span class="font-telemetry-sm text-telemetry-sm text-outline">
+                6 images staged · 18.4 MB in-memory buffer · WebAssembly Memory Shared
+              </span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="flex items-center gap-space-xs px-space-sm py-space-xs rounded bg-surface-container-high text-secondary hover:text-secondary-fixed transition-colors font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">swap_vert</span>
+<span>AUTO-SORT</span>
+</button>
+<button class="flex items-center gap-space-xs px-space-sm py-space-xs rounded bg-surface-container-high text-on-surface-variant hover:text-error transition-colors font-label-sm text-label-sm">
+<span class="material-symbols-outlined text-[14px]">delete_sweep</span>
+<span>CLEAR ALL</span>
+</button>
+</div>
+</div>
+<!-- Document Config & Layout Controls Bar -->
+<div class="bg-surface-container-low p-gutter rounded-xl flex flex-wrap items-center justify-between gap-space-md shadow-sm">
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-space-md w-full lg:w-auto flex-1">
+<!-- Page Size -->
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-outline uppercase">Page Size</span>
+<select class="bg-surface-container-lowest text-on-surface font-telemetry-sm text-telemetry-sm px-space-sm py-space-xs rounded focus:outline-none focus:bg-surface-container-high transition-colors">
+<option selected="">A4 (210 x 297 mm)</option>
+<option>US Letter (8.5 x 11 in)</option>
+<option>US Legal (8.5 x 14 in)</option>
+<option>Custom Dimension</option>
+</select>
+</div>
+<!-- Orientation -->
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-outline uppercase">Orientation</span>
+<div class="flex items-center bg-surface-container-lowest p-0.5 rounded">
+<button class="flex-1 py-1 text-center font-label-sm text-label-sm rounded bg-surface-container-high text-secondary font-semibold">PORTRAIT</button>
+<button class="flex-1 py-1 text-center font-label-sm text-label-sm rounded text-on-surface-variant hover:text-on-surface">LANDSCAPE</button>
+</div>
+</div>
+<!-- Margins -->
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-outline uppercase">Margins</span>
+<select class="bg-surface-container-lowest text-on-surface font-telemetry-sm text-telemetry-sm px-space-sm py-space-xs rounded focus:outline-none focus:bg-surface-container-high transition-colors">
+<option>None (0 mm)</option>
+<option>Tight (5 mm)</option>
+<option selected="">Standard (12 mm)</option>
+<option>Spacious (20 mm)</option>
+</select>
+</div>
+<!-- Image Fit & DPI -->
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-outline uppercase">Target Quality</span>
+<select class="bg-surface-container-lowest text-on-surface font-telemetry-sm text-telemetry-sm px-space-sm py-space-xs rounded focus:outline-none focus:bg-surface-container-high transition-colors">
+<option>150 DPI (Web Optimized)</option>
+<option selected="">300 DPI (Print Ready)</option>
+<option>Lossless Raw (Source)</option>
+</select>
+</div>
+</div>
+</div>
+<!-- Interactive Page Canvas Card Grid (6 Cards + Dropzone) -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-gutter">
+<!-- Page 1 Card -->
+<div class="bg-surface-container-low rounded-xl p-space-sm flex flex-col gap-space-xs shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex items-center justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-outline text-[16px] cursor-grab">drag_indicator</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-primary px-space-xs py-0.5 rounded font-bold">PAGE 01</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="p-1 rounded text-on-surface-variant hover:text-secondary hover:bg-surface-container-high transition-colors" title="Rotate 90°">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:text-error hover:bg-surface-container-high transition-colors" title="Delete Page">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+</div>
+<div class="relative w-full aspect-[1/1.3] bg-surface-container-lowest rounded-lg overflow-hidden flex flex-col justify-end p-space-sm shadow-inner">
+<img class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300" data-alt="High contrast technical financial summary report document with clean typography, graphs, and audit stamps on dark cybernetic workstation canvas with cyan and purple telemetry markers." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBX3Qx9PZ83U3WlVABhRzpceF0aJLboQZgL0UPUiEaYrAqcZoNURldzA_bRIjcX7LiWTrfukh9JCOwP7DQ8QhBy-WFLxiwDzmEBo0MlsuZSM-5D7hPU0tdGDaXoKPDLSYwMbi-hkUhRzb6wKFqRAst7E0sW4S3TBk7qjymi0g0apmo1qtA6Sga06jKqtKT93u4awTBKArZSW5HL6jHFrJ54i5Syzz5biJWHa0K7G5uh44087vPtD8o4"/>
+<div class="relative z-10 bg-surface-container-lowest/90 backdrop-blur-md p-space-xs rounded flex items-center justify-between font-telemetry-sm text-telemetry-sm">
+<span class="truncate text-on-surface font-medium">01_Executive_Summary.png</span>
+<span class="text-secondary font-semibold shrink-0">2.8 MB</span>
+</div>
+</div>
+<div class="flex items-center justify-between px-space-xs pt-space-xs font-telemetry-sm text-telemetry-sm text-outline">
+<span>2480 × 3508 px</span>
+<span class="text-tertiary">300 DPI</span>
+</div>
+</div>
+<!-- Page 2 Card -->
+<div class="bg-surface-container-low rounded-xl p-space-sm flex flex-col gap-space-xs shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex items-center justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-outline text-[16px] cursor-grab">drag_indicator</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-primary px-space-xs py-0.5 rounded font-bold">PAGE 02</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="p-1 rounded text-on-surface-variant hover:text-secondary hover:bg-surface-container-high transition-colors" title="Rotate 90°">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:text-error hover:bg-surface-container-high transition-colors" title="Delete Page">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+</div>
+<div class="relative w-full aspect-[1/1.3] bg-surface-container-lowest rounded-lg overflow-hidden flex flex-col justify-end p-space-sm shadow-inner">
+<img class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300" data-alt="Dense vector line charts and technical architectural diagrams formatted as an enterprise document page with precise dark mode visual gridlines and cyber telemetry accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9mIsJbXgRwyGcP82XiI1TKCg7dUn-89Y_6T_pQpNGZjxHJ0Mb7e3NYv0FjKTP4kosLHmXdZYDBfhFkrvSiLZbwBM_L8DiSh48SBNLCZHC1ZefQQLANv6wO6LQTxPH7vLOUXhuKIqX3dmQNXqCwhh1Mb6Dn8SVfXIRDlCaU_wyIHX1GBzzsUv5PhiJ2cqkgrKUHiIZQ2Qodo9W-cB0Bdxg6MmyDvVHaNCrCuq8yyQA_OX_m-30I7Wr"/>
+<div class="relative z-10 bg-surface-container-lowest/90 backdrop-blur-md p-space-xs rounded flex items-center justify-between font-telemetry-sm text-telemetry-sm">
+<span class="truncate text-on-surface font-medium">02_Financial_Matrix.png</span>
+<span class="text-secondary font-semibold shrink-0">3.4 MB</span>
+</div>
+</div>
+<div class="flex items-center justify-between px-space-xs pt-space-xs font-telemetry-sm text-telemetry-sm text-outline">
+<span>2480 × 3508 px</span>
+<span class="text-tertiary">300 DPI</span>
+</div>
+</div>
+<!-- Page 3 Card -->
+<div class="bg-surface-container-low rounded-xl p-space-sm flex flex-col gap-space-xs shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex items-center justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-outline text-[16px] cursor-grab">drag_indicator</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-primary px-space-xs py-0.5 rounded font-bold">PAGE 03</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="p-1 rounded text-on-surface-variant hover:text-secondary hover:bg-surface-container-high transition-colors" title="Rotate 90°">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:text-error hover:bg-surface-container-high transition-colors" title="Delete Page">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+</div>
+<div class="relative w-full aspect-[1/1.3] bg-surface-container-lowest rounded-lg overflow-hidden flex flex-col justify-end p-space-sm shadow-inner">
+<img class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300" data-alt="Monochrome legal contract document scan with highlighted clauses, cryptographic fingerprint seal and monospaced paragraph layouts in obsidian slate tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOmfpdqpYmDCVbHL9OBrcVfwVarj3YNEoN4-bLPe44eCWlLZ8v_CgECmvRPVh6OpItMMCbyz_SKHjE66UAo3zeY71qCGxxPPCmS00AuNe7wS4kNKtoqUFv8EgZxWPSY339_Y5qO5MC_RLa_T0AE-VFTiGfCmf7Ikq-RUxRmlx91Num9HNXCNsQA9c2y8USG7xeRWJqgnM3IFOeBT1vW5Vtzn0TqDS-lzz9TCJWQRGn1Vi8zKZ909W2"/>
+<div class="relative z-10 bg-surface-container-lowest/90 backdrop-blur-md p-space-xs rounded flex items-center justify-between font-telemetry-sm text-telemetry-sm">
+<span class="truncate text-on-surface font-medium">03_Master_Agreement.jpg</span>
+<span class="text-secondary font-semibold shrink-0">4.1 MB</span>
+</div>
+</div>
+<div class="flex items-center justify-between px-space-xs pt-space-xs font-telemetry-sm text-telemetry-sm text-outline">
+<span>2550 × 3300 px</span>
+<span class="text-tertiary">300 DPI</span>
+</div>
+</div>
+<!-- Page 4 Card -->
+<div class="bg-surface-container-low rounded-xl p-space-sm flex flex-col gap-space-xs shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex items-center justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-outline text-[16px] cursor-grab">drag_indicator</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-primary px-space-xs py-0.5 rounded font-bold">PAGE 04</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="p-1 rounded text-on-surface-variant hover:text-secondary hover:bg-surface-container-high transition-colors" title="Rotate 90°">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:text-error hover:bg-surface-container-high transition-colors" title="Delete Page">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+</div>
+<div class="relative w-full aspect-[1/1.3] bg-surface-container-lowest rounded-lg overflow-hidden flex flex-col justify-end p-space-sm shadow-inner">
+<img class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300" data-alt="Technical blueprint schematic scan with dense micro-grid typography, circuit telemetry vectors, and obsidian dark glass overlay elements." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCijZeXuJxGqS2inpjO5i8cslM2G-SVKll4H7yhxULwASy9N7JPf9ASyqcz-KQCkVsq1nZWBrHF2UiwJX6tGHRsfN39Bz7mhjok0xJNyIdnhnMGmaOY6PaIJaPsm4QzNlrGxBHPwxeDbStadg6cx53lzZ5BDn6pgmdUNyp9klqezKAmRJS2b8D5AWMy32-4Xi7jykQFtj-JS01j6ZT-0sMN554Tgq7YW9ZGH1Hxo4_cyf7ZtrUBbN97"/>
+<div class="relative z-10 bg-surface-container-lowest/90 backdrop-blur-md p-space-xs rounded flex items-center justify-between font-telemetry-sm text-telemetry-sm">
+<span class="truncate text-on-surface font-medium">04_System_Topology.png</span>
+<span class="text-secondary font-semibold shrink-0">1.9 MB</span>
+</div>
+</div>
+<div class="flex items-center justify-between px-space-xs pt-space-xs font-telemetry-sm text-telemetry-sm text-outline">
+<span>2480 × 3508 px</span>
+<span class="text-tertiary">300 DPI</span>
+</div>
+</div>
+<!-- Page 5 Card -->
+<div class="bg-surface-container-low rounded-xl p-space-sm flex flex-col gap-space-xs shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex items-center justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-outline text-[16px] cursor-grab">drag_indicator</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-primary px-space-xs py-0.5 rounded font-bold">PAGE 05</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="p-1 rounded text-on-surface-variant hover:text-secondary hover:bg-surface-container-high transition-colors" title="Rotate 90°">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:text-error hover:bg-surface-container-high transition-colors" title="Delete Page">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+</div>
+<div class="relative w-full aspect-[1/1.3] bg-surface-container-lowest rounded-lg overflow-hidden flex flex-col justify-end p-space-sm shadow-inner">
+<img class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300" data-alt="High quality cryptographic digital certificate document with biometric stamp and cybernetic authorization signature blocks in high resolution." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDt7RCyEqrnK_W3nXX7a3h4Wney8iP5VrxkAapt3siR_VyImce4Np6dCtIDa6ULbNqhv6LvB9KDK6PjWIaZskwovy1V_rfCQqWgxW4P6DUfqG7KmftDcjSY2cUmeAsN4NfHOq2lCa2ExTydFdnBIlUP3JBgaY1gbttcO25uTA2z-SFU3-5LbBZJVQdlnNebHrx6vQ_5AubDph6aTj1YED90og_U2QL4JOuLJLnuv1Ey-mSNpxJ7TJTA"/>
+<div class="relative z-10 bg-surface-container-lowest/90 backdrop-blur-md p-space-xs rounded flex items-center justify-between font-telemetry-sm text-telemetry-sm">
+<span class="truncate text-on-surface font-medium">05_Audit_Certification.webp</span>
+<span class="text-secondary font-semibold shrink-0">3.1 MB</span>
+</div>
+</div>
+<div class="flex items-center justify-between px-space-xs pt-space-xs font-telemetry-sm text-telemetry-sm text-outline">
+<span>2480 × 3508 px</span>
+<span class="text-tertiary">300 DPI</span>
+</div>
+</div>
+<!-- Page 6 Card -->
+<div class="bg-surface-container-low rounded-xl p-space-sm flex flex-col gap-space-xs shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex items-center justify-between px-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-outline text-[16px] cursor-grab">drag_indicator</span>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-primary px-space-xs py-0.5 rounded font-bold">PAGE 06</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="p-1 rounded text-on-surface-variant hover:text-secondary hover:bg-surface-container-high transition-colors" title="Rotate 90°">
+<span class="material-symbols-outlined text-[16px]">rotate_right</span>
+</button>
+<button class="p-1 rounded text-on-surface-variant hover:text-error hover:bg-surface-container-high transition-colors" title="Delete Page">
+<span class="material-symbols-outlined text-[16px]">close</span>
+</button>
+</div>
+</div>
+<div class="relative w-full aspect-[1/1.3] bg-surface-container-lowest rounded-lg overflow-hidden flex flex-col justify-end p-space-sm shadow-inner">
+<img class="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-300" data-alt="Document scan of a legal signature annex page featuring multiple corporate seals, date stamps, and cryptographic verification hash lines." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdSr5UwbGQlmYs0VClQzWuZztHeRCLERHvMVgu-mGkivlP82eKxpjwkRJu5Jr8B0k9D0ANTv-bu11rEym2eP6HUE8NYKzBz8Cz6P4oXfr4Z5kEduywTS68q-DsaXHPYuVAfDB25cyEx0mmJ1f-tn7czv46QjwTCs9CIZEgEH9gt-PQFrDAJ5rtVVMJfIhGBrGP-l9kwHxlG_6Tqhnq3oPA-RNL3gfesToGdf037IVICCv7KMCkz5GI"/>
+<div class="relative z-10 bg-surface-container-lowest/90 backdrop-blur-md p-space-xs rounded flex items-center justify-between font-telemetry-sm text-telemetry-sm">
+<span class="truncate text-on-surface font-medium">06_Signature_Annex.jpg</span>
+<span class="text-secondary font-semibold shrink-0">3.1 MB</span>
+</div>
+</div>
+<div class="flex items-center justify-between px-space-xs pt-space-xs font-telemetry-sm text-telemetry-sm text-outline">
+<span>2480 × 3508 px</span>
+<span class="text-tertiary">300 DPI</span>
+</div>
+</div>
+</div>
+<!-- Dropzone Staging Area Card -->
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col items-center justify-center gap-space-sm text-center shadow-sm cursor-pointer hover:bg-surface-container transition-colors group">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary group-hover:scale-110 transition-transform shadow-md">
+<span class="material-symbols-outlined text-[24px]">cloud_upload</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<span class="font-headline-sm text-headline-sm text-on-surface">Drop more images or click to append pages</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">PNG, JPEG, WebP, TIFF supported · Max single payload 500 MB (Client RAM buffer)</span>
+</div>
+<div class="flex items-center gap-space-xs font-telemetry-sm text-telemetry-sm text-outline mt-space-xs">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+<span>Files never transit network · Direct Uint8Array stream</span>
+</div>
+</div>
+</div>
+<!-- Right Column: Security, Compilation & Telemetry Engine (xl:col-span-4) -->
+<div class="xl:col-span-4 flex flex-col gap-space-md">
+<!-- Primary Action Card: Compiler Trigger -->
+<div class="bg-surface-container-low p-gutter rounded-xl flex flex-col gap-space-md shadow-md">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase text-outline tracking-wider">COMPILER ACTIONS</span>
+<span class="font-telemetry-sm text-telemetry-sm text-tertiary font-semibold">ENGINE READY</span>
+</div>
+<button class="w-full bg-primary-container text-on-primary-container py-space-md px-gutter rounded-lg shadow-xl hover:brightness-110 active:scale-[0.99] transition-all flex flex-col items-center justify-center gap-0.5" id="compileBtn">
+<div class="flex items-center gap-space-xs font-headline-sm text-headline-sm font-bold tracking-tight">
+<span class="material-symbols-outlined text-[22px]">picture_as_pdf</span>
+<span>COMPILE &amp; BUILD PDF</span>
+</div>
+<span class="font-telemetry-sm text-telemetry-sm text-on-primary-container/80">
+              pdfLib.createDocument() in worker thread #3
+            </span>
+</button>
+<!-- Export Preset Pills -->
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-outline uppercase">Export Presets</span>
+<div class="grid grid-cols-3 gap-space-xs font-telemetry-sm text-telemetry-sm">
+<button class="bg-surface-container-high text-secondary p-space-xs rounded text-center font-medium hover:bg-surface-container-highest transition-colors">
+                Std Print (300)
+              </button>
+<button class="bg-surface-container-lowest text-on-surface-variant p-space-xs rounded text-center font-medium hover:bg-surface-container-high hover:text-on-surface transition-colors">
+                Web (-65%)
+              </button>
+<button class="bg-surface-container-lowest text-on-surface-variant p-space-xs rounded text-center font-medium hover:bg-surface-container-high hover:text-on-surface transition-colors">
+                PDF/A Archival
+              </button>
+</div>
+</div>
+</div>
+<!-- Security & Cryptographic Client Lock Module -->
+<div class="bg-surface-container-low p-gutter rounded-xl flex flex-col gap-space-md shadow-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">lock</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Client-Side Vault Lock</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-highest px-space-xs py-0.5 rounded">
+<span class="font-label-sm text-label-sm text-tertiary">AES-256</span>
+</div>
+</div>
+<div class="flex items-center justify-between bg-surface-container-lowest px-space-md py-space-sm rounded-lg">
+<div class="flex flex-col">
+<span class="font-body-md text-body-md text-on-surface font-semibold">Enable AES Cryptography</span>
+<span class="font-telemetry-sm text-telemetry-sm text-outline">CryptoSubtle PBKDF2 + AES-GCM</span>
+</div>
+<!-- Custom Toggle -->
+<button class="w-10 h-5 rounded-full bg-primary-container relative flex items-center px-0.5 transition-colors">
+<span class="w-4 h-4 rounded-full bg-on-primary-container ml-auto shadow-sm"></span>
+</button>
+</div>
+<!-- Password Inputs -->
+<div class="flex flex-col gap-space-sm">
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase">Document User Password (Read)</label>
+<div class="relative flex items-center">
+<input class="w-full bg-surface-container-lowest text-on-surface font-telemetry-sm text-telemetry-sm px-space-md py-space-sm rounded focus:outline-none focus:bg-surface-container-high transition-colors" type="password" value="••••••••••••"/>
+<span class="material-symbols-outlined absolute right-3 text-outline text-[18px] cursor-pointer hover:text-on-surface">visibility</span>
+</div>
+</div>
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-sm text-label-sm text-on-surface-variant uppercase">Master / Owner Password (Permissions)</label>
+<div class="relative flex items-center">
+<input class="w-full bg-surface-container-lowest text-on-surface font-telemetry-sm text-telemetry-sm px-space-md py-space-sm rounded focus:outline-none focus:bg-surface-container-high transition-colors" type="password" value="••••••••••••••••"/>
+<span class="material-symbols-outlined absolute right-3 text-outline text-[18px] cursor-pointer hover:text-on-surface">visibility</span>
+</div>
+</div>
+</div>
+<!-- Client Permission Flags -->
+<div class="flex flex-col gap-space-xs">
+<span class="font-label-sm text-label-sm text-outline uppercase">Granular Permission Rights</span>
+<div class="flex flex-col gap-space-xs bg-surface-container-lowest p-space-sm rounded-lg font-telemetry-sm text-telemetry-sm">
+<label class="flex items-center gap-space-sm cursor-pointer select-none">
+<input checked="" class="accent-primary w-4 h-4 rounded" type="checkbox"/>
+<span class="text-on-surface">Allow High-Resolution Printing</span>
+</label>
+<label class="flex items-center gap-space-sm cursor-pointer select-none">
+<input class="accent-primary w-4 h-4 rounded" type="checkbox"/>
+<span class="text-on-surface-variant">Allow Text &amp; Vector Copying</span>
+</label>
+<label class="flex items-center gap-space-sm cursor-pointer select-none">
+<input checked="" class="accent-primary w-4 h-4 rounded" type="checkbox"/>
+<span class="text-on-surface">Allow Annotations &amp; Form Fields</span>
+</label>
+</div>
+</div>
+</div>
+<!-- Real-time WASM Compilation Daemon Log -->
+<div class="bg-surface-container-low rounded-xl p-gutter flex flex-col gap-space-sm shadow-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs font-telemetry-sm text-telemetry-sm text-on-surface font-semibold">
+<span class="material-symbols-outlined text-[16px] text-tertiary">terminal</span>
+<span>WASM DAEMON LOG</span>
+</div>
+<span class="font-telemetry-sm text-telemetry-sm text-outline">STDOUT</span>
+</div>
+<div class="bg-surface-container-lowest rounded-lg p-space-sm font-telemetry-sm text-telemetry-sm flex flex-col gap-1 overflow-x-auto shadow-inner h-44 text-on-surface-variant">
+<div class="text-outline">$ pdf-lib::createDocument --pages 6 --dpi 300</div>
+<div class="text-secondary">[worker-3] Thread assigned: SIMD accelerated WebAssembly</div>
+<div>[worker-3] Processing raw ImageData chunks from memory buffer...</div>
+<div>[raster] Downsampling page #3 JPEG compression matrix...</div>
+<div class="text-primary">[crypto] Generating 256-bit salt via window.crypto.getRandomValues()</div>
+<div>[crypto] PBKDF2 key derived: 100,000 rounds SHA-256</div>
+<div>[stream] Writing PDF-1.7 header and Cross-Reference Table (XRef)...</div>
+<div class="text-tertiary font-semibold">[status] Assembly completed in 410ms. Output blob: 4.2 MB (ready)</div>
+<div class="flex items-center gap-space-xs text-primary font-bold animate-pulse">
+<span>_</span>
+</div>
+</div>
+<!-- Memory Gauge -->
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<div class="flex items-center justify-between font-telemetry-sm text-telemetry-sm">
+<span class="text-outline">WASM HEAP CONSUMPTION</span>
+<span class="text-secondary font-semibold">120 MB / 4096 MB</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-1.5 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full w-[3%]"></div>
+</div>
+</div>
+</div>
+<!-- Zero-Telemetry Cryptographic Assurance -->
+<div class="bg-surface-container-low p-gutter rounded-xl flex items-center gap-space-md shadow-sm">
+<div class="w-10 h-10 rounded-full bg-tertiary-container/20 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-tertiary text-[20px]">verified_user</span>
+</div>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface text-sm">Hard Air-Gap Security</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">
+              Every document manipulation happens locally inside your browser's V8 / SpiderMonkey sandbox. Zero byte telemetry transmitted.
+            </span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+  (function() {
+    const compileBtn = document.getElementById('compileBtn');
+    if (compileBtn) {
+      compileBtn.addEventListener('click', () => {
+        const originalText = compileBtn.innerHTML;
+        compileBtn.innerHTML = `
+          <div class="flex items-center gap-space-xs font-headline-sm text-headline-sm font-bold tracking-tight">
+            <span class="material-symbols-outlined text-[22px] animate-spin">sync</span>
+            <span>GENERATING BINARY BLOB...</span>
+          </div>
+          <span class="font-telemetry-sm text-telemetry-sm text-on-primary-container/80">Worker assembling cross-reference tables</span>
+        `;
+        setTimeout(() => {
+          compileBtn.innerHTML = `
+            <div class="flex items-center gap-space-xs font-headline-sm text-headline-sm font-bold tracking-tight text-on-primary-container">
+              <span class="material-symbols-outlined text-[22px]">download_done</span>
+              <span>DOWNLOAD PDF (4.2 MB)</span>
+            </div>
+            <span class="font-telemetry-sm text-telemetry-sm text-on-primary-container/80">Stored in Local Vault (IndexedDB)</span>
+          `;
+        }, 1200);
+      });
+    }
+  })();
+</script></main></div></body></html>

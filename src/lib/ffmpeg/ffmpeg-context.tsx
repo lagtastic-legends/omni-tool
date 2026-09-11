@@ -39,6 +39,7 @@ import type {
   LogSource,
   RuntimeProgress,
 } from "@/types/omni";
+import { emitTelemetry } from "@/hooks/useStdoutTelemetry";
 
 const LOG_RING_CAPACITY = 400;
 const WASM_BYTES_FALLBACK = 32_232_419;
@@ -153,6 +154,7 @@ export function FFmpegEngineProvider({ children }: { children: ReactNode }) {
     /* Relay ffmpeg internal logs + progress into the shared console. */
     instance.on("log", ({ type, message }) => {
       appendLog("ffmpeg", type === "fferr" ? "ffmpeg" : "info", message);
+      emitTelemetry(message, type === "fferr" ? "warn" : "ffmpeg");
     });
     instance.on("progress", ({ progress, time }) => {
       setRuntime({ progress, time });

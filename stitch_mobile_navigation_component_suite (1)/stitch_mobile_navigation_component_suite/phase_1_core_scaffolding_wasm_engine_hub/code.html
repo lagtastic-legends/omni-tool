@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-container-low": "#1a1b22",
+          "secondary-fixed-dim": "#4cd7f6",
+          "surface-dim": "#121319",
+          "on-tertiary-fixed": "#002113",
+          "tertiary-container": "#00a572",
+          "on-background": "#e3e1eb",
+          "on-primary-fixed": "#23005c",
+          "on-error-container": "#ffdad6",
+          "inverse-primary": "#6d3bd7",
+          "secondary-fixed": "#acedff",
+          "surface-variant": "#34343b",
+          "on-primary": "#3c0091",
+          "on-primary-fixed-variant": "#5516be",
+          "surface": "#121319",
+          "on-tertiary-container": "#00311f",
+          "surface-container-lowest": "#0d0e14",
+          "outline": "#958ea0",
+          "surface-bright": "#383940",
+          "on-error": "#690005",
+          "surface-container": "#1e1f26",
+          "surface-container-highest": "#34343b",
+          "error-container": "#93000a",
+          "secondary-container": "#03b5d3",
+          "surface-container-high": "#292930",
+          "secondary": "#4cd7f6",
+          "on-primary-container": "#340080",
+          "on-surface-variant": "#cbc3d7",
+          "background": "#121319",
+          "surface-tint": "#d0bcff",
+          "on-surface": "#e3e1eb",
+          "on-secondary": "#003640",
+          "on-tertiary": "#003824",
+          "on-secondary-fixed": "#001f26",
+          "error": "#ffb4ab",
+          "primary-container": "#a078ff",
+          "on-secondary-fixed-variant": "#004e5c",
+          "on-tertiary-fixed-variant": "#005236",
+          "inverse-on-surface": "#2f3037",
+          "on-secondary-container": "#00424e",
+          "primary-fixed-dim": "#d0bcff",
+          "tertiary-fixed-dim": "#4edea3",
+          "primary-fixed": "#e9ddff",
+          "outline-variant": "#494454",
+          "inverse-surface": "#e3e1eb",
+          "tertiary": "#4edea3",
+          "primary": "#d0bcff",
+          "tertiary-fixed": "#6ffbbe"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-sm": "0.5rem",
+          "gutter-sm": "0.5rem",
+          "margin-lg": "2.5rem",
+          "margin-sm": "0.75rem",
+          "space-xl": "2.5rem",
+          "space-md": "1rem",
+          "space-xs": "0.25rem",
+          "margin": "1.5rem",
+          "space-lg": "1.5rem",
+          "gutter-lg": "1.5rem",
+          "gutter": "1rem"
+        },
+        "fontFamily": {
+          "telemetry-lg": [
+            "JetBrains Mono"
+          ],
+          "headline-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-lg-mobile": [
+            "Plus Jakarta Sans"
+          ],
+          "telemetry-md": [
+            "JetBrains Mono"
+          ],
+          "display-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-sm": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-md": [
+            "Plus Jakarta Sans"
+          ],
+          "display-lg-mobile": [
+            "Plus Jakarta Sans"
+          ],
+          "label-md": [
+            "JetBrains Mono"
+          ],
+          "body-md": [
+            "Plus Jakarta Sans"
+          ],
+          "body-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "label-sm": [
+            "JetBrains Mono"
+          ],
+          "telemetry-sm": [
+            "JetBrains Mono"
+          ],
+          "body-sm": [
+            "Plus Jakarta Sans"
+          ]
+        },
+        "fontSize": {
+          "telemetry-lg": [
+            "15px",
+            {
+              "lineHeight": "20px",
+              "letterSpacing": "0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-lg": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-lg-mobile": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "700"
+            }
+          ],
+          "telemetry-md": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.03em",
+              "fontWeight": "500"
+            }
+          ],
+          "display-lg": [
+            "48px",
+            {
+              "lineHeight": "56px",
+              "letterSpacing": "-0.03em",
+              "fontWeight": "800"
+            }
+          ],
+          "headline-sm": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-md": [
+            "22px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "display-lg-mobile": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "800"
+            }
+          ],
+          "label-md": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.08em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "400"
+            }
+          ],
+          "body-lg": [
+            "16px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.1em",
+              "fontWeight": "600"
+            }
+          ],
+          "telemetry-sm": [
+            "11px",
+            {
+              "lineHeight": "14px",
+              "letterSpacing": "0.05em",
+              "fontWeight": "500"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  }</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased selection:bg-primary selection:text-on-primary"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="h-16 flex items-center gap-space-sm px-gutter bg-surface-container-low"><div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center shadow-[0_0_14px_rgba(160,120,255,0.4)]"><span class="material-symbols-outlined text-on-primary-container text-[20px]">terminal</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface uppercase">OMNI TOOL</span><span class="font-label-sm text-label-sm text-secondary uppercase">CLIENT-SIDE WASM CORE</span></div></div><div class="px-gutter pt-space-md pb-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Process Modules</span></div><nav class="flex flex-col gap-space-xs px-gutter-sm" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded-lg shadow-[0_0_14px_rgba(160,120,255,0.25)]"><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm transition-all bg-primary-container text-on-primary-container font-semibold rounded-lg shadow-[0_0_14px_rgba(160,120,255,0.25)]" data-path="dashboard-hub" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span class="font-body-md text-body-md">Dashboard Hub</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="video-and-media-converter" href="#"><span class="material-symbols-outlined text-[20px]">movie</span><span class="font-body-md text-body-md">Video &amp; Media Converter</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="audio-studio-and-8d-lab" href="#"><span class="material-symbols-outlined text-[20px]">graphic_eq</span><span class="font-body-md text-body-md">Audio Studio &amp; 8D Lab</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="pdf-and-doc-suite" href="#"><span class="material-symbols-outlined text-[20px]">description</span><span class="font-body-md text-body-md">PDF &amp; Doc Suite</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="local-vault-indexeddb" href="#"><span class="material-symbols-outlined text-[20px]">lock</span><span class="font-body-md text-body-md">Local Vault (IndexedDB)</span></a></nav></div><div class="p-gutter bg-surface-container-low flex flex-col gap-space-xs"><div class="flex items-center justify-between font-telemetry-sm text-telemetry-sm"><span class="text-outline">WASM RUNTIME</span><span class="text-tertiary flex items-center gap-space-xs"><span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>ONLINE</span></div><div class="flex items-center justify-between font-telemetry-sm text-telemetry-sm bg-surface-container-lowest px-space-sm py-space-xs rounded"><span class="text-on-surface-variant">Worker Pool</span><span class="text-secondary font-semibold">Threads: 8/8 Ready</span></div><div class="flex items-center justify-between font-label-sm text-label-sm text-outline pt-space-xs"><span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-tertiary">shield</span>Zero-Telemetry</span><span class="text-on-surface-variant">v2.4.1-local</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 z-40 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-gutter-lg flex items-center justify-between gap-gutter"><div class="flex items-center gap-gutter"><div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-full"><span class="w-2 h-2 rounded-full bg-tertiary animate-ping"></span><span class="w-2 h-2 rounded-full bg-tertiary -ml-3"></span><span class="font-telemetry-sm text-telemetry-sm text-tertiary font-medium">FFmpeg.wasm: INITIALIZED (SharedArrayBuffer Active)</span></div><div class="hidden xl:flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded font-telemetry-sm text-telemetry-sm"><span class="material-symbols-outlined text-[16px] text-secondary">memory</span><span class="text-on-surface-variant">RAM:</span><span class="text-secondary font-semibold">420MB / Safe</span></div></div><div class="flex items-center gap-space-sm"><nav class="flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded"><a class="font-label-md text-label-md uppercase px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="batch-queue" href="#">Batch Queue</a><a class="font-label-md text-label-md uppercase px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="documentation" href="#">Documentation</a><a class="font-label-md text-label-md uppercase px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="settings" href="#">Settings</a></nav><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-space-xs"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface"><div class="flex flex-col w-full">
+<div class="relative overflow-hidden px-margin-lg py-space-xl bg-surface-container-lowest">
+<div class="absolute -right-24 -top-24 w-96 h-96 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
+<div class="absolute left-1/3 -bottom-32 w-80 h-80 rounded-full bg-secondary/10 blur-3xl pointer-events-none"></div>
+<div class="relative z-10 flex flex-col gap-space-lg max-w-7xl mx-auto">
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-md">
+<div class="flex flex-col gap-space-xs max-w-3xl">
+<div class="flex items-center gap-space-sm font-label-sm text-label-sm uppercase tracking-widest text-secondary">
+<span class="inline-flex items-center justify-center w-2 h-2 rounded-full bg-secondary animate-ping"></span>
+<span>Local WASM Subsystem v0.12.8</span>
+<span class="text-outline">/</span>
+<span class="text-tertiary">Direct Hardware Acceleration</span>
+</div>
+<h1 class="font-display-lg text-display-lg tracking-tight text-on-surface">
+            Omni Tool Core Engine
+          </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed">
+            Zero-latency, 100% private in-browser media processing powered by WebAssembly, SIMD vectorization, and multi-threaded SharedArrayBuffer primitives.
+          </p>
+</div>
+<div class="flex items-center gap-space-sm bg-surface-container-low p-space-sm rounded-xl self-start lg:self-auto shadow-md">
+<div class="flex flex-col px-space-md py-space-xs">
+<span class="font-label-sm text-label-sm text-outline uppercase">Isolation</span>
+<span class="font-telemetry-sm text-telemetry-sm text-tertiary font-semibold flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>COOP/COEP ACTIVE
+            </span>
+</div>
+<div class="w-px h-8 bg-surface-variant"></div>
+<div class="flex flex-col px-space-md py-space-xs">
+<span class="font-label-sm text-label-sm text-outline uppercase">Compute State</span>
+<span class="font-telemetry-sm text-telemetry-sm text-secondary font-semibold">PTHREAD_POOL_8</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-gutter pt-space-xs">
+<div class="bg-surface-container-low p-space-md rounded-xl relative overflow-hidden shadow-lg flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Engine Vector</span>
+<span class="font-headline-sm text-headline-sm text-on-surface mt-0.5">FFmpeg.wasm Core</span>
+</div>
+<span class="material-symbols-outlined text-secondary text-[24px]">terminal</span>
+</div>
+<div class="my-space-md flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary shadow-[0_0_8px_rgba(78,222,163,0.8)]"></span>
+<span class="font-telemetry-md text-telemetry-md text-tertiary font-semibold">ONLINE (v0.12.8)</span>
+</div>
+<span class="font-telemetry-sm text-telemetry-sm text-on-surface-variant">SIMD Enabled • 8 PThreads Active</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-outline pt-space-xs bg-surface-container-lowest px-space-sm py-space-xs rounded">
+<span>DISPATCH</span>
+<span class="text-secondary font-telemetry-sm text-telemetry-sm">Direct WASM Exec</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-xl relative overflow-hidden shadow-lg flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Threading Guard</span>
+<span class="font-headline-sm text-headline-sm text-on-surface mt-0.5">SharedArrayBuffer</span>
+</div>
+<span class="material-symbols-outlined text-tertiary text-[24px]">shield_locked</span>
+</div>
+<div class="my-space-md flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-[16px] text-tertiary">check_circle</span>
+<span class="font-telemetry-md text-telemetry-md text-tertiary font-semibold">200 OK Cross-Isolated</span>
+</div>
+<span class="font-telemetry-sm text-telemetry-sm text-on-surface-variant">require-corp / same-origin</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-outline pt-space-xs bg-surface-container-lowest px-space-sm py-space-xs rounded">
+<span>MUTEX/ATOMICS</span>
+<span class="text-tertiary font-telemetry-sm text-telemetry-sm">Lock-free Sync</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-xl relative overflow-hidden shadow-lg flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Memory Allocation</span>
+<span class="font-headline-sm text-headline-sm text-on-surface mt-0.5">Heap Buffer</span>
+</div>
+<span class="material-symbols-outlined text-primary text-[24px]">memory</span>
+</div>
+<div class="my-space-md flex flex-col gap-1">
+<div class="flex items-baseline justify-between">
+<span class="font-headline-sm text-headline-sm text-primary font-telemetry-lg">512 MB</span>
+<span class="font-label-sm text-label-sm text-outline">Dynamic Max 2048 MB</span>
+</div>
+<div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden mt-1">
+<div class="w-1/4 h-full bg-primary-container rounded-full"></div>
+</div>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-outline pt-space-xs bg-surface-container-lowest px-space-sm py-space-xs rounded">
+<span>PRESSURE</span>
+<span class="text-on-surface-variant font-telemetry-sm text-telemetry-sm">Low (Clean Garbage)</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-xl relative overflow-hidden shadow-lg flex flex-col justify-between">
+<div class="flex items-start justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Client Storage</span>
+<span class="font-headline-sm text-headline-sm text-on-surface mt-0.5">IndexedDB Vault</span>
+</div>
+<span class="material-symbols-outlined text-secondary text-[24px]">inventory_2</span>
+</div>
+<div class="my-space-md flex flex-col gap-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="font-telemetry-md text-telemetry-md text-secondary font-semibold">SANDBOX READY</span>
+</div>
+<span class="font-telemetry-sm text-telemetry-sm text-on-surface-variant">0 Blobs Enqueued • 0B Occupied</span>
+</div>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-outline pt-space-xs bg-surface-container-lowest px-space-sm py-space-xs rounded">
+<span>PERSISTENCE</span>
+<span class="text-tertiary font-telemetry-sm text-telemetry-sm">Origin-Private FS</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="px-margin-lg py-space-xl flex flex-col gap-space-xl max-w-7xl mx-auto w-full">
+<div class="flex flex-col gap-space-md">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[24px]">terminal</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Client Initialization Telemetry</h2>
+<span class="bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm px-2 py-0.5 rounded">WASM Worker Node 0</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="bg-surface-container hover:bg-surface-container-high text-secondary px-space-md py-space-xs rounded font-label-md text-label-md flex items-center gap-1.5 transition-colors shadow-sm" id="btn-benchmark">
+<span class="material-symbols-outlined text-[16px]">speed</span>
+            Run Benchmark Test
+          </button>
+<button class="bg-surface-container hover:bg-surface-container-high text-on-surface px-space-md py-space-xs rounded font-label-md text-label-md flex items-center gap-1.5 transition-colors shadow-sm" id="btn-flush">
+<span class="material-symbols-outlined text-[16px]">mop</span>
+            Flush WASM Heap
+          </button>
+<button class="bg-primary hover:bg-primary-container text-on-primary hover:text-on-primary-container px-space-md py-space-xs rounded font-label-md text-label-md flex items-center gap-1.5 transition-all shadow-md" id="btn-copy-diag">
+<span class="material-symbols-outlined text-[16px]">content_copy</span>
+            Copy Diagnostics JSON
+          </button>
+</div>
+</div>
+<div class="bg-surface-container-lowest rounded-xl p-space-md shadow-2xl flex flex-col gap-space-sm">
+<div class="flex items-center justify-between pb-space-xs bg-surface-container-low px-space-md py-space-xs rounded-lg">
+<div class="flex items-center gap-space-xs font-telemetry-sm text-telemetry-sm text-outline">
+<span class="w-2.5 h-2.5 rounded-full bg-error inline-block"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-secondary-container inline-block"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary inline-block"></span>
+<span class="ml-2 text-on-surface-variant">omni-wasm-daemon.trace.log</span>
+</div>
+<span class="font-telemetry-sm text-telemetry-sm text-tertiary flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>STREAMING LOGS
+          </span>
+</div>
+<div class="h-64 overflow-y-auto font-telemetry-md text-telemetry-md p-space-sm flex flex-col gap-1 text-on-surface-variant bg-surface-dim rounded-lg select-text" id="terminal-screen">
+<div class="flex items-center gap-2"><span class="text-outline">[0.001s]</span> <span class="text-secondary font-semibold">[SYSTEM]</span> <span>Checking window.crossOriginIsolated...</span> <span class="text-tertiary font-bold">true</span></div>
+<div class="flex items-center gap-2"><span class="text-outline">[0.013s]</span> <span class="text-primary-fixed-dim font-semibold">[WASM]</span> <span>Loading ffmpeg-core.js from blob cache...</span> <span class="text-tertiary">OK (12ms)</span></div>
+<div class="flex items-center gap-2"><span class="text-outline">[0.042s]</span> <span class="text-primary-fixed-dim font-semibold">[WASM]</span> <span>Initializing pthread pool (8 threads spawned)...</span> <span class="text-tertiary font-bold">READY</span></div>
+<div class="flex items-center gap-2"><span class="text-outline">[0.089s]</span> <span class="text-secondary font-semibold">[FFMPEG]</span> <span>Loaded libavcodec, libavformat, libswscale, libswresample</span></div>
+<div class="flex items-center gap-2"><span class="text-outline">[0.114s]</span> <span class="text-secondary-fixed font-semibold">[AUDIO]</span> <span>AudioContext &amp; WebAudio binaural spatializer loaded</span></div>
+<div class="flex items-center gap-2"><span class="text-outline">[0.125s]</span> <span class="text-tertiary font-semibold">[SYSTEM]</span> <span class="text-on-surface">Omni Tool Core Ready for Phase 2 intake.</span></div>
+</div>
+<div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs font-telemetry-sm text-telemetry-sm text-outline">
+<div class="flex items-center gap-space-md">
+<span>Buffer Pointer: <span class="text-on-surface font-mono">0x7FFF5FBFFD</span></span>
+<span>Allocated Chunks: <span class="text-on-surface font-mono">32 / 32</span></span>
+</div>
+<span class="text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">bolt</span> Zero-IPC Overhead
+          </span>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-lg rounded-xl shadow-xl flex flex-col gap-space-md">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-xs">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-secondary uppercase tracking-widest">Architectural Execution Pipeline</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Client-Side Architecture Blueprint</h2>
+</div>
+<div class="bg-tertiary/10 text-tertiary px-space-md py-space-xs rounded-full font-label-md text-label-md flex items-center gap-1.5 self-start md:self-auto">
+<span class="material-symbols-outlined text-[16px]">verified_user</span>
+          Your data never leaves your device
+        </div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter items-center relative py-space-sm">
+<div class="bg-surface-container p-space-md rounded-xl flex flex-col gap-space-xs relative group hover:bg-surface-container-high transition-colors">
+<div class="flex items-center justify-between">
+<span class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center font-telemetry-sm text-telemetry-sm font-bold text-secondary">01</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">upload_file</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface mt-space-xs">User Media Input</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">File dropped onto in-browser dropzone via HTML5 Drag and Drop API.</p>
+<span class="font-telemetry-sm text-telemetry-sm text-outline">File API / Stream API</span>
+</div>
+<div class="bg-surface-container p-space-md rounded-xl flex flex-col gap-space-xs relative group hover:bg-surface-container-high transition-colors">
+<div class="flex items-center justify-between">
+<span class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center font-telemetry-sm text-telemetry-sm font-bold text-primary">02</span>
+<span class="material-symbols-outlined text-primary text-[20px]">memory</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface mt-space-xs">Zero-Upload Memory</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Mounted to Virtual MEMFS heap without network roundtrip or server egress.</p>
+<span class="font-telemetry-sm text-telemetry-sm text-primary">ArrayBuffer Partition</span>
+</div>
+<div class="bg-surface-container p-space-md rounded-xl flex flex-col gap-space-xs relative group hover:bg-surface-container-high transition-colors">
+<div class="flex items-center justify-between">
+<span class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center font-telemetry-sm text-telemetry-sm font-bold text-tertiary">03</span>
+<span class="material-symbols-outlined text-tertiary text-[20px]">psychology</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface mt-space-xs">WASM Worker Pool</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Direct multi-core execution through SharedArrayBuffer and SIMD AVX ops.</p>
+<span class="font-telemetry-sm text-telemetry-sm text-tertiary">8 Native Hardware Threads</span>
+</div>
+<div class="bg-surface-container p-space-md rounded-xl flex flex-col gap-space-xs relative group hover:bg-surface-container-high transition-colors">
+<div class="flex items-center justify-between">
+<span class="w-7 h-7 rounded bg-surface-container-high flex items-center justify-center font-telemetry-sm text-telemetry-sm font-bold text-secondary">04</span>
+<span class="material-symbols-outlined text-secondary text-[20px]">download_done</span>
+</div>
+<span class="font-headline-sm text-headline-sm text-on-surface mt-space-xs">Instant Download</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">IndexedDB caching &amp; dynamic client-side ObjectURL instant download.</p>
+<span class="font-telemetry-sm text-telemetry-sm text-secondary">blob:http://localhost</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-space-md rounded-lg flex flex-col sm:flex-row items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-tertiary text-[24px]">lock</span>
+<div class="flex flex-col">
+<span class="font-headline-sm text-headline-sm text-on-surface">Cryptographic Isolation Guarantee</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Telemetry transmissions disabled. Network requests blocked during active pipeline processing.</span>
+</div>
+</div>
+<span class="font-telemetry-sm text-telemetry-sm text-tertiary bg-surface-container px-space-md py-space-xs rounded">Strict Content Security Policy</span>
+</div>
+</div>
+<div class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Omni Modular Architecture</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Quick Launch Suite Modules</h2>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">4 Modules Staged</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter">
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between shadow-lg relative group overflow-hidden">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="w-10 h-10 rounded-lg bg-primary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary text-[24px]">movie_edit</span>
+</div>
+<span class="font-label-sm text-label-sm bg-primary-container text-on-primary-container px-2 py-0.5 rounded font-semibold uppercase">
+                Up Next • Phase 2
+              </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-space-xs">Video &amp; Visual Engine</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              MP4, WebM, MOV, MKV transcoder, CRF bitrate compressor, GIF extractor, and frame-accurate canvas cutter.
+            </p>
+</div>
+<div class="pt-space-md flex items-center justify-between font-label-sm text-label-sm text-outline">
+<span>Codecs: H.264, AV1, VP9</span>
+<span class="text-primary font-semibold">Ready to Bind</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between shadow-lg relative group overflow-hidden">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="w-10 h-10 rounded-lg bg-secondary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary text-[24px]">graphic_eq</span>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-on-surface-variant px-2 py-0.5 rounded font-semibold uppercase">
+                Phase 3
+              </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-space-xs">Advanced Audio Lab</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Slowed + Reverb DSP, 8D Binaural Spatializer with HRTF profiles, 5-band parametric EQ, and high-precision ringtone cutter.
+            </p>
+</div>
+<div class="pt-space-md flex items-center justify-between font-label-sm text-label-sm text-outline">
+<span>AudioContext / WebAudio</span>
+<span class="text-on-surface-variant">Queued</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between shadow-lg relative group overflow-hidden">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="w-10 h-10 rounded-lg bg-tertiary-container/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-tertiary text-[24px]">description</span>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-on-surface-variant px-2 py-0.5 rounded font-semibold uppercase">
+                Phase 4
+              </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-space-xs">Client Document Suite</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              PDF compiler, image-to-PDF pipeline, lossless page reorganizer, client-side cryptographic password protection vault.
+            </p>
+</div>
+<div class="pt-space-md flex items-center justify-between font-label-sm text-label-sm text-outline">
+<span>PDF-Lib WASM Runtime</span>
+<span class="text-on-surface-variant">Queued</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-space-md rounded-xl flex flex-col justify-between shadow-lg relative group overflow-hidden">
+<div class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<div class="w-10 h-10 rounded-lg bg-surface-variant/40 flex items-center justify-center">
+<span class="material-symbols-outlined text-outline text-[24px]">archive</span>
+</div>
+<span class="font-label-sm text-label-sm bg-surface-container-highest text-on-surface-variant px-2 py-0.5 rounded font-semibold uppercase">
+                Phase 5
+              </span>
+</div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface mt-space-xs">Vault &amp; Batch Pipeline</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+              Local sandbox persistence with IndexedDB, batch multi-file execution queue, and bulk zip archive generation.
+            </p>
+</div>
+<div class="pt-space-md flex items-center justify-between font-label-sm text-label-sm text-outline">
+<span>OPFS Native Storage</span>
+<span class="text-on-surface-variant">Queued</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script>
+    (() => {
+      const terminal = document.getElementById('terminal-screen');
+      const btnBenchmark = document.getElementById('btn-benchmark');
+      const btnFlush = document.getElementById('btn-flush');
+      const btnCopy = document.getElementById('btn-copy-diag');
+
+      const appendLog = (tag, message, colorClass) => {
+        if (!terminal) return;
+        const now = (performance.now() / 1000).toFixed(3);
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2';
+        row.innerHTML = `<span class="text-outline">[${now}s]</span> <span class="${colorClass} font-semibold">[${tag}]</span> <span>${message}</span>`;
+        terminal.appendChild(row);
+        terminal.scrollTop = terminal.scrollHeight;
+      };
+
+      if (btnBenchmark) {
+        btnBenchmark.addEventListener('click', () => {
+          appendLog('BENCH', 'Executing WASM matrix multiplication test across 8 cores...', 'text-secondary');
+          setTimeout(() => {
+            appendLog('BENCH', 'SIMD 128-bit throughput: 4.82 GFLOPS (Local Host Safe)', 'text-tertiary');
+          }, 350);
+        });
+      }
+
+      if (btnFlush) {
+        btnFlush.addEventListener('click', () => {
+          appendLog('HEAP', 'Releasing unpinned memory blocks from MEMFS virtual mount...', 'text-primary');
+          setTimeout(() => {
+            appendLog('HEAP', 'Heap buffer compacted. RSS down to 48MB baseline.', 'text-tertiary');
+          }, 200);
+        });
+      }
+
+      if (btnCopy) {
+        btnCopy.addEventListener('click', () => {
+          const diagnostics = {
+            runtime: "FFmpeg.wasm v0.12.8",
+            crossOriginIsolated: true,
+            sharedArrayBuffer: true,
+            pthreads: 8,
+            simd: true,
+            heapAllocatedMB: 512,
+            timestamp: new Date().toISOString()
+          };
+          navigator.clipboard?.writeText(JSON.stringify(diagnostics, null, 2));
+          appendLog('DIAG', 'Telemetry snapshot exported to system clipboard.', 'text-secondary-fixed');
+          const originalText = btnCopy.innerHTML;
+          btnCopy.innerHTML = `<span class="material-symbols-outlined text-[16px]">check</span> Copied!`;
+          setTimeout(() => {
+            btnCopy.innerHTML = originalText;
+          }, 1500);
+        });
+      }
+    })();
+  </script>
+</div></main></div></body></html>

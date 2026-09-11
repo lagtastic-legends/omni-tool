@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-container-low": "#1a1b22",
+          "secondary-fixed-dim": "#4cd7f6",
+          "surface-dim": "#121319",
+          "on-tertiary-fixed": "#002113",
+          "tertiary-container": "#00a572",
+          "on-background": "#e3e1eb",
+          "on-primary-fixed": "#23005c",
+          "on-error-container": "#ffdad6",
+          "inverse-primary": "#6d3bd7",
+          "secondary-fixed": "#acedff",
+          "surface-variant": "#34343b",
+          "on-primary": "#3c0091",
+          "on-primary-fixed-variant": "#5516be",
+          "surface": "#121319",
+          "on-tertiary-container": "#00311f",
+          "surface-container-lowest": "#0d0e14",
+          "outline": "#958ea0",
+          "surface-bright": "#383940",
+          "on-error": "#690005",
+          "surface-container": "#1e1f26",
+          "surface-container-highest": "#34343b",
+          "error-container": "#93000a",
+          "secondary-container": "#03b5d3",
+          "surface-container-high": "#292930",
+          "secondary": "#4cd7f6",
+          "on-primary-container": "#340080",
+          "on-surface-variant": "#cbc3d7",
+          "background": "#121319",
+          "surface-tint": "#d0bcff",
+          "on-surface": "#e3e1eb",
+          "on-secondary": "#003640",
+          "on-tertiary": "#003824",
+          "on-secondary-fixed": "#001f26",
+          "error": "#ffb4ab",
+          "primary-container": "#a078ff",
+          "on-secondary-fixed-variant": "#004e5c",
+          "on-tertiary-fixed-variant": "#005236",
+          "inverse-on-surface": "#2f3037",
+          "on-secondary-container": "#00424e",
+          "primary-fixed-dim": "#d0bcff",
+          "tertiary-fixed-dim": "#4edea3",
+          "primary-fixed": "#e9ddff",
+          "outline-variant": "#494454",
+          "inverse-surface": "#e3e1eb",
+          "tertiary": "#4edea3",
+          "primary": "#d0bcff",
+          "tertiary-fixed": "#6ffbbe"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-sm": "0.5rem",
+          "gutter-sm": "0.5rem",
+          "margin-lg": "2.5rem",
+          "margin-sm": "0.75rem",
+          "space-xl": "2.5rem",
+          "space-md": "1rem",
+          "space-xs": "0.25rem",
+          "margin": "1.5rem",
+          "space-lg": "1.5rem",
+          "gutter-lg": "1.5rem",
+          "gutter": "1rem"
+        },
+        "fontFamily": {
+          "telemetry-lg": [
+            "JetBrains Mono"
+          ],
+          "headline-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-lg-mobile": [
+            "Plus Jakarta Sans"
+          ],
+          "telemetry-md": [
+            "JetBrains Mono"
+          ],
+          "display-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-sm": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-md": [
+            "Plus Jakarta Sans"
+          ],
+          "display-lg-mobile": [
+            "Plus Jakarta Sans"
+          ],
+          "label-md": [
+            "JetBrains Mono"
+          ],
+          "body-md": [
+            "Plus Jakarta Sans"
+          ],
+          "body-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "label-sm": [
+            "JetBrains Mono"
+          ],
+          "telemetry-sm": [
+            "JetBrains Mono"
+          ],
+          "body-sm": [
+            "Plus Jakarta Sans"
+          ]
+        },
+        "fontSize": {
+          "telemetry-lg": [
+            "15px",
+            {
+              "lineHeight": "20px",
+              "letterSpacing": "0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-lg": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-lg-mobile": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "700"
+            }
+          ],
+          "telemetry-md": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.03em",
+              "fontWeight": "500"
+            }
+          ],
+          "display-lg": [
+            "48px",
+            {
+              "lineHeight": "56px",
+              "letterSpacing": "-0.03em",
+              "fontWeight": "800"
+            }
+          ],
+          "headline-sm": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-md": [
+            "22px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "display-lg-mobile": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "800"
+            }
+          ],
+          "label-md": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.08em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "400"
+            }
+          ],
+          "body-lg": [
+            "16px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.1em",
+              "fontWeight": "600"
+            }
+          ],
+          "telemetry-sm": [
+            "11px",
+            {
+              "lineHeight": "14px",
+              "letterSpacing": "0.05em",
+              "fontWeight": "500"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  }</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased selection:bg-primary selection:text-on-primary"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="h-16 flex items-center gap-space-sm px-gutter bg-surface-container-low"><div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center shadow-[0_0_14px_rgba(160,120,255,0.4)]"><span class="material-symbols-outlined text-on-primary-container text-[20px]">terminal</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface uppercase">OMNI TOOL</span><span class="font-label-sm text-label-sm text-secondary uppercase">CLIENT-SIDE WASM CORE</span></div></div><div class="px-gutter pt-space-md pb-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Process Modules</span></div><nav class="flex flex-col gap-space-xs px-gutter-sm" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded-lg shadow-[0_0_14px_rgba(160,120,255,0.25)]"><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm transition-all bg-primary-container text-on-primary-container font-semibold rounded-lg shadow-[0_0_14px_rgba(160,120,255,0.25)]" data-path="dashboard-hub" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span class="font-body-md text-body-md">Dashboard Hub</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="video-and-media-converter" href="#"><span class="material-symbols-outlined text-[20px]">movie</span><span class="font-body-md text-body-md">Video &amp; Media Converter</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="audio-studio-and-8d-lab" href="#"><span class="material-symbols-outlined text-[20px]">graphic_eq</span><span class="font-body-md text-body-md">Audio Studio &amp; 8D Lab</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="pdf-and-doc-suite" href="#"><span class="material-symbols-outlined text-[20px]">description</span><span class="font-body-md text-body-md">PDF &amp; Doc Suite</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="local-vault-indexeddb" href="#"><span class="material-symbols-outlined text-[20px]">lock</span><span class="font-body-md text-body-md">Local Vault (IndexedDB)</span></a></nav></div><div class="p-gutter bg-surface-container-low flex flex-col gap-space-xs"><div class="flex items-center justify-between font-telemetry-sm text-telemetry-sm"><span class="text-outline">WASM RUNTIME</span><span class="text-tertiary flex items-center gap-space-xs"><span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>ONLINE</span></div><div class="flex items-center justify-between font-telemetry-sm text-telemetry-sm bg-surface-container-lowest px-space-sm py-space-xs rounded"><span class="text-on-surface-variant">Worker Pool</span><span class="text-secondary font-semibold">Threads: 8/8 Ready</span></div><div class="flex items-center justify-between font-label-sm text-label-sm text-outline pt-space-xs"><span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-tertiary">shield</span>Zero-Telemetry</span><span class="text-on-surface-variant">v2.4.1-local</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 z-40 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-gutter-lg flex items-center justify-between gap-gutter"><div class="flex items-center gap-gutter"><div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-full"><span class="w-2 h-2 rounded-full bg-tertiary animate-ping"></span><span class="w-2 h-2 rounded-full bg-tertiary -ml-3"></span><span class="font-telemetry-sm text-telemetry-sm text-tertiary font-medium">FFmpeg.wasm: INITIALIZED (SharedArrayBuffer Active)</span></div><div class="hidden xl:flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded font-telemetry-sm text-telemetry-sm"><span class="material-symbols-outlined text-[16px] text-secondary">memory</span><span class="text-on-surface-variant">RAM:</span><span class="text-secondary font-semibold">420MB / Safe</span></div></div><div class="flex items-center gap-space-sm"><nav class="flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded"><a class="font-label-md text-label-md uppercase px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="batch-queue" href="#">Batch Queue</a><a class="font-label-md text-label-md uppercase px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="documentation" href="#">Documentation</a><a class="font-label-md text-label-md uppercase px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="settings" href="#">Settings</a></nav><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-space-xs"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface"><div class="flex flex-col w-full">
+<!-- Subtle Ambient Ionization Glows -->
+<div class="relative w-full overflow-hidden">
+<div class="absolute -top-32 left-1/4 w-[600px] h-[340px] bg-primary-container/10 blur-[130px] pointer-events-none rounded-full"></div>
+<div class="absolute top-24 right-10 w-[480px] h-[280px] bg-secondary/10 blur-[120px] pointer-events-none rounded-full"></div>
+<!-- MAIN DASHBOARD CONTENT WRAPPER -->
+<div class="w-full px-gutter-lg py-space-lg flex flex-col gap-space-lg">
+<!-- SECTION 1: MASTER OVERVIEW & STORAGE TELEMETRY -->
+<section class="flex flex-col xl:flex-row gap-space-md items-stretch">
+<!-- Left: Master Hub Identity & Security Certificate -->
+<div class="xl:w-7/12 bg-surface-container-lowest/80 backdrop-blur-xl p-space-lg rounded-xl shadow-xl flex flex-col justify-between relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-secondary/5 rounded-full blur-2xl pointer-events-none"></div>
+<div class="flex flex-col gap-space-xs relative z-10">
+<div class="flex flex-wrap items-center gap-space-sm">
+<span class="font-label-sm text-label-sm uppercase bg-primary-container/20 text-primary px-space-sm py-space-xs rounded font-bold tracking-wider">
+                CORE ARCHITECTURE // PHASE 5
+              </span>
+<span class="font-telemetry-sm text-telemetry-sm text-tertiary flex items-center gap-space-xs bg-tertiary-container/15 px-space-sm py-space-xs rounded">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+                OPFS + IDB_PERSIST_OK
+              </span>
+<span class="font-telemetry-sm text-telemetry-sm text-secondary bg-surface-container-high px-space-sm py-space-xs rounded">
+                SHARED_ARRAY_BUFFER [LOCK-FREE]
+              </span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight mt-space-xs">
+              Local Vault &amp; Master Hub
+            </h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+              Client-side IndexedDB sandbox manager, Origin-Private File System persistent storage gauge, and zero-egress hardware routing hub for all WASM media processing suites.
+            </p>
+</div>
+<!-- Bottom Metric & Zero Egress Attestation -->
+<div class="pt-space-md mt-space-md flex flex-wrap items-center justify-between gap-space-md relative z-10">
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-sm rounded-lg">
+<span class="material-symbols-outlined text-secondary text-[20px]">encrypted</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">ENCRYPTION SCHEME</span>
+<span class="font-telemetry-sm text-telemetry-sm text-on-surface font-semibold">WebCrypto AES-GCM-256</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-sm rounded-lg">
+<span class="material-symbols-outlined text-tertiary text-[20px]">verified_user</span>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-outline">NETWORK AUDIT</span>
+<span class="font-telemetry-sm text-telemetry-sm text-tertiary font-semibold">0 Cloud Egress / 100% Local</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-md py-space-sm rounded-lg bg-surface-container-high hover:bg-surface-bright text-secondary font-label-md text-label-md transition-all flex items-center gap-space-xs shadow-sm" id="btn-export-vault">
+<span class="material-symbols-outlined text-[16px]">cloud_download</span>
+                EXPORT ARCHIVE (.TAR.GZ)
+              </button>
+<button class="px-space-md py-space-sm rounded-lg bg-primary-container hover:bg-primary-container/80 text-on-primary-container font-label-md text-label-md transition-all flex items-center gap-space-xs shadow-md" id="btn-bench-run">
+<span class="material-symbols-outlined text-[16px]">speed</span>
+                RUN IDB BENCHMARK
+              </button>
+</div>
+</div>
+</div>
+<!-- Right: Realtime Storage Quota Gauge (OPFS & IDB Allocation) -->
+<div class="xl:w-5/12 bg-surface-container-lowest/80 backdrop-blur-xl p-space-lg rounded-xl shadow-xl flex flex-col justify-between">
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-secondary text-[20px]">hard_drive</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Storage Quota Matrix</span>
+</div>
+<span class="font-telemetry-sm text-telemetry-sm text-outline uppercase">OPFS V2 API</span>
+</div>
+<!-- Dual Ring / Bar Visualisation -->
+<div class="my-space-sm flex flex-col gap-space-sm">
+<div class="flex items-baseline justify-between">
+<div class="flex items-baseline gap-space-xs">
+<span class="font-display-lg text-display-lg text-on-surface tracking-tighter">1.84</span>
+<span class="font-telemetry-lg text-telemetry-lg text-secondary">/ 8.00 GB</span>
+</div>
+<span class="font-telemetry-md text-telemetry-md text-tertiary font-semibold bg-tertiary-container/15 px-space-sm py-space-xs rounded">
+                23.0% USED (SAFE)
+              </span>
+</div>
+<!-- Segmented Progress Bar -->
+<div class="w-full h-3 bg-surface-container-high rounded-full overflow-hidden flex p-[1px]">
+<!-- Video: 1.12GB ~14% -->
+<div class="h-full bg-secondary rounded-l-full" style="width: 14%;" title="Video Blobs: 1.12 GB"></div>
+<!-- Audio: 420MB ~5.2% -->
+<div class="h-full bg-primary-container" style="width: 5.2%;" title="Audio Blobs: 420 MB"></div>
+<!-- Documents: 240MB ~3% -->
+<div class="h-full bg-tertiary" style="width: 3%;" title="Documents: 240 MB"></div>
+<!-- System / Cache: 60MB ~0.8% -->
+<div class="h-full bg-outline" style="width: 0.8%;" title="Index Metadata: 60 MB"></div>
+</div>
+<!-- Legend Grid -->
+<div class="grid grid-cols-4 gap-space-xs pt-space-xs">
+<div class="flex items-center gap-1.5 font-telemetry-sm text-telemetry-sm">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="text-on-surface-variant">Video (1.12 GB)</span>
+</div>
+<div class="flex items-center gap-1.5 font-telemetry-sm text-telemetry-sm">
+<span class="w-2 h-2 rounded-full bg-primary-container"></span>
+<span class="text-on-surface-variant">Audio (420 MB)</span>
+</div>
+<div class="flex items-center gap-1.5 font-telemetry-sm text-telemetry-sm">
+<span class="w-2 h-2 rounded-full bg-tertiary"></span>
+<span class="text-on-surface-variant">PDF (240 MB)</span>
+</div>
+<div class="flex items-center gap-1.5 font-telemetry-sm text-telemetry-sm">
+<span class="w-2 h-2 rounded-full bg-outline"></span>
+<span class="text-on-surface-variant">Meta (60 MB)</span>
+</div>
+</div>
+</div>
+<!-- Bottom Micro Metrics -->
+<div class="flex items-center justify-between pt-space-xs bg-surface-container-low p-space-sm rounded-lg font-telemetry-sm text-telemetry-sm">
+<div class="flex items-center gap-space-xs text-on-surface-variant">
+<span class="material-symbols-outlined text-[16px] text-secondary">database</span>
+<span>14 Active Blobs Cached</span>
+</div>
+<div class="text-outline">
+              Throughput: <span class="text-tertiary font-semibold">184 MB/s IOPS</span>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 2: MASTER TOOL ROUTING GRID (4 CORE SUITES) -->
+<section class="flex flex-col gap-space-md">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs">
+<span class="material-symbols-outlined text-primary text-[22px]">developer_board</span>
+<h2 class="font-headline-md text-headline-md text-on-surface">Integrated Processing Suites</h2>
+<span class="ml-space-xs font-label-sm text-label-sm bg-surface-container-high text-on-surface-variant px-space-sm py-0.5 rounded">ALL CLIENT-SIDE</span>
+</div>
+<span class="font-telemetry-sm text-telemetry-sm text-outline">HARDWARE DISPATCHER: ACTIVE</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-space-md">
+<!-- SUITE 1: Video & Media Transcoder -->
+<div class="bg-surface-container-lowest/80 backdrop-blur-md rounded-xl p-space-md flex flex-col justify-between hover:shadow-[0_0_24px_rgba(76,215,246,0.15)] transition-all group relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-secondary/10 rounded-full blur-xl pointer-events-none group-hover:scale-150 transition-transform"></div>
+<div class="flex flex-col gap-space-sm relative z-10">
+<div class="flex items-center justify-between">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[24px]">movie</span>
+</div>
+<span class="font-label-sm text-label-sm bg-tertiary-container/20 text-tertiary font-bold px-space-xs py-0.5 rounded flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> READY
+                </span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-secondary transition-colors">Video &amp; Visual Engine</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  Transcoder, Bitrate Squeezer, GIF Color Matrix, Audio Stripper &amp; Splitter.
+                </p>
+</div>
+<!-- Pipeline Spec Pills -->
+<div class="flex flex-wrap gap-1 mt-1">
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container px-space-xs py-0.5 rounded text-secondary">H.264 / AV1</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container px-space-xs py-0.5 rounded text-on-surface-variant">Palettengen</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container px-space-xs py-0.5 rounded text-on-surface-variant">Auto-Mute</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm flex items-center justify-between gap-space-xs relative z-10">
+<button class="flex-1 py-space-xs px-space-sm rounded-lg bg-secondary-container hover:bg-secondary text-on-secondary-container hover:text-on-secondary font-label-md text-label-md transition-all text-center flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">play_arrow</span> Launch Suite
+              </button>
+<button class="p-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="Inspect WASM Pipe">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+</button>
+</div>
+</div>
+<!-- SUITE 2: Audio Engineering & 8D Lab -->
+<div class="bg-surface-container-lowest/80 backdrop-blur-md rounded-xl p-space-md flex flex-col justify-between hover:shadow-[0_0_24px_rgba(160,120,255,0.15)] transition-all group relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-primary-container/10 rounded-full blur-xl pointer-events-none group-hover:scale-150 transition-transform"></div>
+<div class="flex flex-col gap-space-sm relative z-10">
+<div class="flex items-center justify-between">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[24px]">graphic_eq</span>
+</div>
+<span class="font-label-sm text-label-sm bg-tertiary-container/20 text-tertiary font-bold px-space-xs py-0.5 rounded flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> READY
+                </span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary transition-colors">Audio Studio &amp; 8D Lab</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  Real-time canvas waveform scrubber, slowed+reverb DSP engine, binaural 8D panner.
+                </p>
+</div>
+<!-- Pipeline Spec Pills -->
+<div class="flex flex-wrap gap-1 mt-1">
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container px-space-xs py-0.5 rounded text-primary">WebAudio DSP</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container px-space-xs py-0.5 rounded text-on-surface-variant">Convolver</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container px-space-xs py-0.5 rounded text-on-surface-variant">5-Band EQ</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm flex items-center justify-between gap-space-xs relative z-10">
+<button class="flex-1 py-space-xs px-space-sm rounded-lg bg-primary-container hover:bg-primary-fixed-dim text-on-primary-container font-label-md text-label-md transition-all text-center flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">play_arrow</span> Launch Suite
+              </button>
+<button class="p-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="Inspect WASM Pipe">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+</button>
+</div>
+</div>
+<!-- SUITE 3: Document Toolkit & PDF Lab -->
+<div class="bg-surface-container-lowest/80 backdrop-blur-md rounded-xl p-space-md flex flex-col justify-between hover:shadow-[0_0_24px_rgba(78,222,163,0.15)] transition-all group relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-tertiary/10 rounded-full blur-xl pointer-events-none group-hover:scale-150 transition-transform"></div>
+<div class="flex flex-col gap-space-sm relative z-10">
+<div class="flex items-center justify-between">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[24px]">description</span>
+</div>
+<span class="font-label-sm text-label-sm bg-tertiary-container/20 text-tertiary font-bold px-space-xs py-0.5 rounded flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span> READY
+                </span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-tertiary transition-colors">Document &amp; PDF Lab</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  Image-to-PDF compiler, page reordering, local Tesseract OCR, and AES-256 vault locking.
+                </p>
+</div>
+<!-- Pipeline Spec Pills -->
+<div class="flex flex-wrap gap-1 mt-1">
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container px-space-xs py-0.5 rounded text-tertiary">pdf-lib WASM</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container px-space-xs py-0.5 rounded text-on-surface-variant">Tesseract.js</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container px-space-xs py-0.5 rounded text-on-surface-variant">AES-GCM</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm flex items-center justify-between gap-space-xs relative z-10">
+<button class="flex-1 py-space-xs px-space-sm rounded-lg bg-surface-container-high hover:bg-surface-bright text-tertiary font-label-md text-label-md transition-all text-center flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">play_arrow</span> Launch Suite
+              </button>
+<button class="p-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="Inspect WASM Pipe">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+</button>
+</div>
+</div>
+<!-- SUITE 4: WASM Engine Diagnostics & Profiler -->
+<div class="bg-surface-container-lowest/80 backdrop-blur-md rounded-xl p-space-md flex flex-col justify-between hover:shadow-[0_0_24px_rgba(208,188,255,0.15)] transition-all group relative overflow-hidden">
+<div class="absolute top-0 right-0 w-24 h-24 bg-surface-variant/20 rounded-full blur-xl pointer-events-none group-hover:scale-150 transition-transform"></div>
+<div class="flex flex-col gap-space-sm relative z-10">
+<div class="flex items-center justify-between">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary-fixed-dim">
+<span class="material-symbols-outlined text-[24px]">memory</span>
+</div>
+<span class="font-label-sm text-label-sm bg-secondary-container/20 text-secondary font-bold px-space-xs py-0.5 rounded flex items-center gap-1">
+                  8/8 WORKERS
+                </span>
+</div>
+<div>
+<h3 class="font-headline-sm text-headline-sm text-on-surface group-hover:text-primary-fixed-dim transition-colors">WASM Core Runtime</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  Pthreads manager, SharedArrayBuffer allocator, SIMD instruction telemetry.
+                </p>
+</div>
+<!-- Pipeline Spec Pills -->
+<div class="flex flex-wrap gap-1 mt-1">
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container px-space-xs py-0.5 rounded text-secondary">SIMD Active</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container px-space-xs py-0.5 rounded text-on-surface-variant">Heap: 512MB</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container px-space-xs py-0.5 rounded text-on-surface-variant">Threaded</span>
+</div>
+</div>
+<div class="mt-space-md pt-space-sm flex items-center justify-between gap-space-xs relative z-10">
+<button class="flex-1 py-space-xs px-space-sm rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-md text-label-md transition-all text-center flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-[16px]">tune</span> Hardware Profiler
+              </button>
+<button class="p-space-xs rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" title="Inspect WASM Pipe">
+<span class="material-symbols-outlined text-[18px]">terminal</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION 3: INDEXEDDB FILE MANAGER & VAULT BROWSER -->
+<section class="bg-surface-container-lowest/80 backdrop-blur-xl rounded-xl p-space-lg shadow-xl flex flex-col gap-space-md">
+<!-- Vault Header & Actions Bar -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-secondary shadow-md">
+<span class="material-symbols-outlined text-[24px]">folder_special</span>
+</div>
+<div>
+<div class="flex items-center gap-space-xs">
+<h2 class="font-headline-md text-headline-md text-on-surface">IndexedDB Secure Object Store</h2>
+<span class="font-telemetry-sm text-telemetry-sm text-tertiary bg-tertiary-container/15 px-space-xs py-0.5 rounded font-mono">v3.persisted</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Target Store: `omni_vault_master_blobs` • Retains processed buffers in client memory sandbox</p>
+</div>
+</div>
+<!-- Vault Batch Controls -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<button class="px-space-md py-space-sm rounded-lg bg-error-container/20 hover:bg-error-container/40 text-error font-label-md text-label-md transition-all flex items-center gap-space-xs" id="btn-batch-purge">
+<span class="material-symbols-outlined text-[16px]">delete_sweep</span>
+              Purge Selected
+            </button>
+<button class="px-space-md py-space-sm rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-md text-label-md transition-all flex items-center gap-space-xs" id="btn-download-all">
+<span class="material-symbols-outlined text-[16px]">archive</span>
+              Export All ZIP
+            </button>
+<button class="px-space-md py-space-sm rounded-lg bg-primary-container hover:bg-primary-container/80 text-on-primary-container font-label-md text-label-md transition-all flex items-center gap-space-xs shadow-md" id="btn-import-blob">
+<span class="material-symbols-outlined text-[16px]">upload_file</span>
+              Inject Local Blob
+            </button>
+</div>
+</div>
+<!-- Filter & Search Toolbar -->
+<div class="flex flex-col md:flex-row items-center justify-between gap-space-sm bg-surface-container-low p-space-sm rounded-lg">
+<!-- Filter Tabs -->
+<div class="flex items-center gap-space-xs overflow-x-auto w-full md:w-auto">
+<button class="filter-tab active px-space-md py-space-xs rounded-lg bg-primary-container text-on-primary-container font-label-sm text-label-sm uppercase font-semibold transition-all">
+              All Media (14)
+            </button>
+<button class="filter-tab px-space-md py-space-xs rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm uppercase transition-all">
+              Video (4)
+            </button>
+<button class="filter-tab px-space-md py-space-xs rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm uppercase transition-all">
+              Audio (5)
+            </button>
+<button class="filter-tab px-space-md py-space-xs rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm uppercase transition-all">
+              Documents (3)
+            </button>
+<button class="filter-tab px-space-md py-space-xs rounded-lg bg-surface-container text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm uppercase transition-all flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-tertiary">lock</span> Encrypted (2)
+            </button>
+</div>
+<!-- Search Query Input -->
+<div class="relative w-full md:w-80">
+<span class="material-symbols-outlined absolute left-space-sm top-1/2 -translate-y-1/2 text-[18px] text-outline">search</span>
+<input class="w-full bg-surface-container-lowest text-on-surface placeholder-outline font-body-sm text-body-sm pl-9 pr-space-md py-space-xs rounded-lg focus:outline-none focus:ring-1 focus:ring-secondary transition-all" placeholder="Search file name, SHA-256 hash or tag..." type="text"/>
+</div>
+</div>
+<!-- Data Table: File Vault Items -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container text-outline font-label-sm text-label-sm uppercase tracking-wider">
+<th class="py-space-sm px-space-md rounded-l-lg">
+<input class="rounded bg-surface-container-highest checked:bg-secondary cursor-pointer" type="checkbox"/>
+</th>
+<th class="py-space-sm px-space-md">Asset Identifier</th>
+<th class="py-space-sm px-space-md">Type / Codec Spec</th>
+<th class="py-space-sm px-space-md">Size</th>
+<th class="py-space-sm px-space-md">Created / Time</th>
+<th class="py-space-sm px-space-md text-right rounded-r-lg">Hardware Operations</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container/50">
+<!-- ROW 1: Video Item -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-md px-space-md">
+<input class="rounded bg-surface-container-highest checked:bg-secondary cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded bg-secondary/15 text-secondary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">videocam</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate group-hover:text-secondary transition-colors cursor-pointer" title="cyberpunk_neon_tokyo_4k_transcoded.mp4">
+                        cyberpunk_neon_tokyo_4k_transcoded.mp4
+                      </span>
+<span class="font-telemetry-sm text-telemetry-sm text-outline flex items-center gap-1 font-mono">
+                        SHA-256: 9b2d8e41...c4a1 • <span class="text-tertiary">Verified Intact</span>
+</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container-high text-secondary px-space-xs py-0.5 rounded font-mono">1080p H.264</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container text-on-surface-variant px-space-xs py-0.5 rounded">60 FPS</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-telemetry-md text-telemetry-md text-on-surface font-semibold">
+                  28.4 MB
+                </td>
+<td class="py-space-md px-space-md font-telemetry-sm text-telemetry-sm text-on-surface-variant">
+                  2 mins ago
+                </td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="p-space-xs rounded hover:bg-surface-bright text-secondary transition-colors" title="Launch Player Modal">
+<span class="material-symbols-outlined text-[18px]">play_circle</span>
+</button>
+<button class="p-space-xs rounded hover:bg-surface-bright text-on-surface-variant hover:text-on-surface transition-colors" title="Save to Local Disk">
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+<button class="p-space-xs rounded hover:bg-surface-bright text-on-surface-variant hover:text-primary transition-colors" title="Re-encode via WASM">
+<span class="material-symbols-outlined text-[18px]">transform</span>
+</button>
+<button class="p-space-xs rounded hover:bg-error-container/30 text-outline hover:text-error transition-colors" title="Purge Blob">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- ROW 2: Audio Item -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-md px-space-md">
+<input class="rounded bg-surface-container-highest checked:bg-secondary cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded bg-primary/15 text-primary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">music_note</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate group-hover:text-primary transition-colors cursor-pointer" title="synthwave_slowed_reverb_master.mp3">
+                        synthwave_slowed_reverb_master.mp3
+                      </span>
+<span class="font-telemetry-sm text-telemetry-sm text-outline flex items-center gap-1 font-mono">
+                        SHA-256: 4f1a07bb...e893 • <span class="text-tertiary">Verified Intact</span>
+</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container-high text-primary px-space-xs py-0.5 rounded font-mono">320kbps MP3</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container text-on-surface-variant px-space-xs py-0.5 rounded">48.0 kHz</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-telemetry-md text-telemetry-md text-on-surface font-semibold">
+                  11.2 MB
+                </td>
+<td class="py-space-md px-space-md font-telemetry-sm text-telemetry-sm text-on-surface-variant">
+                  12 mins ago
+                </td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="p-space-xs rounded hover:bg-surface-bright text-primary transition-colors" title="Audition in Player">
+<span class="material-symbols-outlined text-[18px]">headphones</span>
+</button>
+<button class="p-space-xs rounded hover:bg-surface-bright text-on-surface-variant hover:text-on-surface transition-colors" title="Save to Local Disk">
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+<button class="p-space-xs rounded hover:bg-surface-bright text-on-surface-variant hover:text-secondary transition-colors" title="Send to 8D Audio Lab">
+<span class="material-symbols-outlined text-[18px]">spatial_audio</span>
+</button>
+<button class="p-space-xs rounded hover:bg-error-container/30 text-outline hover:text-error transition-colors" title="Purge Blob">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- ROW 3: Document Item (Encrypted) -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-md px-space-md">
+<input class="rounded bg-surface-container-highest checked:bg-secondary cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded bg-tertiary/15 text-tertiary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">lock</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate group-hover:text-tertiary transition-colors cursor-pointer" title="annual_report_scans_2025_encrypted.pdf">
+                        annual_report_scans_2025_encrypted.pdf
+                      </span>
+<span class="font-telemetry-sm text-telemetry-sm text-outline flex items-center gap-1 font-mono">
+                        SHA-256: 7a884c10...90fe • <span class="text-tertiary font-semibold">AES-256 Encrypted</span>
+</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-telemetry-sm text-telemetry-sm bg-tertiary-container/20 text-tertiary px-space-xs py-0.5 rounded font-mono">PDF v1.7 Encrypted</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container text-on-surface-variant px-space-xs py-0.5 rounded">18 Pages</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-telemetry-md text-telemetry-md text-on-surface font-semibold">
+                  14.8 MB
+                </td>
+<td class="py-space-md px-space-md font-telemetry-sm text-telemetry-sm text-on-surface-variant">
+                  28 mins ago
+                </td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="p-space-xs rounded hover:bg-surface-bright text-tertiary transition-colors" title="Decrypt Blob in Sandbox">
+<span class="material-symbols-outlined text-[18px]">key</span>
+</button>
+<button class="p-space-xs rounded hover:bg-surface-bright text-on-surface-variant hover:text-on-surface transition-colors" title="Save to Local Disk">
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+<button class="p-space-xs rounded hover:bg-surface-bright text-on-surface-variant hover:text-on-surface transition-colors" title="Inspect PDF Struct">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="p-space-xs rounded hover:bg-error-container/30 text-outline hover:text-error transition-colors" title="Purge Blob">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- ROW 4: Image/GIF Item -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-md px-space-md">
+<input class="rounded bg-surface-container-highest checked:bg-secondary cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded bg-secondary/15 text-secondary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">gif_box</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate group-hover:text-secondary transition-colors cursor-pointer" title="glitch_matrix_loop.gif">
+                        glitch_matrix_loop.gif
+                      </span>
+<span class="font-telemetry-sm text-telemetry-sm text-outline flex items-center gap-1 font-mono">
+                        SHA-256: 3c6218ea...dd21 • <span class="text-tertiary">Verified Intact</span>
+</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container-high text-secondary px-space-xs py-0.5 rounded font-mono">Palettengen 256c</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container text-on-surface-variant px-space-xs py-0.5 rounded">600x600</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-telemetry-md text-telemetry-md text-on-surface font-semibold">
+                  6.4 MB
+                </td>
+<td class="py-space-md px-space-md font-telemetry-sm text-telemetry-sm text-on-surface-variant">
+                  1 hour ago
+                </td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="p-space-xs rounded hover:bg-surface-bright text-secondary transition-colors" title="Preview GIF Loop">
+<span class="material-symbols-outlined text-[18px]">visibility</span>
+</button>
+<button class="p-space-xs rounded hover:bg-surface-bright text-on-surface-variant hover:text-on-surface transition-colors" title="Save to Local Disk">
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+<button class="p-space-xs rounded hover:bg-error-container/30 text-outline hover:text-error transition-colors" title="Purge Blob">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- ROW 5: Lossless Audio Stem -->
+<tr class="hover:bg-surface-container-high/40 transition-colors group">
+<td class="py-space-md px-space-md">
+<input class="rounded bg-surface-container-highest checked:bg-secondary cursor-pointer" type="checkbox"/>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded bg-primary/15 text-primary flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">mic</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-headline-sm text-headline-sm text-on-surface truncate group-hover:text-primary transition-colors cursor-pointer" title="vocal_isolation_stem.flac">
+                        vocal_isolation_stem.flac
+                      </span>
+<span class="font-telemetry-sm text-telemetry-sm text-outline flex items-center gap-1 font-mono">
+                        SHA-256: bb098e1a...1104 • <span class="text-tertiary">Verified Intact</span>
+</span>
+</div>
+</div>
+</td>
+<td class="py-space-md px-space-md">
+<div class="flex items-center gap-space-xs">
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container-high text-primary px-space-xs py-0.5 rounded font-mono">Lossless FLAC 24-bit</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container text-on-surface-variant px-space-xs py-0.5 rounded">96.0 kHz</span>
+</div>
+</td>
+<td class="py-space-md px-space-md font-telemetry-md text-telemetry-md text-on-surface font-semibold">
+                  38.1 MB
+                </td>
+<td class="py-space-md px-space-md font-telemetry-sm text-telemetry-sm text-on-surface-variant">
+                  2 hours ago
+                </td>
+<td class="py-space-md px-space-md text-right">
+<div class="flex items-center justify-end gap-space-xs">
+<button class="p-space-xs rounded hover:bg-surface-bright text-primary transition-colors" title="Audition Lossless Stem">
+<span class="material-symbols-outlined text-[18px]">headphones</span>
+</button>
+<button class="p-space-xs rounded hover:bg-surface-bright text-on-surface-variant hover:text-on-surface transition-colors" title="Save to Local Disk">
+<span class="material-symbols-outlined text-[18px]">download</span>
+</button>
+<button class="p-space-xs rounded hover:bg-error-container/30 text-outline hover:text-error transition-colors" title="Purge Blob">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- VAULT FOOTER / MAINTENANCE BAR -->
+<div class="flex flex-col lg:flex-row items-center justify-between gap-space-md pt-space-sm border-t border-surface-container-high">
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-space-xs font-telemetry-sm text-telemetry-sm text-tertiary">
+<span class="material-symbols-outlined text-[16px]">health_and_safety</span>
+<span>IndexedDB Integrity: 100% HEALTHY</span>
+</div>
+<div class="text-outline font-telemetry-sm text-telemetry-sm hidden md:block">
+              Object Store: `blobs` (5 items visible)
+            </div>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-md py-space-xs rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1" id="btn-flush-orphans">
+<span class="material-symbols-outlined text-[16px] text-secondary">cleaning_services</span>
+              Flush Orphaned Blobs
+            </button>
+<button class="px-space-md py-space-xs rounded-lg bg-surface-container-high hover:bg-surface-bright text-on-surface font-label-md text-label-md transition-colors flex items-center gap-1" id="btn-backup-meta">
+<span class="material-symbols-outlined text-[16px] text-primary">data_object</span>
+              Backup Metadata (.json)
+            </button>
+</div>
+</div>
+</section>
+<!-- SECTION 4: REAL-TIME WASM & INDEXEDDB DAEMON TELEMETRY CONSOLE -->
+<section class="bg-surface-container-lowest/90 backdrop-blur-xl rounded-xl p-space-md shadow-xl flex flex-col gap-space-xs">
+<div class="flex items-center justify-between pb-space-xs border-b border-surface-container-high">
+<div class="flex items-center gap-space-sm">
+<div class="flex items-center gap-1.5">
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary animate-pulse"></span>
+<span class="font-telemetry-sm text-telemetry-sm text-on-surface font-semibold uppercase tracking-wider">
+                IDB &amp; OPFS Hardware Daemon Stream
+              </span>
+</div>
+<span class="font-telemetry-sm text-telemetry-sm text-outline">| worker_thread_id: #WASM_0x7</span>
+</div>
+<div class="flex items-center gap-space-sm">
+<span class="font-telemetry-sm text-telemetry-sm text-secondary font-mono">IOPS: 4.8K req/s</span>
+<button class="text-outline hover:text-on-surface text-label-sm font-label-sm uppercase flex items-center gap-1" id="btn-clear-terminal">
+<span class="material-symbols-outlined text-[14px]">block</span> Clear
+            </button>
+</div>
+</div>
+<!-- Terminal Output Window -->
+<div class="h-44 overflow-y-auto font-mono text-telemetry-sm font-telemetry-sm flex flex-col gap-1 text-on-surface-variant p-space-xs bg-surface-dim rounded-lg select-all" id="terminal-stream">
+<div class="flex items-start gap-2">
+<span class="text-outline">[14:32:01.104]</span>
+<span class="text-secondary font-semibold">[opfs-kernel]</span>
+<span class="text-on-surface">FileSystemSyncAccessHandle acquired for file descriptor 0x09F2...</span>
+</div>
+<div class="flex items-start gap-2">
+<span class="text-outline">[14:32:01.320]</span>
+<span class="text-tertiary font-semibold">[idb-vault]</span>
+<span class="text-on-surface">Committed transaction on `omni_vault_master_blobs`. Blob key: #0x8F94... SHA-256: 7f3b89a3c01</span>
+</div>
+<div class="flex items-start gap-2">
+<span class="text-outline">[14:32:02.012]</span>
+<span class="text-primary font-semibold">[wasm-pthread]</span>
+<span class="text-on-surface">Worker pool initialized with 8 parallel worker instances via SharedArrayBuffer.</span>
+</div>
+<div class="flex items-start gap-2">
+<span class="text-outline">[14:32:04.491]</span>
+<span class="text-tertiary font-semibold">[security-daemon]</span>
+<span class="text-tertiary">Cryptographic entropy check passed. Zero network egress confirmed for all active handles.</span>
+</div>
+<div class="flex items-start gap-2">
+<span class="text-outline">[14:32:08.810]</span>
+<span class="text-secondary font-semibold">[idb-vault]</span>
+<span class="text-on-surface">Cached asset sync complete: 14 items, 1.84 GB occupied in local sandboxed storage.</span>
+</div>
+<div class="flex items-start gap-2 animate-pulse">
+<span class="text-outline">[14:32:15.002]</span>
+<span class="text-tertiary font-semibold">[opfs-daemon]</span>
+<span class="text-on-surface">Storage quota heartbeat ok: 6.16 GB available on origin. Ready for next media transaction.</span>
+</div>
+</div>
+</section>
+</div>
+</div>
+</div>
+<script>
+  // Micro-interactions for Phase 5 Master Dashboard
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. Terminal Stream Append Simulation
+    const terminal = document.getElementById('terminal-stream');
+    const clearBtn = document.getElementById('btn-clear-terminal');
+
+    if (clearBtn && terminal) {
+      clearBtn.addEventListener('click', () => {
+        terminal.innerHTML = '<div class="text-outline font-mono">[LOG CLEAR] Terminal buffer flushed. Standby for daemon events...</div>';
+      });
+    }
+
+    const logMessages = [
+      { tag: '[opfs-sync]', color: 'text-secondary', msg: 'OPFS high-throughput read handle pinged. Cache hit ratio 99.4%.' },
+      { tag: '[idb-audit]', color: 'text-tertiary', msg: 'Verified integrity of 14 blobs against WebCrypto SHA-256 digests.' },
+      { tag: '[wasm-mem]', color: 'text-primary', msg: 'Shared memory buffer pool resized safely: 512MB heap intact.' }
+    ];
+
+    setInterval(() => {
+      if (!terminal) return;
+      const now = new Date();
+      const timeStr = `[${now.toTimeString().split(' ')[0]}.${String(now.getMilliseconds()).padStart(3, '0')}]`;
+      const item = logMessages[Math.floor(Math.random() * logMessages.length)];
+      
+      const row = document.createElement('div');
+      row.className = 'flex items-start gap-2';
+      row.innerHTML = `<span class="text-outline">${timeStr}</span><span class="${item.color} font-semibold">${item.tag}</span><span class="text-on-surface">${item.msg}</span>`;
+      
+      terminal.appendChild(row);
+      if (terminal.children.length > 25) {
+        terminal.removeChild(terminal.children[0]);
+      }
+      terminal.scrollTop = terminal.scrollHeight;
+    }, 4500);
+
+    // 2. Filter Tab Active State Handler
+    const tabs = document.querySelectorAll('.filter-tab');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => {
+          t.classList.remove('bg-primary-container', 'text-on-primary-container', 'font-semibold');
+          t.classList.add('bg-surface-container', 'text-on-surface-variant');
+        });
+        tab.classList.remove('bg-surface-container', 'text-on-surface-variant');
+        tab.classList.add('bg-primary-container', 'text-on-primary-container', 'font-semibold');
+      });
+    });
+
+    // 3. Batch Flush Confirmation Toast
+    const flushBtn = document.getElementById('btn-flush-orphans');
+    if (flushBtn) {
+      flushBtn.addEventListener('click', () => {
+        const originalText = flushBtn.innerHTML;
+        flushBtn.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">sync</span> Purging...';
+        setTimeout(() => {
+          flushBtn.innerHTML = '<span class="material-symbols-outlined text-[16px] text-tertiary">done</span> 0 Orphans Found';
+          setTimeout(() => {
+            flushBtn.innerHTML = originalText;
+          }, 2000);
+        }, 800);
+      });
+    }
+  });
+</script></main></div></body></html>

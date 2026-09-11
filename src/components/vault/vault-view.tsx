@@ -36,6 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatBytes } from "@/lib/format";
 import { useVault } from "@/lib/vault/vault-context";
 import type { VaultItem, VaultKind } from "@/lib/vault/vault-db";
+import { StorageQuotaMatrix } from "@/components/vault/storage-quota-matrix";
 
 type KindFilter = "all" | VaultKind;
 type SortMode = "recent" | "oldest" | "largest" | "smallest";
@@ -239,6 +240,8 @@ export function VaultView() {
 
   return (
     <div className="space-y-5">
+      <StorageQuotaMatrix />
+
       {/* storage telemetry ------------------------------------------------ */}
       <div className="panel-hud grid gap-4 rounded-xl p-4 sm:grid-cols-3">
         <div className="flex items-center gap-3">

@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+          "surface-container-low": "#1a1b22",
+          "secondary-fixed-dim": "#4cd7f6",
+          "surface-dim": "#121319",
+          "on-tertiary-fixed": "#002113",
+          "tertiary-container": "#00a572",
+          "on-background": "#e3e1eb",
+          "on-primary-fixed": "#23005c",
+          "on-error-container": "#ffdad6",
+          "inverse-primary": "#6d3bd7",
+          "secondary-fixed": "#acedff",
+          "surface-variant": "#34343b",
+          "on-primary": "#3c0091",
+          "on-primary-fixed-variant": "#5516be",
+          "surface": "#121319",
+          "on-tertiary-container": "#00311f",
+          "surface-container-lowest": "#0d0e14",
+          "outline": "#958ea0",
+          "surface-bright": "#383940",
+          "on-error": "#690005",
+          "surface-container": "#1e1f26",
+          "surface-container-highest": "#34343b",
+          "error-container": "#93000a",
+          "secondary-container": "#03b5d3",
+          "surface-container-high": "#292930",
+          "secondary": "#4cd7f6",
+          "on-primary-container": "#340080",
+          "on-surface-variant": "#cbc3d7",
+          "background": "#121319",
+          "surface-tint": "#d0bcff",
+          "on-surface": "#e3e1eb",
+          "on-secondary": "#003640",
+          "on-tertiary": "#003824",
+          "on-secondary-fixed": "#001f26",
+          "error": "#ffb4ab",
+          "primary-container": "#a078ff",
+          "on-secondary-fixed-variant": "#004e5c",
+          "on-tertiary-fixed-variant": "#005236",
+          "inverse-on-surface": "#2f3037",
+          "on-secondary-container": "#00424e",
+          "primary-fixed-dim": "#d0bcff",
+          "tertiary-fixed-dim": "#4edea3",
+          "primary-fixed": "#e9ddff",
+          "outline-variant": "#494454",
+          "inverse-surface": "#e3e1eb",
+          "tertiary": "#4edea3",
+          "primary": "#d0bcff",
+          "tertiary-fixed": "#6ffbbe"
+        },
+        "borderRadius": {
+          "DEFAULT": "0.125rem",
+          "lg": "0.25rem",
+          "xl": "0.5rem",
+          "full": "0.75rem"
+        },
+        "spacing": {
+          "space-sm": "0.5rem",
+          "gutter-sm": "0.5rem",
+          "margin-lg": "2.5rem",
+          "margin-sm": "0.75rem",
+          "space-xl": "2.5rem",
+          "space-md": "1rem",
+          "space-xs": "0.25rem",
+          "margin": "1.5rem",
+          "space-lg": "1.5rem",
+          "gutter-lg": "1.5rem",
+          "gutter": "1rem"
+        },
+        "fontFamily": {
+          "telemetry-lg": [
+            "JetBrains Mono"
+          ],
+          "headline-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-lg-mobile": [
+            "Plus Jakarta Sans"
+          ],
+          "telemetry-md": [
+            "JetBrains Mono"
+          ],
+          "display-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-sm": [
+            "Plus Jakarta Sans"
+          ],
+          "headline-md": [
+            "Plus Jakarta Sans"
+          ],
+          "display-lg-mobile": [
+            "Plus Jakarta Sans"
+          ],
+          "label-md": [
+            "JetBrains Mono"
+          ],
+          "body-md": [
+            "Plus Jakarta Sans"
+          ],
+          "body-lg": [
+            "Plus Jakarta Sans"
+          ],
+          "label-sm": [
+            "JetBrains Mono"
+          ],
+          "telemetry-sm": [
+            "JetBrains Mono"
+          ],
+          "body-sm": [
+            "Plus Jakarta Sans"
+          ]
+        },
+        "fontSize": {
+          "telemetry-lg": [
+            "15px",
+            {
+              "lineHeight": "20px",
+              "letterSpacing": "0.02em",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-lg": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "700"
+            }
+          ],
+          "headline-lg-mobile": [
+            "24px",
+            {
+              "lineHeight": "32px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "700"
+            }
+          ],
+          "telemetry-md": [
+            "13px",
+            {
+              "lineHeight": "18px",
+              "letterSpacing": "0.03em",
+              "fontWeight": "500"
+            }
+          ],
+          "display-lg": [
+            "48px",
+            {
+              "lineHeight": "56px",
+              "letterSpacing": "-0.03em",
+              "fontWeight": "800"
+            }
+          ],
+          "headline-sm": [
+            "18px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "600"
+            }
+          ],
+          "headline-md": [
+            "22px",
+            {
+              "lineHeight": "28px",
+              "letterSpacing": "-0.01em",
+              "fontWeight": "600"
+            }
+          ],
+          "display-lg-mobile": [
+            "32px",
+            {
+              "lineHeight": "40px",
+              "letterSpacing": "-0.02em",
+              "fontWeight": "800"
+            }
+          ],
+          "label-md": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "letterSpacing": "0.08em",
+              "fontWeight": "600"
+            }
+          ],
+          "body-md": [
+            "14px",
+            {
+              "lineHeight": "20px",
+              "fontWeight": "400"
+            }
+          ],
+          "body-lg": [
+            "16px",
+            {
+              "lineHeight": "24px",
+              "fontWeight": "400"
+            }
+          ],
+          "label-sm": [
+            "10px",
+            {
+              "lineHeight": "12px",
+              "letterSpacing": "0.1em",
+              "fontWeight": "600"
+            }
+          ],
+          "telemetry-sm": [
+            "11px",
+            {
+              "lineHeight": "14px",
+              "letterSpacing": "0.05em",
+              "fontWeight": "500"
+            }
+          ],
+          "body-sm": [
+            "12px",
+            {
+              "lineHeight": "16px",
+              "fontWeight": "400"
+            }
+          ]
+        }
+      },
+    },
+  }</script></head><body class="bg-surface font-body-md text-body-md text-on-surface antialiased selection:bg-primary selection:text-on-primary"><aside class="fixed left-0 top-0 h-full w-72 bg-surface-container-lowest z-50 flex flex-col justify-between shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="h-16 flex items-center gap-space-sm px-gutter bg-surface-container-low"><div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center shadow-[0_0_14px_rgba(160,120,255,0.4)]"><span class="material-symbols-outlined text-on-primary-container text-[20px]">terminal</span></div><div class="flex flex-col"><span class="font-headline-sm text-headline-sm tracking-tight text-on-surface uppercase">OMNI TOOL</span><span class="font-label-sm text-label-sm text-secondary uppercase">CLIENT-SIDE WASM CORE</span></div></div><div class="px-gutter pt-space-md pb-space-xs"><span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">Process Modules</span></div><nav class="flex flex-col gap-space-xs px-gutter-sm" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded-lg shadow-[0_0_14px_rgba(160,120,255,0.25)]"><a aria-current="page" class="flex items-center gap-space-sm px-space-md py-space-sm transition-all bg-primary-container text-on-primary-container font-semibold rounded-lg shadow-[0_0_14px_rgba(160,120,255,0.25)]" data-path="dashboard-hub" href="#"><span class="material-symbols-outlined text-[20px]">grid_view</span><span class="font-body-md text-body-md">Dashboard Hub</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="video-and-media-converter" href="#"><span class="material-symbols-outlined text-[20px]">movie</span><span class="font-body-md text-body-md">Video &amp; Media Converter</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="audio-studio-and-8d-lab" href="#"><span class="material-symbols-outlined text-[20px]">graphic_eq</span><span class="font-body-md text-body-md">Audio Studio &amp; 8D Lab</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="pdf-and-doc-suite" href="#"><span class="material-symbols-outlined text-[20px]">description</span><span class="font-body-md text-body-md">PDF &amp; Doc Suite</span></a><a class="flex items-center gap-space-sm px-space-md py-space-sm rounded-lg text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all" data-path="local-vault-indexeddb" href="#"><span class="material-symbols-outlined text-[20px]">lock</span><span class="font-body-md text-body-md">Local Vault (IndexedDB)</span></a></nav></div><div class="p-gutter bg-surface-container-low flex flex-col gap-space-xs"><div class="flex items-center justify-between font-telemetry-sm text-telemetry-sm"><span class="text-outline">WASM RUNTIME</span><span class="text-tertiary flex items-center gap-space-xs"><span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>ONLINE</span></div><div class="flex items-center justify-between font-telemetry-sm text-telemetry-sm bg-surface-container-lowest px-space-sm py-space-xs rounded"><span class="text-on-surface-variant">Worker Pool</span><span class="text-secondary font-semibold">Threads: 8/8 Ready</span></div><div class="flex items-center justify-between font-label-sm text-label-sm text-outline pt-space-xs"><span class="flex items-center gap-1"><span class="material-symbols-outlined text-[14px] text-tertiary">shield</span>Zero-Telemetry</span><span class="text-on-surface-variant">v2.4.1-local</span></div></div></aside><div class="pl-72"><header class="fixed top-0 left-72 right-0 z-40 bg-surface/85 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-gutter-lg flex items-center justify-between gap-gutter"><div class="flex items-center gap-gutter"><div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-full"><span class="w-2 h-2 rounded-full bg-tertiary animate-ping"></span><span class="w-2 h-2 rounded-full bg-tertiary -ml-3"></span><span class="font-telemetry-sm text-telemetry-sm text-tertiary font-medium">FFmpeg.wasm: INITIALIZED (SharedArrayBuffer Active)</span></div><div class="hidden xl:flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded font-telemetry-sm text-telemetry-sm"><span class="material-symbols-outlined text-[16px] text-secondary">memory</span><span class="text-on-surface-variant">RAM:</span><span class="text-secondary font-semibold">420MB / Safe</span></div></div><div class="flex items-center gap-space-sm"><nav class="flex items-center gap-space-xs" data-active-classes="bg-primary-container text-on-primary-container font-semibold rounded"><a class="font-label-md text-label-md uppercase px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="batch-queue" href="#">Batch Queue</a><a class="font-label-md text-label-md uppercase px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="documentation" href="#">Documentation</a><a class="font-label-md text-label-md uppercase px-space-md py-space-sm rounded text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-colors" data-path="settings" href="#">Settings</a></nav><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center ml-space-xs"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></div></header><main class="w-full pt-16 bg-surface"><div class="flex flex-col w-full">
+<div class="w-full px-gutter-lg py-space-md flex flex-col gap-space-lg bg-surface">
+<!-- Top System Header & Telemetry Strips -->
+<div class="flex flex-col gap-space-xs relative">
+<div class="flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-xs font-telemetry-sm text-telemetry-sm text-outline">
+<span class="text-secondary font-semibold">LOCAL WASM SUBSYSTEM V0.12.8</span>
+<span>/</span>
+<span>LIBAVCODEC H.264</span>
+<span>/</span>
+<span>AV1</span>
+<span>/</span>
+<span class="text-primary font-medium">VP9 PIPELINE</span>
+</div>
+<!-- Telemetry Status Pills -->
+<div class="flex flex-wrap items-center gap-space-xs">
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-full shadow-sm">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+<span class="font-telemetry-sm text-telemetry-sm text-tertiary">WebCodecs / SIMD Active</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-full shadow-sm">
+<span class="material-symbols-outlined text-[14px] text-secondary">memory</span>
+<span class="font-telemetry-sm text-telemetry-sm text-secondary">Worker Pool: 8/8 Threads Online</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-low px-space-md py-space-xs rounded-full shadow-sm">
+<span class="material-symbols-outlined text-[14px] text-tertiary">verified_user</span>
+<span class="font-telemetry-sm text-telemetry-sm text-tertiary">Zero Server Uploads</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col xl:flex-row xl:items-end justify-between gap-space-sm pt-space-xs">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Video &amp; Visual Engine</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-3xl pt-space-xs">
+            Client-side transcoder, variable bitrate compressor, audio stripper/muter, and frame-accurate GIF creator running via FFmpeg.wasm in local SharedArrayBuffer.
+          </p>
+</div>
+<div class="flex items-center gap-space-xs self-start xl:self-end">
+<span class="font-label-sm text-label-sm text-outline uppercase tracking-wider">HEAP PROFILE:</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container-high text-primary px-space-sm py-space-xs rounded">WASM-SIMD-64BIT</span>
+<span class="font-telemetry-sm text-telemetry-sm bg-surface-container-high text-secondary px-space-sm py-space-xs rounded">COOP/COEP: SECURE</span>
+</div>
+</div>
+</div>
+<!-- Main Workspace Split Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg w-full items-start">
+<!-- Left Column: Video Preview, Timeline Scrubber & Conversion Config (8 Cols) -->
+<div class="lg:col-span-8 flex flex-col gap-space-lg min-w-0">
+<!-- Active Media Stage Card -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md flex flex-col gap-space-md shadow-xl relative overflow-hidden">
+<!-- Source Metadata Banner -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm bg-surface-container-low px-space-md py-space-sm rounded-lg">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-8 h-8 rounded bg-primary/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary text-[20px]">videocam</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-telemetry-md text-telemetry-md text-on-surface font-semibold truncate">cyberpunk_neon_tokyo_4k.mov</span>
+<span class="font-telemetry-sm text-telemetry-sm text-outline">ProRes 422 HQ • 3840x2160 @ 60.00fps • 184.2 MB</span>
+</div>
+</div>
+<div class="flex items-center gap-space-xs shrink-0">
+<button class="bg-surface-container-high text-on-surface hover:bg-surface-bright px-space-sm py-space-xs rounded flex items-center gap-1 font-label-sm text-label-sm transition-colors" title="Reload or replace asset">
+<span class="material-symbols-outlined text-[16px] text-secondary">file_upload</span>
+<span>REPLACE</span>
+</button>
+<button class="bg-surface-container-high text-on-surface hover:bg-surface-bright px-space-sm py-space-xs rounded flex items-center gap-1 font-label-sm text-label-sm transition-colors" title="Media Inspection">
+<span class="material-symbols-outlined text-[16px] text-primary">analytics</span>
+<span>PROBE</span>
+</button>
+</div>
+</div>
+<!-- Video Viewport Display -->
+<div class="relative w-full aspect-video rounded-lg overflow-hidden bg-surface-container-highest flex items-center justify-center group shadow-inner">
+<img class="w-full h-full object-cover" data-alt="Futuristic midnight Tokyo street illuminated in high-contrast cyan, violet, and deep blue neon signs with reflective rain-soaked tarmac, elevated monorail trains overhead, and towering cybernetic monolithic skyscrapers shot on cinematic 35mm anamorphic lens." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhBtPCROZoHCtCzt4zAGzKj9uF0M6ycWJP_eQqdlX2f_JuMMmkFoil8kkvyI6IQT6rFaaWBlaaTO06gxfceaplVcw3yI8kD-9LArXBMWgnWWapiEvxHAyURjixvejLFmyZq-XheaGab4oj2QDOLW-I3gGV3TfYze9dbO5cVF3Le-pSZcCeo_sIVwyKMQyPsHjy56uE3_FKgZv6qP3XdWs20Had_fg1YWGhKxJoHA6jm5Hxw9N7w_i5"/>
+<!-- In-Viewport Scrim & Controls Overlay -->
+<div class="absolute inset-0 bg-gradient-to-t from-surface-container-lowest/90 via-transparent to-surface-container-lowest/40 flex flex-col justify-between p-space-md">
+<!-- Upper Overlay Metrics -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-space-xs bg-surface-container-lowest/80 backdrop-blur-md px-space-sm py-space-xs rounded">
+<span class="w-2 h-2 rounded-full bg-error animate-ping"></span>
+<span class="font-telemetry-sm text-telemetry-sm text-on-surface">RAW CANVAS MONITOR</span>
+<span class="font-telemetry-sm text-telemetry-sm text-secondary ml-space-xs">HDR-10 PQ</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-lowest/80 backdrop-blur-md px-space-sm py-space-xs rounded">
+<span class="font-telemetry-sm text-telemetry-sm text-outline">CURRENT FRAME:</span>
+<span class="font-telemetry-sm text-telemetry-sm text-primary font-bold">#859</span>
+</div>
+</div>
+<!-- Center Big Play Glyph / Micro-Action -->
+<div class="self-center">
+<button class="w-14 h-14 rounded-full bg-primary/20 backdrop-blur-md hover:bg-primary-container text-on-primary flex items-center justify-center transition-all transform hover:scale-105 shadow-xl">
+<span class="material-symbols-outlined text-[32px] text-primary hover:text-on-primary-container">play_arrow</span>
+</button>
+</div>
+<!-- Lower Viewport HUD Info -->
+<div class="flex items-center justify-between font-telemetry-md text-telemetry-md">
+<div class="flex items-center gap-space-sm bg-surface-container-lowest/85 backdrop-blur-md px-space-md py-space-xs rounded">
+<span class="text-tertiary font-bold">00:14.32</span>
+<span class="text-outline">/</span>
+<span class="text-on-surface-variant">00:42.15</span>
+</div>
+<div class="flex items-center gap-space-xs bg-surface-container-lowest/85 backdrop-blur-md px-space-sm py-space-xs rounded">
+<span class="material-symbols-outlined text-[16px] text-secondary">tune</span>
+<span class="font-label-sm text-label-sm text-on-surface uppercase">A/B Diff Mode: OFF</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Timeline Scrubber with Draggable In/Out Bracket Simulator -->
+<div class="flex flex-col gap-space-xs pt-space-xs">
+<div class="flex items-center justify-between font-label-sm text-label-sm text-outline px-space-xs">
+<span class="text-secondary font-medium">IN: 00:04.10 [Mark I]</span>
+<span class="text-on-surface">PLAYHEAD: 00:14.32</span>
+<span class="text-secondary font-medium">OUT: 00:32.40 [Mark O]</span>
+</div>
+<!-- Custom Visual Interactive Timeline Strip -->
+<div class="relative w-full h-12 bg-surface-container-high rounded flex items-center overflow-hidden cursor-pointer shadow-inner">
+<!-- Frame Thumbnails Track Background -->
+<div class="absolute inset-0 grid grid-cols-8 gap-0.5 opacity-35 filter brightness-75">
+<div class="bg-cover bg-center h-full w-full" data-alt="Futuristic neon city street close-up frame thumbnail with violet atmospheric light." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDMcvxPO-RgEviym49cvnT42ADBlKbN2EW0y6JDGkqwBktvbKojlHe5jfVF7wNbHd39MxX8uQcLfrElHXxZKhacRzjuwT0X0W--3hlPS3oC9H-uODzw5I16xbEL7-p0eekBDpVNiahjyftCM_iLBCgotj4ZHs6NCC9BIsoNOBSTEN38k1copwBrGOCmyA3WbQqS0eeCxHXQA6f4bRAvrp4LlzbjIzhnpwKS-0hay_Pke-9XCoYLKl5O')"></div>
+<div class="bg-cover bg-center h-full w-full" data-alt="High tech vehicle moving through glowing highway tunnel frame thumbnail with cyan neon trails." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDPzplrWsCFOEyO7JtMqM5eVn-I9xGtS2x8GfauVBdn7UslcRYwzvw4BY-IE54KiA0jyrok_c8OZiKYWZ5g5GJjthZu5H1ksuEgAl3TTtZHt17sXiG0SL5sgvNAhV8STDG7WeDgy3FThl8gALtbx4NpJMvwi1L9pX4jowRA1SGOxOzSxcLZ_YS4qErwZfvTGJdCpfNfjUgFxdj8HyC35Nv31CQxkh1QDsQwiKxW86_etDNYWrZFz1y3')"></div>
+<div class="bg-cover bg-center h-full w-full" data-alt="Cybernetic skyscraper reflection on rain wet glass window frame thumbnail." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCrLybZ_Uarh9FC8n2zAszDZtZEo0eKMSHtkafJurPK3CWxGa7D0DawrbnkMVLPuET3kbvAqZxi4RU4kVSVz3thFPOjR6f3fRWEHPW8RxaPrlgIX8-KcrDmS-AefIrq-pwSZLsrHR2tm6weF2B6_yvo1koaKSCjR3r1cVGrEEz60damX7HgMG2Q1UNzym8LjSz6UjZTU75VZi2IxVoNsLscRp11ObDz6x-6Siufw327dagJ1OytUIsd')"></div>
+<div class="bg-cover bg-center h-full w-full" data-alt="Cyberpunk character facing luminous holographic billboard frame thumbnail." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA8aTNTUhWfu8vhvdzidsQc8cOjurfuWLMad0ylur09OJRpu-w2zOjywxVkg7kCg-Welx8xjqRqn7OCe_OqTTkeMkhIRHvKpThq2qaF4fXAH8oAHnW3WcUWUS2csZREbvW0yfPyDo2j8up2l3ssPkcX8ytvb1sQLlzIoW03rC7GgwOAQNEZHdd0BGVnMbwP65gki9h48Xj4t8p-4WdaL65KAjDVcma-HQzLnZlvlmR8tVulvQPVq_ZL')"></div>
+<div class="bg-cover bg-center h-full w-full" data-alt="Cyberpunk night alleyway with intense violet lanterns and steam pipes frame thumbnail." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuChtBrjG5grCY9F1wNeV7dUD7c3jZoasxwL7a_SGqHplHhZ2_kCCFEM0w4S-6jXvDWoV5bkU7eGu3w3r3BOFYVzAZThz6U9Z38iNvRrlu9v2o8rM8kUE9OEplCwqqmYrXx4WmfCsTMo_t5ljFXu5a6EsnL3djoXIe0Z0uM5UyoBxcybgfN7DjpmUXhcnA5rbpBrMyKIm26tAxMWy30XWHphI7c7jtelzbWvzSq9YDgSN3hQWdat05yV')"></div>
+<div class="bg-cover bg-center h-full w-full" data-alt="Overhead night drone perspective of glowing futuristic megalopolis frame thumbnail." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuARwhjPACTH-tvahz_K-M3MrOOz0qBkoOKubXWEh8dIi6qQY_QMoZo-CxALeUBD1SdUINwDcK1xIztwvc7vKxRR21CeK0uJpwA9InsYSfBcaxd3CvKuvKyVWtJlt5TEFtkR2bItT6rc_2aZe4yH-dIC7JIqjsLCFW0AH4koX6vmJw5MFjWDFAJ79eNjRtaDwWSHRl03kS_51IzxK1zLEYmmCo8m36cEk7y-FPfrZFTwKAUbF9X2ASpJ')"></div>
+<div class="bg-cover bg-center h-full w-full" data-alt="Subway train terminal with cyber blue neon lights frame thumbnail." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCRsta5UQitOGgw3yT6ByC6N7ql_ODrIvM8cJrn4IAqDzpnFzphZJcXCnhGJ9FvvoOAZkK8Pg1YJcYyqiuUp5k9kZ-Eq0bGfnRKouCoNw1ysQqBwCYwJ1Dm04qWviCe2Ki48l5jPiXfR3yoVZd9aa4B7uq34knkT0UbVwytJP1hcYtlg8xTPhM0GYAzgmYau1unxNcAqoONGL4q4gGA6CBxkvEd1UdjSy2DGie5ps8fZCfx56QvSGXO')"></div>
+<div class="bg-cover bg-center h-full w-full" data-alt="Tokyo cybernetic junction glowing at dusk with massive advertisements frame thumbnail." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuByLKFU7b6KRrnpJIP2ikh1oFcvn4api9reSNCE58P3A0d_zSiKH0XtXDceG68mVhntGpro4CL0XKxoWoDcfrng-yUXmacp6hNu95rIRfPZg5VUguoOehMJVfcxzGGJb-tZXV47fo5b4IyPuMa6-c2h1irDtsJ3skF_PhLtytC-_v_VG0_3s5Adw7c_RYkp8C-RYQvQs8kyTlo1WjWDWad4p4nNsWi5JRZMwJPeWa12PzCQdsgj9tcQ')"></div>
+</div>
+<!-- Shaded non-selected bounds -->
+<div class="absolute left-0 top-0 bottom-0 w-[10%] bg-surface-container-lowest/80 backdrop-grayscale"></div>
+<div class="absolute right-0 top-0 bottom-0 w-[24%] bg-surface-container-lowest/80 backdrop-grayscale"></div>
+<!-- Active Trim Selection Region -->
+<div class="absolute left-[10%] right-[24%] top-0 bottom-0 bg-primary/20 shadow-[0_0_12px_rgba(160,120,255,0.3)]"></div>
+<!-- In Marker Bracket -->
+<div class="absolute left-[10%] top-0 bottom-0 w-1.5 bg-secondary flex items-center justify-center z-10 cursor-ew-resize">
+<div class="w-3 h-5 bg-secondary rounded-sm -ml-0.5 shadow-md"></div>
+</div>
+<!-- Out Marker Bracket -->
+<div class="absolute right-[24%] top-0 bottom-0 w-1.5 bg-secondary flex items-center justify-center z-10 cursor-ew-resize">
+<div class="w-3 h-5 bg-secondary rounded-sm -mr-0.5 shadow-md"></div>
+</div>
+<!-- Main Playhead Line -->
+<div class="absolute left-[34%] top-0 bottom-0 w-0.5 bg-error shadow-[0_0_8px_#ffb4ab] z-20 flex flex-col items-center">
+<div class="w-2.5 h-2.5 bg-error rotate-45 -mt-1 shadow-md"></div>
+</div>
+<!-- Tick Marks SVG overlay -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-25" preserveaspectratio="none" viewbox="0 0 100 20">
+<line stroke="currentColor" stroke-width="0.5" x1="10" x2="10" y1="0" y2="20"></line>
+<line stroke="currentColor" stroke-width="0.3" x1="20" x2="20" y1="5" y2="20"></line>
+<line stroke="currentColor" stroke-width="0.3" x1="30" x2="30" y1="5" y2="20"></line>
+<line stroke="currentColor" stroke-width="0.3" x1="40" x2="40" y1="5" y2="20"></line>
+<line stroke="currentColor" stroke-width="0.5" x1="50" x2="50" y1="0" y2="20"></line>
+<line stroke="currentColor" stroke-width="0.3" x1="60" x2="60" y1="5" y2="20"></line>
+<line stroke="currentColor" stroke-width="0.3" x1="70" x2="70" y1="5" y2="20"></line>
+<line stroke="currentColor" stroke-width="0.3" x1="80" x2="80" y1="5" y2="20"></line>
+<line stroke="currentColor" stroke-width="0.5" x1="90" x2="90" y1="0" y2="20"></line>
+</svg>
+</div>
+<!-- Transport Control Bar -->
+<div class="flex items-center justify-between pt-space-xs">
+<div class="flex items-center gap-space-xs">
+<button class="w-8 h-8 rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[18px]">skip_previous</span>
+</button>
+<button class="w-8 h-8 rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[18px]">fast_rewind</span>
+</button>
+<button class="w-8 h-8 rounded bg-primary-container text-on-primary-container flex items-center justify-center shadow-md">
+<span class="material-symbols-outlined text-[20px]">pause</span>
+</button>
+<button class="w-8 h-8 rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[18px]">fast_forward</span>
+</button>
+<button class="w-8 h-8 rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[18px]">skip_next</span>
+</button>
+<button class="px-space-sm h-8 rounded bg-surface-container hover:bg-surface-container-high text-secondary flex items-center gap-1 font-label-sm text-label-sm ml-space-xs transition-colors">
+<span class="material-symbols-outlined text-[16px]">bookmark</span>
+<span>SET IN/OUT</span>
+</button>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="px-space-sm h-8 rounded bg-surface-container text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high flex items-center gap-1 font-label-sm text-label-sm transition-colors">
+<span class="material-symbols-outlined text-[16px]">photo_camera</span>
+<span>SNAPSHOT PNG</span>
+</button>
+<button class="w-8 h-8 rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-[18px]">fullscreen</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Engine Mode Selector Tabs -->
+<div class="bg-surface-container-low p-space-xs rounded-lg flex items-center gap-space-xs shadow-md">
+<button class="flex-1 py-space-sm px-space-md rounded bg-primary-container text-on-primary-container font-headline-sm text-headline-sm flex items-center justify-center gap-space-xs shadow-md transition-all">
+<span class="material-symbols-outlined text-[18px]">autorenew</span>
+<span>Format Transcoder</span>
+</button>
+<button class="flex-1 py-space-sm px-space-md rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-headline-sm text-headline-sm flex items-center justify-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[18px]">compress</span>
+<span>Bitrate Compressor</span>
+</button>
+<button class="flex-1 py-space-sm px-space-md rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-headline-sm text-headline-sm flex items-center justify-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[18px]">volume_off</span>
+<span>Mute &amp; Extract</span>
+</button>
+<button class="flex-1 py-space-sm px-space-md rounded text-on-surface-variant hover:text-on-surface hover:bg-surface-container font-headline-sm text-headline-sm flex items-center justify-center gap-space-xs transition-colors">
+<span class="material-symbols-outlined text-[18px]">gif_box</span>
+<span>GIF Matrix Maker</span>
+</button>
+</div>
+<!-- Active Module Settings Deck (Transcoder & Precision Parameters) -->
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col gap-space-lg shadow-md">
+<!-- Container Format Selection -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between">
+<label class="font-label-md text-label-md uppercase text-on-surface tracking-wider">Target Container &amp; Codec Profile</label>
+<span class="font-telemetry-sm text-telemetry-sm text-secondary">WebAssembly SIMD accelerated</span>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-5 gap-space-xs">
+<!-- MP4 Selected -->
+<div class="p-space-sm rounded bg-primary-container text-on-primary-container flex flex-col gap-0.5 cursor-pointer shadow-md">
+<div class="flex items-center justify-between">
+<span class="font-telemetry-lg text-telemetry-lg font-bold">MP4</span>
+<span class="material-symbols-outlined text-[16px]">check_circle</span>
+</div>
+<span class="font-label-sm text-label-sm opacity-90">libx264 / AAC</span>
+<span class="font-label-sm text-label-sm text-on-primary-container opacity-75">Max Compatibility</span>
+</div>
+<!-- WebM -->
+<div class="p-space-sm rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex flex-col gap-0.5 cursor-pointer transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-telemetry-lg text-telemetry-lg font-bold">WEBM</span>
+<span class="font-label-sm text-label-sm text-tertiary">OPEN</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">VP9 / Opus</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Modern Web Standard</span>
+</div>
+<!-- MOV -->
+<div class="p-space-sm rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex flex-col gap-0.5 cursor-pointer transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-telemetry-lg text-telemetry-lg font-bold">MOV</span>
+<span class="font-label-sm text-label-sm text-outline">APPLE</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">ProRes / PCM</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Editing Intermediary</span>
+</div>
+<!-- MKV -->
+<div class="p-space-sm rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex flex-col gap-0.5 cursor-pointer transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-telemetry-lg text-telemetry-lg font-bold">MKV</span>
+<span class="font-label-sm text-label-sm text-secondary">AV1</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">libsvtav1 / FLAC</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Next-Gen Ultra</span>
+</div>
+<!-- GIF -->
+<div class="p-space-sm rounded bg-surface-container hover:bg-surface-container-high text-on-surface flex flex-col gap-0.5 cursor-pointer transition-colors">
+<div class="flex items-center justify-between">
+<span class="font-telemetry-lg text-telemetry-lg font-bold">GIF</span>
+<span class="font-label-sm text-label-sm text-outline">256-COL</span>
+</div>
+<span class="font-label-sm text-label-sm text-outline">Palettegen 2-Pass</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Zero Dither Drift</span>
+</div>
+</div>
+</div>
+<!-- Resolution Downscaler & Dimensions -->
+<div class="flex flex-col gap-space-xs">
+<label class="font-label-md text-label-md uppercase text-on-surface tracking-wider">Target Resolution Scaling</label>
+<div class="flex flex-wrap items-center gap-space-xs">
+<button class="px-space-md py-space-sm rounded bg-surface-container text-on-surface-variant hover:text-on-surface font-telemetry-sm text-telemetry-sm transition-colors">Original (3840x2160)</button>
+<button class="px-space-md py-space-sm rounded bg-surface-container text-on-surface-variant hover:text-on-surface font-telemetry-sm text-telemetry-sm transition-colors">1440p QHD (2560x1440)</button>
+<button class="px-space-md py-space-sm rounded bg-secondary-container text-on-secondary-container font-telemetry-sm text-telemetry-sm font-bold shadow-sm">1080p FHD (1920x1080) [ACTIVE]</button>
+<button class="px-space-md py-space-sm rounded bg-surface-container text-on-surface-variant hover:text-on-surface font-telemetry-sm text-telemetry-sm transition-colors">720p HD (1280x720)</button>
+<button class="px-space-md py-space-sm rounded bg-surface-container text-on-surface-variant hover:text-on-surface font-telemetry-sm text-telemetry-sm transition-colors">Custom (scale=w:h)</button>
+</div>
+</div>
+<!-- Dual Parameter Row: CRF Bitrate Slider & Presets -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-space-lg">
+<!-- CRF Rate Control -->
+<div class="flex flex-col gap-space-xs bg-surface-container p-space-md rounded-lg">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase text-on-surface">CRF: Constant Rate Factor</span>
+<span class="font-telemetry-lg text-telemetry-lg text-primary font-bold">21 (Visually Lossless)</span>
+</div>
+<input class="w-full accent-primary bg-surface-container-high rounded h-2 cursor-pointer mt-space-xs" max="38" min="14" type="range" value="21"/>
+<div class="flex items-center justify-between font-label-sm text-label-sm text-outline pt-space-xs">
+<span>14 (Archival / Heavy)</span>
+<span class="text-tertiary">Balanced (21)</span>
+<span>38 (Aggressive / Small)</span>
+</div>
+<div class="mt-space-xs p-space-xs bg-surface-container-high rounded flex items-center justify-between font-telemetry-sm text-telemetry-sm">
+<span class="text-on-surface-variant">Estimated File Output:</span>
+<span class="text-tertiary font-bold">28.4 MB (-84% compression)</span>
+</div>
+</div>
+<!-- Preset Speed Selection -->
+<div class="flex flex-col gap-space-xs bg-surface-container p-space-md rounded-lg">
+<div class="flex items-center justify-between">
+<span class="font-label-md text-label-md uppercase text-on-surface">Encoding Speed Preset (-preset)</span>
+<span class="font-telemetry-sm text-telemetry-sm text-secondary">x264 Multi-core</span>
+</div>
+<div class="grid grid-cols-2 gap-space-xs mt-space-xs">
+<button class="p-space-xs rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm text-left">
+<span class="block font-semibold">veryfast</span>
+<span class="text-outline">Instant preview</span>
+</button>
+<button class="p-space-xs rounded bg-surface-container-highest text-secondary font-label-sm text-label-sm text-left shadow-inner">
+<span class="block font-bold">• faster</span>
+<span class="text-on-surface-variant">WASM Balanced</span>
+</button>
+<button class="p-space-xs rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm text-left">
+<span class="block font-semibold">medium</span>
+<span class="text-outline">Recommended default</span>
+</button>
+<button class="p-space-xs rounded bg-surface-container-high text-on-surface-variant hover:text-on-surface font-label-sm text-label-sm text-left">
+<span class="block font-semibold">slow</span>
+<span class="text-outline">Max efficiency</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Audio Stream Routing Strip -->
+<div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-space-md bg-surface-container p-space-md rounded-lg">
+<div class="flex flex-col">
+<span class="font-label-md text-label-md uppercase text-on-surface">Audio Handling Track</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Remux, downmix to stereo, strip stream, or compress bitstream</span>
+</div>
+<div class="flex flex-wrap items-center gap-space-xs">
+<label class="flex items-center gap-space-xs bg-surface-container-high px-space-sm py-space-xs rounded cursor-pointer">
+<input class="accent-primary" name="audio-handling" type="radio"/>
+<span class="font-label-sm text-label-sm text-on-surface">Keep Original (Passthrough)</span>
+</label>
+<label class="flex items-center gap-space-xs bg-primary-container text-on-primary-container px-space-sm py-space-xs rounded cursor-pointer shadow-sm">
+<input checked="" class="accent-on-primary-container" name="audio-handling" type="radio"/>
+<span class="font-label-sm text-label-sm font-bold">AAC Stereo 320 kbps</span>
+</label>
+<label class="flex items-center gap-space-xs bg-surface-container-high px-space-sm py-space-xs rounded cursor-pointer">
+<input class="accent-error" name="audio-handling" type="radio"/>
+<span class="font-label-sm text-label-sm text-error">Mute / Strip Audio (-an)</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Transcode Execution & Live WASM Terminal HUD (4 Cols) -->
+<div class="lg:col-span-4 flex flex-col gap-space-lg min-w-0">
+<!-- Primary Action Launch Deck -->
+<div class="bg-surface-container-low rounded-xl p-space-lg flex flex-col gap-space-md shadow-xl">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-outline">EXECUTION TRIGGER</span>
+<span class="font-telemetry-sm text-telemetry-sm text-tertiary flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>
+              THREAD HEAP READY
+            </span>
+</div>
+<!-- Big Action Button -->
+<button class="w-full py-space-md px-space-lg rounded-lg bg-primary-container hover:bg-primary text-on-primary-container font-headline-sm text-headline-sm flex flex-col items-center justify-center gap-0.5 shadow-lg transition-all group transform hover:-translate-y-0.5">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-[24px] group-hover:animate-spin">play_arrow</span>
+<span class="font-bold">Execute In-Browser Transcode</span>
+</div>
+<span class="font-telemetry-sm text-telemetry-sm text-on-primary-container/80 tracking-normal font-normal">ffmpeg.run() on worker threads 0-7</span>
+</button>
+<!-- Secondary Pipeline Actions -->
+<div class="grid grid-cols-2 gap-space-xs">
+<button class="py-space-sm px-space-xs bg-surface-container hover:bg-surface-container-high text-on-surface rounded font-label-md text-label-md flex items-center justify-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[16px] text-secondary">layers</span>
+<span>BATCH QUEUE</span>
+</button>
+<button class="py-space-sm px-space-xs bg-surface-container hover:bg-surface-container-high text-on-surface rounded font-label-md text-label-md flex items-center justify-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[16px] text-primary">download</span>
+<span>DRY RUN TEST</span>
+</button>
+</div>
+<!-- Progress Ring & Transcode Pipeline Bar -->
+<div class="bg-surface-container p-space-md rounded-lg flex flex-col gap-space-xs">
+<div class="flex items-center justify-between font-telemetry-sm text-telemetry-sm">
+<span class="text-on-surface-variant font-medium">Pipeline Pass 1 of 1:</span>
+<span class="text-tertiary font-bold">34.2%</span>
+</div>
+<div class="w-full bg-surface-container-lowest h-2 rounded-full overflow-hidden">
+<div class="bg-gradient-to-r from-primary-container via-secondary to-tertiary h-full w-[34.2%] transition-all duration-300"></div>
+</div>
+<div class="flex items-center justify-between font-telemetry-sm text-telemetry-sm text-outline pt-space-xs">
+<span>ETA: 18s</span>
+<span>FPS: 112</span>
+<span>Speed: ~1.85x</span>
+</div>
+</div>
+</div>
+<!-- Live WASM Terminal & Telemetry Log Console -->
+<div class="bg-surface-container-lowest rounded-xl p-space-md flex flex-col gap-space-sm shadow-xl overflow-hidden">
+<!-- Terminal Header -->
+<div class="flex items-center justify-between pb-space-xs">
+<div class="flex items-center gap-space-xs">
+<div class="flex items-center gap-1">
+<span class="w-2.5 h-2.5 rounded-full bg-error/70"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary-container/70"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-tertiary/70"></span>
+</div>
+<span class="font-telemetry-sm text-telemetry-sm text-on-surface font-semibold ml-space-xs">ffmpeg-worker-daemon.stdout</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-tertiary animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-tertiary">LISTENING</span>
+</div>
+</div>
+<!-- Command Line Generator Preview -->
+<div class="bg-surface-container-low p-space-sm rounded font-telemetry-sm text-telemetry-sm text-secondary overflow-x-auto select-all">
+<span class="text-outline">$</span> ffmpeg -ss 00:04.10 -to 00:32.40 -i input.mov -vf "scale=1920:1080" -c:v libx264 -crf 21 -preset faster -c:a aac -b:a 320k output.mp4
+          </div>
+<!-- Monospaced Stdout Stream Window -->
+<div class="h-44 overflow-y-auto font-telemetry-sm text-telemetry-sm flex flex-col gap-1 text-on-surface-variant p-space-xs bg-surface-container-low/50 rounded">
+<div class="text-outline">[libx264 @ 0x3d0b28] using SAR=1/1</div>
+<div class="text-outline">[libx264 @ 0x3d0b28] using cpu capabilities: MMX2 SSE2Fast SSSE3 SSE4.2 AVX FMA3 BMI2 AVX2</div>
+<div class="text-secondary">[wasm-worker-3] allocated 256MB SharedArrayBuffer</div>
+<div class="text-on-surface">frame=  210 fps=114 q=22.0 size=    4352kB time=00:00:03.50 bitrate=10182.4kbits/s speed=1.90x</div>
+<div class="text-on-surface">frame=  480 fps=112 q=21.0 size=    9984kB time=00:00:08.00 bitrate=10214.2kbits/s speed=1.86x</div>
+<div class="text-primary font-medium">frame=  859 fps=112 q=21.0 size=   17920kB time=00:00:14.32 bitrate=10238.1kbits/s speed=1.85x</div>
+<div class="text-tertiary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check</span>
+<span>WASM SIMD thread dispatch verified: 0 frame dropouts</span>
+</div>
+</div>
+<!-- Real-Time Hardware Allocations -->
+<div class="grid grid-cols-2 gap-space-xs pt-space-xs">
+<div class="bg-surface-container-low p-space-xs rounded flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase">HEAP MEMORY</span>
+<span class="font-telemetry-md text-telemetry-md text-secondary font-bold">380 MB / 2048 MB</span>
+</div>
+<div class="bg-surface-container-low p-space-xs rounded flex flex-col">
+<span class="font-label-sm text-label-sm text-outline uppercase">SIMD WORKERS</span>
+<span class="font-telemetry-md text-telemetry-md text-tertiary font-bold">8 Cores Active</span>
+</div>
+</div>
+</div>
+<!-- Client Isolation Privacy Certificate Badge -->
+<div class="bg-surface-container-low rounded-xl p-space-md flex items-start gap-space-sm shadow-md">
+<div class="w-8 h-8 rounded-full bg-tertiary-container/30 flex items-center justify-center shrink-0 mt-0.5">
+<span class="material-symbols-outlined text-tertiary text-[20px]">shield_locked</span>
+</div>
+<div class="flex flex-col gap-0.5">
+<span class="font-headline-sm text-headline-sm text-on-surface">100% Client-Side Isolation</span>
+<p class="font-body-sm text-body-sm text-on-surface-variant">
+              All video frames and audio chunks are processed strictly in browser virtual heap memory. No payload packets, cookies, or tracking logs ever touch remote servers.
+            </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>

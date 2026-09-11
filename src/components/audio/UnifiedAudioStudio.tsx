@@ -41,6 +41,7 @@ import {
   ParamSlider,
   ParamToggle,
 } from "@/components/audio/param-controls";
+import { BinauralRadar } from "@/components/audio/binaural-radar";
 import { useAudioProcessor } from "@/hooks/useAudioProcessor";
 import { useHaptics } from "@/hooks/use-haptics";
 import {
@@ -512,6 +513,12 @@ export function UnifiedAudioStudio({
 
             {activeEffect === "spatial-8d" && (
               <div className="space-y-4">
+                <BinauralRadar
+                  cycleSec={params.cycleSec || 8}
+                  intensity={params.intensity || 0.85}
+                  widening={params.widening || 1.25}
+                  isPlaying={isPlaying}
+                />
                 <ParamSlider
                   label="Rotation Cycle Period"
                   value={params.cycleSec || 8}

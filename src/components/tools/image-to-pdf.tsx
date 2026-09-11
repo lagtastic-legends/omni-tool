@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { FileImage } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
 import { ImageQueue, type QueuedImage } from "@/components/documents/image-queue";
+import { PdfVisualDeck } from "@/components/tools/pdf-visual-deck";
 import { PageOptions } from "@/components/documents/page-options";
 import { ParamPanel } from "@/components/audio/param-controls";
 import { OutputCard } from "@/components/media/output-card";
@@ -146,6 +147,20 @@ export function ImageToPdf() {
           disabled={busy}
           label="Drop images to compile"
         />
+
+        {images.length > 0 && (
+          <PdfVisualDeck
+            pages={images.map((img) => ({
+              id: img.id,
+              name: img.file.name,
+              sizeBytes: img.file.size,
+              dpi: 300,
+              rotation: 0,
+              previewUrl: img.previewUrl,
+            }))}
+            onRemovePage={removeImage}
+          />
+        )}
 
         <ParamPanel title="document setup">
           <PageOptions
