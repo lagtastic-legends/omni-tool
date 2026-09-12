@@ -7,7 +7,7 @@
 
 import { motion } from "framer-motion";
 import { FileImage } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { ImageQueue, type QueuedImage } from "@/components/documents/image-queue";
 import { PdfVisualDeck } from "@/components/tools/pdf-visual-deck";
 import { PageOptions } from "@/components/documents/page-options";
@@ -16,6 +16,7 @@ import { OutputCard } from "@/components/media/output-card";
 import { useToast } from "@/hooks/use-toast";
 import { useNavStore } from "@/lib/navigation/nav-store";
 import type { JobOutput } from "@/hooks/use-media-job";
+import { formatBytes } from "@/lib/format";
 import {
   buildImagePdf,
   buildPdfOutput,
@@ -38,6 +39,12 @@ export function ImageToPdf() {
   const [pageCount, setPageCount] = useState(0);
 
   const busy = status === "working";
+
+  /* Real-time queued size tally */
+  const totalSizeBytes = useMemo(
+    () => images.reduce((acc, img) => acc + img.file.size, 0),
+    [images]
+  );
 
   /* Revoke dangling preview URLs. */
   useEffect(() => {
@@ -147,6 +154,18 @@ export function ImageToPdf() {
           disabled={busy}
           label="Drop images to compile"
         />
+
+        {images.length > 0 && (
+          <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-card/60 border border-border/60 font-mono text-[11px] shadow-xs">
+            <span className="text-muted-foreground flex items-center gap-2">
+              <span className="size-2 rounded-full bg-primary animate-pulse" />
+              <span>Input Queue</span>
+            </span>
+            <span className="font-semibold text-foreground">
+              {images.length} {images.length === 1 ? "page" : "pages"} · {formatBytes(totalSizeBytes)} · {pageSize.toUpperCase()}
+            </span>
+          </div>
+        )}
 
         {images.length > 0 && (
           <PdfVisualDeck

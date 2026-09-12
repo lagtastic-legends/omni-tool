@@ -35,6 +35,7 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
+  devIndicators: false,
   output: isMobileExport ? "export" : "standalone",
   images: { unoptimized: true },
   trailingSlash: true,

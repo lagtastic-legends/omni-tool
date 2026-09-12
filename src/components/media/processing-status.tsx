@@ -69,6 +69,10 @@ export const ProcessingStatus = memo(function ProcessingStatus({
 
   const meta = PHASE_META[phase];
   const pct = Math.round(progress * 100);
+  const etaSec =
+    progress > 0.03 && progress < 0.99 && elapsedMs > 1200
+      ? Math.max(1, Math.round(((elapsedMs / progress) - elapsedMs) / 1000))
+      : null;
 
   return (
     <motion.div
@@ -93,9 +97,17 @@ export const ProcessingStatus = memo(function ProcessingStatus({
             {phase === "processing" && passLabel ? passLabel : meta.label}
           </span>
         </div>
-        <span className="shrink-0 font-mono text-[10px] text-muted-foreground">
-          {formatDurationMs(elapsedMs)}
-        </span>
+        <div className="flex items-center gap-2 shrink-0 font-mono text-[10px] text-muted-foreground">
+          {phase === "processing" && (
+            <span className="font-bold text-primary">{pct}%</span>
+          )}
+          {etaSec !== null && phase === "processing" && (
+            <span className="text-[9px] px-1.5 py-0.2 rounded bg-primary/10 border border-primary/30 text-primary">
+              ETA ~{etaSec}s
+            </span>
+          )}
+          <span>{formatDurationMs(elapsedMs)}</span>
+        </div>
       </div>
 
       {/* progress bar (120Hz GPU-accelerated scaleX to avoid layout thrashing) */}

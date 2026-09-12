@@ -31,25 +31,42 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const { mode, user, busy, error, isNative, signInWithGoogle, signInWithIdToken, continueAsGuest } = useAuth();
 
   useEffect(() => {
-    if (mode === "configured" && !user && !isNative) {
+    const isGuest = typeof window !== "undefined" && sessionStorage.getItem("omni_guest_session") === "true";
+    if (mode === "configured" && !user && !isNative && !isGuest) {
+      // Avoid auto-triggering FedCM origin mismatch errors on localhost development
+      if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+        return;
+      }
       const script = document.createElement("script");
       script.src = "https://accounts.google.com/gsi/client";
       script.async = true;
       script.onload = () => {
-        if ((window as any).google) {
+        if ((window as any).google?.accounts?.id) {
           (window as any).google.accounts.id.initialize({
             client_id: "1006411301114-q48l1fmvbiba3rq6u1s59qgl13c57sd1.apps.googleusercontent.com",
+            auto_select: false,
+            itp_support: true,
             callback: (response: any) => {
               void signInWithIdToken(response.credential);
             },
           });
-          (window as any).google.accounts.id.prompt();
+          (window as any).google.accounts.id.prompt((notification: any) => {
+            // Silently handle dismissed or unsupported FedCM moments
+          });
         }
       };
       document.body.appendChild(script);
       return () => {
-        if ((window as any).google) (window as any).google.accounts.id.cancel();
-        document.body.removeChild(script);
+        try {
+          if ((window as any).google?.accounts?.id) {
+            (window as any).google.accounts.id.cancel();
+          }
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
+        } catch {
+          // ignore
+        }
       };
     }
   }, [mode, user, isNative, signInWithIdToken]);

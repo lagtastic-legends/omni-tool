@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Headphones, Volume2, Orbit } from "lucide-react";
 
 export function BinauralRadar({
@@ -14,30 +14,39 @@ export function BinauralRadar({
   widening?: number;
   isPlaying?: boolean;
 }) {
-  const [angle, setAngle] = useState(0);
+  const sweepRef = useRef<HTMLDivElement | null>(null);
+  const nodeRef = useRef<HTMLDivElement | null>(null);
+  const radius = 68;
 
   useEffect(() => {
     let frameId: number;
+    let currentAngle = 0;
     let lastTime = performance.now();
 
     const animate = (now: number) => {
       const delta = (now - lastTime) / 1000;
       lastTime = now;
-      // Convert cycle seconds into angular speed (360 deg / cycleSec)
       const speed = 360 / Math.max(cycleSec, 1);
-      setAngle((prev) => (prev + speed * delta) % 360);
+      currentAngle = (currentAngle + speed * delta) % 360;
+
+      if (sweepRef.current) {
+        sweepRef.current.style.transform = `rotate(${currentAngle}deg)`;
+      }
+
+      if (nodeRef.current) {
+        const radians = (currentAngle * Math.PI) / 180;
+        const nodeX = 100 + radius * Math.cos(radians);
+        const nodeY = 100 + radius * Math.sin(radians);
+        nodeRef.current.style.left = `${nodeX}px`;
+        nodeRef.current.style.top = `${nodeY}px`;
+      }
+
       frameId = requestAnimationFrame(animate);
     };
 
     frameId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(frameId);
   }, [cycleSec]);
-
-  // Calculate orbital node coordinates in the 200x200 arena (center 100, 100)
-  const radius = 68;
-  const radians = (angle * Math.PI) / 180;
-  const nodeX = 100 + radius * Math.cos(radians);
-  const nodeY = 100 + radius * Math.sin(radians);
 
   const freqHz = (1 / Math.max(cycleSec, 1)).toFixed(2);
   const spreadPct = Math.round(widening * 100);
@@ -80,8 +89,8 @@ export function BinauralRadar({
 
         {/* Dynamic Sweep Glow */}
         <div
-          style={{ transform: `rotate(${angle}deg)` }}
-          className="pointer-events-none absolute size-44 rounded-full bg-gradient-to-tr from-transparent via-primary/10 to-chart-2/20"
+          ref={sweepRef}
+          className="pointer-events-none absolute size-44 rounded-full bg-gradient-to-tr from-transparent via-primary/10 to-chart-2/20 will-change-transform"
         />
 
         {/* Central Listener Head */}
@@ -94,12 +103,13 @@ export function BinauralRadar({
 
         {/* Revolving 8D Sound Node */}
         <div
+          ref={nodeRef}
           style={{
-            left: `${nodeX}px`,
-            top: `${nodeY}px`,
+            left: "168px",
+            top: "100px",
             transform: "translate(-50%, -50%)",
           }}
-          className="absolute z-20 flex size-7 items-center justify-center rounded-full border-2 border-chart-2 bg-chart-2/20 text-chart-2 shadow-[0_0_14px_rgba(6,182,212,0.6)] transition-all duration-75"
+          className="absolute z-20 flex size-7 items-center justify-center rounded-full border-2 border-chart-2 bg-chart-2/20 text-chart-2 shadow-[0_0_14px_rgba(6,182,212,0.6)] will-change-[left,top]"
         >
           <Volume2 className="size-3.5 animate-pulse text-foreground" />
         </div>

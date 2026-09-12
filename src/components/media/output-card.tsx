@@ -11,6 +11,7 @@ import { useState, useEffect, useRef, type ReactNode } from "react";
 import { formatBytes } from "@/lib/format";
 import { useVault } from "@/lib/vault/vault-context";
 import { useNavStore } from "@/lib/navigation/nav-store";
+import { useHaptics } from "@/hooks/use-haptics";
 import type { JobOutput } from "@/hooks/use-media-job";
 
 interface OutputCardProps {
@@ -32,6 +33,7 @@ const TONE: Record<NonNullable<OutputCardProps["badgeTone"]>, string> = {
 
 export function OutputCard({ output, extra, badge, badgeTone = "pulse", onClear }: OutputCardProps) {
   const { save } = useVault();
+  const haptics = useHaptics();
   const [vaultState, setVaultState] = useState<"idle" | "saved">("idle");
   const onClearRef = useRef(onClear);
   onClearRef.current = onClear;
@@ -45,7 +47,10 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse", onClear 
       mime: output.mime,
       size: output.size,
     });
-    if (item) setVaultState("saved");
+    if (item) {
+      void haptics.success();
+      setVaultState("saved");
+    }
   };
 
   /* Guard against discarding generated output and step back to clear preview */

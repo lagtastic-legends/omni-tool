@@ -192,6 +192,15 @@ export function UnifiedAudioStudio({
     [activeEffect]
   );
 
+  /* Dynamic real-time ETA calculation based on elapsed time and progress ratio */
+  const etaSeconds = useMemo(() => {
+    if (progress <= 3 || progress >= 100 || elapsedMs < 1000) return null;
+    const elapsedSec = elapsedMs / 1000;
+    const estimatedTotal = elapsedSec / (progress / 100);
+    const remaining = Math.max(1, Math.round(estimatedTotal - elapsedSec));
+    return remaining;
+  }, [progress, elapsedMs]);
+
   return (
     <div className="space-y-6">
       {/* Hidden Audio Player for Web Audio API Audition */}
@@ -863,7 +872,12 @@ export function UnifiedAudioStudio({
 
               <div className="flex items-center justify-between font-mono text-[10px] text-muted-foreground">
                 <span>Memory Safe WASM Execution</span>
-                <span>{(elapsedMs / 1000).toFixed(1)}s elapsed</span>
+                <span className="flex items-center gap-2">
+                  {etaSeconds !== null && (
+                    <span className="text-primary font-semibold">ETA ~{etaSeconds}s</span>
+                  )}
+                  <span>{(elapsedMs / 1000).toFixed(1)}s elapsed</span>
+                </span>
               </div>
             </motion.div>
           )}
