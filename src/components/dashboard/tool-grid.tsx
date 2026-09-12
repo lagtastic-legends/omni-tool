@@ -45,14 +45,12 @@ const ToolCard = memo(function ToolCard({
 
   return (
     <motion.button
-      layout
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
-      transition={{ delay: Math.min(index * 0.02, 0.3), duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -3, transition: { type: "spring", stiffness: 420, damping: 26, mass: 0.6 } }}
-      whileTap={{ scale: 0.96, y: 0, transition: { type: "spring", stiffness: 480, damping: 24, mass: 0.5 } }}
-      style={{ transform: "translate3d(0, 0, 0)", backfaceVisibility: "hidden" }}
+      whileTap={{ scale: 0.96, transition: { type: "spring", stiffness: 480, damping: 24, mass: 0.5 } }}
       onClick={() => {
         if (locked) {
           void haptics.warning();
@@ -79,8 +77,7 @@ const ToolCard = memo(function ToolCard({
       aria-label={`${tool.name} — ${locked ? `locked, phase ${tool.phase}` : isEngineReady ? "online, open module" : "standby, requires engine"}`}
     >
       <div className="flex items-start justify-between gap-1 sm:gap-2">
-        <motion.div
-          layoutId={`tool-icon-${tool.id}`}
+        <div
           className={`grid shrink-0 place-items-center border ${accent.tile} transition-transform duration-300 group-hover:scale-110 ${
             isMatrixView
               ? "size-7 sm:size-10 rounded-md sm:rounded-lg"
@@ -91,7 +88,7 @@ const ToolCard = memo(function ToolCard({
             className={isMatrixView ? "size-3.5 sm:size-5" : "size-4 sm:size-5"}
             strokeWidth={1.75}
           />
-        </motion.div>
+        </div>
 
         {locked ? (
           <>
@@ -186,8 +183,7 @@ const ToolCard = memo(function ToolCard({
       </div>
 
       <div>
-        <motion.p
-          layoutId={`tool-title-${tool.id}`}
+        <p
           className={`flex items-center gap-1 font-display font-bold text-foreground leading-[1.25] ${
             isMatrixView
               ? "text-[10px] sm:text-xs md:text-[13px] tracking-tight sm:tracking-wide line-clamp-2 min-h-[25px] sm:min-h-0"
@@ -198,7 +194,7 @@ const ToolCard = memo(function ToolCard({
           {!locked && (
             <ArrowUpRight className="hidden sm:inline size-3.5 text-primary opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100 shrink-0" />
           )}
-        </motion.p>
+        </p>
         <p
           className={`mt-0.5 sm:mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-2 ${
             isMatrixView ? "hidden sm:block" : "block"
@@ -356,15 +352,14 @@ export function ToolGrid() {
       </div>
 
       {/* grid: 4 columns horizontally (4x8 matrix across all 32 tools) */}
-      <motion.div
-        layout
+      <div
         className={
           layoutMode === "grid"
             ? "grid grid-cols-4 gap-1.5 sm:gap-3 lg:gap-3.5"
             : "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         }
       >
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence>
           {visible.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 14 }}
@@ -404,7 +399,7 @@ export function ToolGrid() {
             ))
           )}
         </AnimatePresence>
-      </motion.div>
+      </div>
     </section>
   );
 }
