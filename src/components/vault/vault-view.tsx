@@ -10,6 +10,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowDownUp,
   Database,
+  Eye,
   FileAudio,
   FileImage,
   FileText,
@@ -19,8 +20,6 @@ import {
   Search,
   Trash2,
   Upload,
-  Plus,
-  FilePlus,
   Sparkles,
 } from "lucide-react";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
@@ -41,6 +40,7 @@ import { formatBytes } from "@/lib/format";
 import { useVault } from "@/lib/vault/vault-context";
 import type { VaultItem, VaultKind } from "@/lib/vault/vault-db";
 import { StorageQuotaMatrix } from "@/components/vault/storage-quota-matrix";
+import { VaultPreviewModal } from "@/components/vault/vault-preview-modal";
 import { emitTelemetry } from "@/hooks/useStdoutTelemetry";
 
 type KindFilter = "all" | VaultKind;
@@ -62,113 +62,85 @@ const KIND_TONE: Record<VaultKind, string> = {
   file: "border-border/60 bg-muted text-muted-foreground",
 };
 
-const VaultRow = memo(function VaultRow({ item, onDelete }: { item: VaultItem; onDelete: (id: string) => void }) {
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [open, setOpen] = useState(false);
-  const urlRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
-    };
-  }, []);
-
-  const togglePreview = () => {
-    if (open) {
-      setOpen(false);
-      return;
-    }
-    if (!urlRef.current) {
-      urlRef.current = URL.createObjectURL(item.blob);
-      setPreviewUrl(urlRef.current);
-    }
-    setOpen(true);
-  };
-
+const VaultRow = memo(function VaultRow({
+  item,
+  onDelete,
+  onOpenModal,
+}: {
+  item: VaultItem;
+  onDelete: (id: string) => void;
+  onOpenModal: (item: VaultItem) => void;
+}) {
   const Icon = KIND_ICON[item.kind];
 
   return (
     <motion.li
-      layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
-      className="rounded-xl border border-border/60 bg-card/50 p-3"
+      className="rounded-xl border border-border/60 bg-card/50 p-3 sm:p-3.5 hover:border-primary/40 transition-colors shadow-sm"
     >
-      <div className="flex items-center gap-3">
-        <div className={`grid size-10 shrink-0 place-items-center rounded-lg border ${KIND_TONE[item.kind]}`}>
-          <Icon className="size-5" strokeWidth={1.75} />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-mono text-xs font-semibold text-foreground">
-            {item.name}
-          </p>
-          <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
-            {formatBytes(item.size)} · {item.mime} ·{" "}
-            {new Date(item.createdAt).toLocaleString("en-GB", {
-              day: "2-digit",
-              month: "short",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
-        </div>
-        <div className="flex shrink-0 gap-1.5">
-          <button
-            onClick={togglePreview}
-            aria-label={open ? `Collapse preview of ${item.name}` : `Preview ${item.name}`}
-            className="rounded-lg border border-border/60 px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        {/* Info & Thumbnail Trigger */}
+        <div
+          onClick={() => onOpenModal(item)}
+          className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 cursor-pointer group select-none"
+        >
+          <div
+            className={`grid size-9 sm:size-10 shrink-0 place-items-center rounded-lg border ${KIND_TONE[item.kind]} transition-transform duration-200 group-hover:scale-105`}
           >
-            {open ? "hide" : "view"}
-          </button>
+            <Icon className="size-4.5 sm:size-5" strokeWidth={1.75} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-mono text-xs font-semibold text-foreground group-hover:text-primary transition-colors">
+              {item.name}
+            </p>
+            <p className="mt-0.5 font-mono text-[9px] sm:text-[10px] text-muted-foreground truncate">
+              {formatBytes(item.size)} · {item.mime} ·{" "}
+              {new Date(item.createdAt).toLocaleString("en-GB", {
+                day: "2-digit",
+                month: "short",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+          </div>
+        </div>
+
+        {/* Action Button Strip — Fits all phone viewports without clipping */}
+        <div className="flex items-center gap-1.5 shrink-0 w-full sm:w-auto justify-end pt-1.5 sm:pt-0 border-t sm:border-t-0 border-border/40">
           <button
-            onClick={() => void import("@/lib/native-save").then(m => m.nativeSave(item.blob, item.name))}
+            type="button"
+            onClick={() => onOpenModal(item)}
+            aria-label={`Preview ${item.name}`}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-primary hover:bg-primary/20 active:scale-95 transition-all shadow-sm"
+          >
+            <Eye className="size-3.5" />
+            <span>preview</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => void import("@/lib/native-save").then((m) => m.nativeSave(item.blob, item.name))}
             aria-label={`Download ${item.name}`}
-            className="grid size-8 place-items-center rounded-lg border border-pulse/40 bg-pulse/10 text-pulse transition-colors hover:bg-pulse/20"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 h-8 sm:size-8 px-2.5 sm:px-0 rounded-lg border border-pulse/40 bg-pulse/10 text-pulse transition-colors hover:bg-pulse/20 active:scale-95"
+            title="Save to device"
           >
             <HardDrive className="size-3.5" />
+            <span className="sm:hidden font-mono text-[10px] uppercase font-semibold">save</span>
           </button>
+
           <button
+            type="button"
             onClick={() => onDelete(item.id)}
             aria-label={`Delete ${item.name}`}
-            className="grid size-8 place-items-center rounded-lg border border-border/60 text-muted-foreground transition-colors hover:border-red-400/50 hover:text-red-300"
+            className="size-8 grid place-items-center shrink-0 rounded-lg border border-border/60 text-muted-foreground transition-colors hover:border-red-400/50 hover:text-red-300 active:scale-95"
+            title="Delete from vault"
           >
             <Trash2 className="size-3.5" />
           </button>
         </div>
       </div>
-
-      <AnimatePresence>
-        {open && previewUrl && (
-          <motion.div
-            initial={{ opacity: 0, scaleY: 0.96, y: -6 }}
-            animate={{ opacity: 1, scaleY: 1, y: 0 }}
-            exit={{ opacity: 0, scaleY: 0.96, y: -6 }}
-            transition={{ type: "spring", stiffness: 380, damping: 28, mass: 0.7 }}
-            style={{ transformOrigin: "top center" }}
-            className="overflow-hidden"
-          >
-            <div className="pt-3">
-              {item.kind === "video" && (
-                <video src={previewUrl} controls playsInline className="max-h-64 w-full rounded-lg border border-border/50 bg-black" />
-              )}
-              {item.kind === "audio" && <audio src={previewUrl} controls className="w-full" />}
-              {item.kind === "image" && (
-                 
-                <img src={previewUrl} alt={item.name} className="max-h-64 w-full rounded-lg border border-border/50 bg-black object-contain" />
-              )}
-              {item.kind === "pdf" && (
-                <object data={previewUrl} type="application/pdf" aria-label={`${item.name} preview`} className="h-64 w-full rounded-lg border border-border/50 bg-white" />
-              )}
-              {item.kind === "file" && (
-                <p className="rounded-lg border border-border/50 bg-background/50 p-3 font-mono text-[10px] text-muted-foreground">
-                  binary file · {formatBytes(item.size)} · no inline preview
-                </p>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.li>
   );
 });
@@ -179,6 +151,7 @@ export function VaultView() {
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<KindFilter>("all");
   const [sort, setSort] = useState<SortMode>("recent");
+  const [previewItem, setPreviewItem] = useState<VaultItem | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -442,10 +415,15 @@ export function VaultView() {
       {/* list --------------------------------------------------------------- */}
       {filtered.length > 0 ? (
         <>
-          <ul className="scroll-hud grid max-h-[30rem] gap-2 overflow-y-auto pr-1" aria-label="Vault files">
+          <ul className="scroll-hud grid max-h-[38rem] sm:max-h-[44rem] gap-2.5 overflow-y-auto pr-1" aria-label="Vault files">
             <AnimatePresence initial={false}>
               {filtered.map((item) => (
-                <VaultRow key={item.id} item={item} onDelete={(id) => void handleDelete(id)} />
+                <VaultRow
+                  key={item.id}
+                  item={item}
+                  onDelete={(id) => void handleDelete(id)}
+                  onOpenModal={(it) => setPreviewItem(it)}
+                />
               ))}
             </AnimatePresence>
           </ul>
@@ -529,6 +507,13 @@ export function VaultView() {
           <p className="animate-pulse font-mono text-[11px] text-muted-foreground">opening vault…</p>
         </div>
       )}
+
+      {/* Phone-Fitted Full Screen / Dialog Preview Modal */}
+      <VaultPreviewModal
+        item={previewItem}
+        onClose={() => setPreviewItem(null)}
+        onDelete={(id) => void handleDelete(id)}
+      />
     </div>
   );
 }

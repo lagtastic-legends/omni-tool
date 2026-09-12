@@ -227,10 +227,10 @@ export function StdoutConsole({
 
                 return (
                   <div key={line.id} className="flex items-start gap-2 break-all text-[10.5px]">
-                    <span className="shrink-0 text-muted-foreground/40 select-none text-[9.5px]">
+                    <span suppressHydrationWarning className="shrink-0 text-muted-foreground/40 select-none text-[9.5px]">
                       [{line.time}]
                     </span>
-                    <span className={colorClass}>{line.text}</span>
+                    <span suppressHydrationWarning className={colorClass}>{line.text}</span>
                   </div>
                 );
               })

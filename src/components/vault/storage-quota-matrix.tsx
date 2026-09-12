@@ -92,22 +92,22 @@ export function StorageQuotaMatrix({
   return (
     <div className="panel-hud rounded-tactile border border-border/80 bg-card/80 p-5 text-card-foreground shadow-tactile backdrop-blur-md">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border/60 pb-3">
-        <div className="flex items-center gap-2">
-          <div className="flex size-7 items-center justify-center rounded-lg border border-primary/40 bg-primary/15 text-primary">
+      <div className="flex flex-wrap items-center justify-between border-b border-border/60 pb-3 gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-lg border border-primary/40 bg-primary/15 text-primary">
             <HardDrive className="size-4" />
           </div>
-          <div>
-            <h3 className="font-display text-xs font-bold tracking-wider uppercase text-foreground">
+          <div className="min-w-0">
+            <h3 className="font-display text-xs font-bold tracking-wider uppercase text-foreground truncate">
               Storage Quota Matrix
             </h3>
-            <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">
+            <p className="font-mono text-[9px] sm:text-[10px] text-muted-foreground uppercase tracking-widest truncate">
               OPFS V2 & IndexedDB · Real-Time Sandbox Telemetry
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto sm:ml-0 shrink-0">
           <button
             onClick={() => {
               void refresh();
@@ -120,7 +120,7 @@ export function StorageQuotaMatrix({
             <span>Sync</span>
           </button>
 
-          <span className="flex items-center gap-1.5 rounded-full border border-chart-5/40 bg-chart-5/10 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-chart-5">
+          <span className="flex items-center gap-1.5 rounded-full border border-chart-5/40 bg-chart-5/10 px-2.5 py-0.5 font-mono text-[9px] sm:text-[10px] font-semibold text-chart-5 whitespace-nowrap">
             <span className="size-1.5 rounded-full bg-chart-5 animate-pulse" />
             <span>{usedPct}% USED ({formatBytes(usedBytes)})</span>
           </span>

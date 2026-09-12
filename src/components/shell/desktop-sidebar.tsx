@@ -291,11 +291,12 @@ export function DesktopSidebar() {
             </div>
             <div className="flex items-center justify-between text-muted-foreground">
               <span className="uppercase tracking-wide text-[9px]">PTHREAD POOL</span>
-              <span className="font-bold text-foreground">{simdThreads}/8 Active</span>
+              <span suppressHydrationWarning className="font-bold text-foreground">{simdThreads}/8 Active</span>
             </div>
             <div className="flex items-center justify-between text-muted-foreground pt-1 border-t border-border/40">
               <span className="uppercase tracking-wide text-[9px]">HEAP BUFFER</span>
               <button
+                suppressHydrationWarning
                 onClick={() => {
                   haptics.light();
                   flushHeap();
