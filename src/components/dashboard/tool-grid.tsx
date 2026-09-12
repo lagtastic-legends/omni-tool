@@ -7,7 +7,7 @@
  */
 
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUpRight, LayoutGrid, Lock } from "lucide-react";
+import { ArrowUpRight, LayoutGrid, List, Lock } from "lucide-react";
 import { memo, useMemo, useState } from "react";
 import { useHaptics } from "@/hooks/use-haptics";
 import { useToast } from "@/hooks/use-toast";
@@ -28,10 +28,12 @@ const ToolCard = memo(function ToolCard({
   tool,
   index,
   engineState,
+  isMatrixView = true,
 }: {
   tool: ToolMeta;
   index: number;
   engineState: "idle" | "loading" | "ready" | "error";
+  isMatrixView?: boolean;
 }) {
   const { toast } = useToast();
   const haptics = useHaptics();
@@ -47,9 +49,9 @@ const ToolCard = memo(function ToolCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
-      transition={{ delay: Math.min(index * 0.025, 0.35), duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+      transition={{ delay: Math.min(index * 0.02, 0.3), duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       whileHover={{ y: -3, transition: { type: "spring", stiffness: 420, damping: 26, mass: 0.6 } }}
-      whileTap={{ scale: 0.97, y: 0, transition: { type: "spring", stiffness: 480, damping: 24, mass: 0.5 } }}
+      whileTap={{ scale: 0.96, y: 0, transition: { type: "spring", stiffness: 480, damping: 24, mass: 0.5 } }}
       style={{ transform: "translate3d(0, 0, 0)", backfaceVisibility: "hidden" }}
       onClick={() => {
         if (locked) {
@@ -63,7 +65,11 @@ const ToolCard = memo(function ToolCard({
           navigate(tool.id);
         }
       }}
-      className={`panel-hud group relative flex min-h-11 flex-col gap-3 rounded-tactile p-4 text-left shadow-tactile transition-all duration-200 ${
+      className={`panel-hud group relative flex min-h-11 flex-col justify-between text-left shadow-tactile transition-all duration-200 ${
+        isMatrixView
+          ? "rounded-xl sm:rounded-tactile p-2 sm:p-3.5 md:p-4 gap-1.5 sm:gap-2.5 min-h-[96px] sm:min-h-11"
+          : "rounded-tactile p-3.5 sm:p-4 gap-3"
+      } ${
         locked
           ? "cursor-pointer hover:border-primary/35 hover:shadow-elevation1"
           : isEngineReady
@@ -72,60 +78,142 @@ const ToolCard = memo(function ToolCard({
       }`}
       aria-label={`${tool.name} — ${locked ? `locked, phase ${tool.phase}` : isEngineReady ? "online, open module" : "standby, requires engine"}`}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start justify-between gap-1 sm:gap-2">
         <motion.div
           layoutId={`tool-icon-${tool.id}`}
-          className={`grid size-10 shrink-0 place-items-center rounded-lg border ${accent.tile} transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}
+          className={`grid shrink-0 place-items-center border ${accent.tile} transition-transform duration-300 group-hover:scale-110 ${
+            isMatrixView
+              ? "size-7 sm:size-10 rounded-md sm:rounded-lg"
+              : "size-9 sm:size-10 rounded-lg"
+          }`}
         >
-          <tool.icon className="size-5" strokeWidth={1.75} />
+          <tool.icon
+            className={isMatrixView ? "size-3.5 sm:size-5" : "size-4 sm:size-5"}
+            strokeWidth={1.75}
+          />
         </motion.div>
+
         {locked ? (
-          <span className="flex items-center gap-1 rounded-full border border-border/60 bg-background/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
-            <Lock className="size-2.5" />
-            phase {tool.phase}
-          </span>
+          <>
+            {isMatrixView && (
+              <span
+                className="sm:hidden grid size-4 place-items-center rounded bg-background/80 border border-border/80 text-muted-foreground"
+                title={`Locked (Phase ${tool.phase})`}
+              >
+                <Lock className="size-2.5" />
+              </span>
+            )}
+            <span
+              className={`${
+                isMatrixView ? "hidden sm:flex" : "flex"
+              } items-center gap-1 rounded-full border border-border/60 bg-background/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground`}
+            >
+              <Lock className="size-2.5" />
+              phase {tool.phase}
+            </span>
+          </>
         ) : requiresEngine && engineState !== "ready" ? (
           engineState === "loading" ? (
-            <span className="flex items-center gap-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-300">
-              <span className="size-1.5 animate-ping rounded-full bg-cyan-400" />
-              booting…
-            </span>
+            <>
+              {isMatrixView && (
+                <span
+                  className="sm:hidden size-2 rounded-full bg-cyan-400 animate-ping mt-1"
+                  title="Booting engine…"
+                />
+              )}
+              <span
+                className={`${
+                  isMatrixView ? "hidden sm:flex" : "flex"
+                } items-center gap-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-cyan-300`}
+              >
+                <span className="size-1.5 animate-ping rounded-full bg-cyan-400" />
+                booting…
+              </span>
+            </>
           ) : engineState === "error" ? (
-            <span className="flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-destructive">
-              <span className="size-1.5 rounded-full bg-destructive" />
-              error
-            </span>
+            <>
+              {isMatrixView && (
+                <span
+                  className="sm:hidden size-2 rounded-full bg-destructive mt-1"
+                  title="Engine error"
+                />
+              )}
+              <span
+                className={`${
+                  isMatrixView ? "hidden sm:flex" : "flex"
+                } items-center gap-1 rounded-full border border-destructive/30 bg-destructive/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-destructive`}
+              >
+                <span className="size-1.5 rounded-full bg-destructive" />
+                error
+              </span>
+            </>
           ) : (
-            <span className="flex items-center gap-1 rounded-full border border-border/70 bg-card/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
-              <span className="size-1.5 rounded-full bg-muted-foreground/60" />
-              standby
-            </span>
+            <>
+              {isMatrixView && (
+                <span
+                  className="sm:hidden size-2 rounded-full bg-muted-foreground/60 mt-1"
+                  title="Engine standby"
+                />
+              )}
+              <span
+                className={`${
+                  isMatrixView ? "hidden sm:flex" : "flex"
+                } items-center gap-1 rounded-full border border-border/70 bg-card/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground`}
+              >
+                <span className="size-1.5 rounded-full bg-muted-foreground/60" />
+                standby
+              </span>
+            </>
           )
         ) : (
-          <span className="flex items-center gap-1 rounded-full border border-pulse/30 bg-pulse/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-pulse">
-            <span className="size-1.5 animate-pulse rounded-full bg-pulse" />
-            online
-          </span>
+          <>
+            {isMatrixView && (
+              <span
+                className="sm:hidden size-2 rounded-full bg-pulse shadow-[0_0_6px_var(--pulse)] animate-pulse mt-1"
+                title="Online"
+              />
+            )}
+            <span
+              className={`${
+                isMatrixView ? "hidden sm:flex" : "flex"
+              } items-center gap-1 rounded-full border border-pulse/30 bg-pulse/10 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-pulse`}
+            >
+              <span className="size-1.5 animate-pulse rounded-full bg-pulse" />
+              online
+            </span>
+          </>
         )}
       </div>
 
       <div>
         <motion.p
           layoutId={`tool-title-${tool.id}`}
-          className="flex items-center gap-1.5 font-display text-[13px] font-bold tracking-wide text-foreground"
+          className={`flex items-center gap-1 font-display font-bold text-foreground leading-[1.25] ${
+            isMatrixView
+              ? "text-[10px] sm:text-xs md:text-[13px] tracking-tight sm:tracking-wide line-clamp-2 min-h-[25px] sm:min-h-0"
+              : "text-xs sm:text-[13px] tracking-wide"
+          }`}
         >
           {tool.name}
           {!locked && (
-            <ArrowUpRight className="size-3.5 text-primary opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100" />
+            <ArrowUpRight className="hidden sm:inline size-3.5 text-primary opacity-0 transition-all group-hover:translate-x-0.5 group-hover:opacity-100 shrink-0" />
           )}
         </motion.p>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+        <p
+          className={`mt-0.5 sm:mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-2 ${
+            isMatrixView ? "hidden sm:block" : "block"
+          }`}
+        >
           {tool.description}
         </p>
       </div>
 
       <span
-        className={`mt-auto inline-flex w-fit items-center rounded border px-1.5 py-0.5 font-mono text-[8.5px] uppercase tracking-[0.14em] ${accent.phaseChip}`}
+        className={`mt-auto inline-flex w-fit items-center rounded border font-mono uppercase truncate max-w-full ${
+          isMatrixView
+            ? "px-1 sm:px-1.5 py-0.2 sm:py-0.5 text-[7px] sm:text-[8.5px] tracking-[0.08em] sm:tracking-[0.14em]"
+            : "px-1.5 py-0.5 text-[8.5px] tracking-[0.14em]"
+        } ${accent.phaseChip}`}
       >
         {CATEGORY_LABELS[tool.category]}
       </span>
@@ -136,6 +224,7 @@ const ToolCard = memo(function ToolCard({
 export function ToolGrid() {
   const { state } = useFFmpegEngine();
   const [filter, setFilter] = useState<Filter>("all");
+  const [layoutMode, setLayoutMode] = useState<"grid" | "list">("grid");
   const haptics = useHaptics();
 
   const counts = useMemo(() => {
@@ -169,15 +258,54 @@ export function ToolGrid() {
 
   return (
     <section aria-labelledby="matrix-heading" className="space-y-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h3
-          id="matrix-heading"
-          className="flex items-center gap-2 font-display text-sm font-bold uppercase tracking-[0.28em] text-foreground/90"
-        >
-          <LayoutGrid className="size-4 text-primary" />
-          Tool Matrix
-        </h3>
-        <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex items-center gap-3">
+          <h3
+            id="matrix-heading"
+            className="flex items-center gap-2 font-display text-xs sm:text-sm font-bold uppercase tracking-[0.24em] sm:tracking-[0.28em] text-foreground/90"
+          >
+            <LayoutGrid className="size-4 text-primary" />
+            Tool Matrix
+          </h3>
+
+          {/* 4x8 Matrix vs Detailed view toggle */}
+          <div className="flex items-center rounded-full border border-border/70 bg-card/60 p-0.5 font-mono text-[9px] sm:text-[10px]">
+            <button
+              type="button"
+              onClick={() => {
+                void haptics.selectionChanged();
+                setLayoutMode("grid");
+              }}
+              className={`flex items-center gap-1 rounded-full px-2 sm:px-2.5 py-0.5 transition-all ${
+                layoutMode === "grid"
+                  ? "bg-primary text-primary-foreground font-bold shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              title="4×8 Matrix View (4 horizontal, 8 vertical)"
+            >
+              <LayoutGrid className="size-2.5 sm:size-3" />
+              <span>4×8 Grid</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                void haptics.selectionChanged();
+                setLayoutMode("list");
+              }}
+              className={`flex items-center gap-1 rounded-full px-2 sm:px-2.5 py-0.5 transition-all ${
+                layoutMode === "list"
+                  ? "bg-primary text-primary-foreground font-bold shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              title="Detailed List View"
+            >
+              <List className="size-2.5 sm:size-3" />
+              <span>Detailed</span>
+            </button>
+          </div>
+        </div>
+
+        <p className="font-mono text-[9px] sm:text-[10px] uppercase tracking-[0.16em] sm:tracking-[0.2em] text-muted-foreground">
           <span className="text-pulse">{onlineCount} live</span> ·{" "}
           {TOOL_REGISTRY.length} modules · engine{" "}
           <span className={state === "ready" ? "text-pulse" : "text-amber-300"}>
@@ -227,8 +355,15 @@ export function ToolGrid() {
         })}
       </div>
 
-      {/* grid */}
-      <motion.div layout className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {/* grid: 4 columns horizontally (4x8 matrix across all 32 tools) */}
+      <motion.div
+        layout
+        className={
+          layoutMode === "grid"
+            ? "grid grid-cols-4 gap-1.5 sm:gap-3 lg:gap-3.5"
+            : "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        }
+      >
         <AnimatePresence mode="popLayout">
           {visible.length === 0 ? (
             <motion.div
@@ -259,7 +394,13 @@ export function ToolGrid() {
             </motion.div>
           ) : (
             visible.map((tool, i) => (
-              <ToolCard key={tool.id} tool={tool} index={i} engineState={state} />
+              <ToolCard
+                key={tool.id}
+                tool={tool}
+                index={i}
+                engineState={state}
+                isMatrixView={layoutMode === "grid"}
+              />
             ))
           )}
         </AnimatePresence>
