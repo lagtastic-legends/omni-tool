@@ -58,12 +58,66 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function extractPhotoFromJwt(idToken: string): string | null {
+  try {
+    const parts = idToken.split(".");
+    if (parts.length >= 2) {
+      const base64Url = parts[1];
+      const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+      const json = decodeURIComponent(
+        atob(base64)
+          .split("")
+          .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+          .join("")
+      );
+      const payload = JSON.parse(json);
+      return payload.picture || null;
+    }
+  } catch {
+    // ignore decoding errors
+  }
+  return null;
+}
+
+function extractPhotoURL(user: any): string | null {
+  if (!user) return null;
+  // Direct properties
+  if (typeof user.photoURL === "string" && user.photoURL.trim()) return user.photoURL.trim();
+  if (typeof user.photoUrl === "string" && user.photoUrl.trim()) return user.photoUrl.trim();
+  if (typeof user.imageUrl === "string" && user.imageUrl.trim()) return user.imageUrl.trim();
+  if (typeof user.picture === "string" && user.picture.trim()) return user.picture.trim();
+
+  // Check providerData (Google account avatar is often stored here by Firebase)
+  if (Array.isArray(user.providerData)) {
+    for (const provider of user.providerData) {
+      if (!provider) continue;
+      if (typeof provider.photoURL === "string" && provider.photoURL.trim()) return provider.photoURL.trim();
+      if (typeof provider.photoUrl === "string" && provider.photoUrl.trim()) return provider.photoUrl.trim();
+      if (typeof provider.picture === "string" && provider.picture.trim()) return provider.picture.trim();
+      if (typeof provider.imageUrl === "string" && provider.imageUrl.trim()) return provider.imageUrl.trim();
+    }
+  }
+
+  // Check Firebase internal reloadUserInfo
+  if (user.reloadUserInfo) {
+    if (typeof user.reloadUserInfo.photoUrl === "string" && user.reloadUserInfo.photoUrl.trim()) {
+      return user.reloadUserInfo.photoUrl.trim();
+    }
+    if (typeof user.reloadUserInfo.photoURL === "string" && user.reloadUserInfo.photoURL.trim()) {
+      return user.reloadUserInfo.photoURL.trim();
+    }
+  }
+
+  return null;
+}
+
 function toAuthUser(user: User | any): AuthUser {
+  const photo = extractPhotoURL(user);
   return {
     uid: user.uid,
-    displayName: user.displayName || user.displayName,
-    email: user.email,
-    photoURL: user.imageUrl || user.photoUrl || user.photoURL,
+    displayName: user.displayName || user.providerData?.[0]?.displayName || null,
+    email: user.email || user.providerData?.[0]?.email || null,
+    photoURL: photo,
     providerId: user.providerData?.[0]?.providerId ?? "google.com",
   };
 }
@@ -82,16 +136,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let unsubscribeWeb: (() => void) | undefined;
     let unsubscribeNative: (() => void) | undefined;
 
-    // Check if user previously elected guest session
-    if (typeof window !== "undefined" && sessionStorage.getItem("omni_guest_session") === "true") {
-      setUser({
-        uid: "guest-user",
-        displayName: "Guest Explorer",
-        email: "guest@omnitool.local",
-        photoURL: null,
-        providerId: "guest.local",
-        isGuest: true,
-      });
+    // Check if test mock session or guest session was set
+    if (typeof window !== "undefined") {
+      const mockUserJson = sessionStorage.getItem("omni_mock_user");
+      if (mockUserJson) {
+        try {
+          setUser(JSON.parse(mockUserJson));
+        } catch {
+          // ignore
+        }
+      } else if (sessionStorage.getItem("omni_guest_session") === "true") {
+        setUser({
+          uid: "guest-user",
+          displayName: "Guest Explorer",
+          email: "guest@omnitool.local",
+          photoURL: null,
+          providerId: "guest.local",
+          isGuest: true,
+        });
+      }
     }
 
     void (async () => {
@@ -139,19 +202,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
           setUser(toAuthUser(u));
         } else {
-          // If in guest session, preserve guest user; otherwise set null
-          if (typeof window !== "undefined" && sessionStorage.getItem("omni_guest_session") === "true") {
-            setUser({
-              uid: "guest-user",
-              displayName: "Guest Explorer",
-              email: "guest@omnitool.local",
-              photoURL: null,
-              providerId: "guest.local",
-              isGuest: true,
-            });
-          } else {
-            setUser(null);
+          // If in test mock or guest session, preserve user; otherwise set null
+          if (typeof window !== "undefined") {
+            const mockUserJson = sessionStorage.getItem("omni_mock_user");
+            if (mockUserJson) {
+              try {
+                setUser(JSON.parse(mockUserJson));
+                return;
+              } catch {}
+            }
+            if (sessionStorage.getItem("omni_guest_session") === "true") {
+              setUser({
+                uid: "guest-user",
+                displayName: "Guest Explorer",
+                email: "guest@omnitool.local",
+                photoURL: null,
+                providerId: "guest.local",
+                isGuest: true,
+              });
+              return;
+            }
           }
+          setUser(null);
         }
       });
     })();
@@ -190,13 +262,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (typeof window !== "undefined") {
             sessionStorage.removeItem("omni_guest_session");
           }
-          setUser({
-            uid: u.uid,
-            displayName: u.displayName ?? null,
-            email: u.email ?? null,
-            photoURL: (u as any).imageUrl ?? u.photoUrl ?? null,
-            providerId: "google.com",
-          });
+          setUser(toAuthUser(u));
         }
         return;
       }
@@ -250,7 +316,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("omni_guest_session");
       }
-      setUser(toAuthUser(res.user));
+      const authUser = toAuthUser(res.user);
+      const jwtPhoto = !authUser.photoURL ? extractPhotoFromJwt(idToken) : null;
+      setUser(jwtPhoto ? { ...authUser, photoURL: jwtPhoto } : authUser);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {

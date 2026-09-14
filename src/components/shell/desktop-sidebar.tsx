@@ -46,6 +46,11 @@ export function DesktopSidebar() {
   const { isOpen: isAiOpen, toggleOpen: toggleAi } = useAiStore();
   const haptics = useHaptics();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Global Keyboard Navigation Shortcuts (1-5, [, ], F)
   useEffect(() => {
@@ -188,7 +193,7 @@ export function DesktopSidebar() {
                 } ${sidebarCollapsed ? "justify-center px-2" : ""}`}
               >
                 {/* Buttery smooth sliding active background pill */}
-                {isActive && (
+                {mounted && isActive && (
                   <motion.div
                     layoutId="active-sidebar-pill"
                     className="absolute inset-0 rounded-tactile bg-primary shadow-sm"

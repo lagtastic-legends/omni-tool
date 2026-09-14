@@ -188,6 +188,10 @@ export function AppShell() {
   const { isOpen: isAiOpen, toggleOpen: toggleAi } = useAiStore();
 
   useEffect(() => {
+    (window as any).__omni_navigate = navigate;
+  }, [navigate]);
+
+  useEffect(() => {
     if (isAiOpen) {
       return useNavStore.getState().registerOverlay("ai-chat", () => {
         useAiStore.getState().setIsOpen(false);

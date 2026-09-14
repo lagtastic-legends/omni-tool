@@ -9,7 +9,6 @@
  * gate up in minutes.
  */
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Fingerprint,
@@ -20,6 +19,7 @@ import {
   TerminalSquare,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
+import { UserAvatar } from "@/components/auth/user-avatar";
 
 function GoogleMark({ className }: { className?: string }) {
   return (
@@ -47,7 +47,6 @@ function GoogleMark({ className }: { className?: string }) {
 export function AuthGateway() {
   const { mode, user, busy, error, isNative, signInWithGoogle, signOut } =
     useAuth();
-  const [imgError, setImgError] = useState(false);
 
   const configured = mode === "configured";
 
@@ -80,22 +79,8 @@ export function AuthGateway() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-4"
             >
-              <div className="flex items-center gap-4 rounded-xl border border-pulse/30 bg-pulse/5 p-4">
-                {user.photoURL && !imgError ? (
-                  <img
-                    src={user.photoURL}
-                    alt={user.displayName ? `${user.displayName}'s profile avatar` : "User profile avatar"}
-                    className="size-12 rounded-full border border-pulse/40"
-                    onError={() => setImgError(true)}
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="grid size-12 place-items-center rounded-full border border-pulse/40 bg-pulse/10 font-display text-lg font-bold text-pulse">
-                    {(user.displayName ?? user.email ?? "?")
-                      .charAt(0)
-                      .toUpperCase()}
-                  </div>
-                )}
+              <div className="flex items-center gap-4 rounded-xl border border-border/70 bg-card/60 p-4 shadow-sm">
+                <UserAvatar user={user} size="lg" showGoogleBadge={true} />
                 <div className="min-w-0">
                   <p className="truncate font-mono text-sm font-semibold text-foreground">
                     {user.displayName ?? "Google user"}

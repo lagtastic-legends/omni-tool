@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { LogOut, ShieldAlert } from "lucide-react";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { useAuth } from "@/lib/auth/auth-context";
 import { SearchPalette } from "@/components/shell/search-palette";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
+import { UserAvatar } from "@/components/auth/user-avatar";
 import type { EngineState } from "@/types/omni";
 
 const STATE_META: Record<
@@ -38,7 +38,6 @@ const STATE_META: Record<
 export function TopBar() {
   const { state } = useFFmpegEngine();
   const { mode, user, signOut, isNative } = useAuth();
-  const [imgError, setImgError] = useState(false);
   const meta = STATE_META[state];
 
   return (
@@ -118,23 +117,11 @@ export function TopBar() {
           {user ? (
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <div
-                className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-pulse/30 bg-pulse/10 px-2 sm:px-2.5 py-1 sm:py-1.5"
+                className="flex items-center gap-2 rounded-full border border-border/70 bg-card/70 pl-1 pr-2.5 py-1 shadow-xs hover:border-primary/40 transition-colors"
                 title={user.email ?? "authenticated"}
               >
-                {user.photoURL && !imgError ? (
-                  <img
-                    src={user.photoURL}
-                    alt={user.displayName ? `${user.displayName}'s profile avatar` : "User profile avatar"}
-                    className="size-4 rounded-full"
-                    onError={() => setImgError(true)}
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <span className="grid size-4 place-items-center rounded-full bg-pulse/30 font-mono text-[9px] font-bold text-pulse">
-                    {(user.displayName ?? user.email ?? "?").charAt(0).toUpperCase()}
-                  </span>
-                )}
-                <span className="hidden xs:inline sm:inline max-w-16 sm:max-w-24 truncate font-mono text-[10px] text-pulse">
+                <UserAvatar user={user} size="sm" showGoogleBadge={true} />
+                <span className="hidden xs:inline sm:inline max-w-20 sm:max-w-28 truncate font-medium text-xs text-foreground">
                   {(user.displayName ?? user.email ?? "user").split(" ")[0]}
                 </span>
               </div>
