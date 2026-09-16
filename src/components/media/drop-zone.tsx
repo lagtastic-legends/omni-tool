@@ -147,21 +147,12 @@ export function DropZone({
     }
 
     if (realTitle) {
-      finalFile = new File([f], `${realTitle}${ext}`, { type: f.type });
-    } else {
-      // If Android handed us a random numeric name and there's no metadata,
-      // hide the random numbers and give it a clean friendly name.
-      const baseName = f.name.replace(ext, "");
-      if (/^\d+$/.test(baseName) || /^msf:\d+$/.test(baseName) || /^(image|video|audio|file)-\d+$/.test(baseName)) {
-        let prefix = "File";
-        if (f.type.startsWith("video/")) prefix = "Video";
-        else if (f.type.startsWith("audio/")) prefix = "Audio";
-        else if (f.type.startsWith("image/")) prefix = "Image";
-        else if (f.type === "application/pdf") prefix = "Document";
-        
-        const timeCode = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
-        finalFile = new File([f], `${prefix}_${timeCode}${ext}`, { type: f.type });
-      }
+      Object.defineProperty(finalFile, 'name', {
+        value: `${realTitle}${ext}`,
+        writable: false,
+        configurable: true,
+        enumerable: true
+      });
     }
 
     onFile(finalFile);
@@ -246,8 +237,15 @@ export function DropZone({
                     defaultValue={file.name}
                     onBlur={(e) => {
                       if (e.target.value && e.target.value !== file.name) {
-                        const newFile = new File([file], e.target.value, { type: file.type });
-                        onFile(newFile);
+                        const newName = e.target.value;
+                        const renamedFile = file;
+                        Object.defineProperty(renamedFile, 'name', {
+                          value: newName,
+                          writable: false,
+                          configurable: true,
+                          enumerable: true
+                        });
+                        onFile(renamedFile);
                       }
                     }}
                     onKeyDown={(e) => {
