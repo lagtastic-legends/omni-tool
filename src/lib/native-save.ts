@@ -1,6 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
-import { Share } from "@capacitor/share";
+import { useSaveDialogStore } from "@/hooks/useSaveDialogStore";
 
 export const nativeSave = async (blob: Blob, filename: string) => {
   if (!Capacitor.isNativePlatform()) {
@@ -14,6 +14,14 @@ export const nativeSave = async (blob: Blob, filename: string) => {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }, 2000);
+
+    useSaveDialogStore.getState().showSuccess({
+      filename,
+      directory: "Downloads",
+      uri: url,
+      fileSize: blob.size,
+      blob,
+    });
     return;
   }
 
@@ -41,9 +49,21 @@ export const nativeSave = async (blob: Blob, filename: string) => {
       directory: Directory.Documents,
     });
 
-    alert("File saved directly to Documents folder!\n" + filename);
+    useSaveDialogStore.getState().showSuccess({
+      filename,
+      directory: "Documents",
+      uri: savedFile.uri,
+      fileSize: blob.size,
+      blob,
+    });
   } catch (error) {
     console.error("Native save failed:", error);
-    alert("Could not save to Documents. Please check storage permissions.");
+    useSaveDialogStore.getState().showError({
+      filename,
+      errorMessage:
+        error instanceof Error
+          ? error.message
+          : "Could not save to Documents. Please check storage permissions.",
+    });
   }
 };

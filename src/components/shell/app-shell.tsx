@@ -23,6 +23,7 @@ import { useAiStore } from "@/store/useAiStore";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { BackConfirmDialog } from "@/components/navigation/back-confirm-dialog";
+import { SaveResultModal } from "@/components/dialogs/save-result-modal";
 import { DesktopSidebar } from "@/components/shell/desktop-sidebar";
 import { DesktopInspector } from "@/components/shell/desktop-inspector";
 import { WorkstationRibbon } from "@/components/shell/workstation-ribbon";
@@ -265,6 +266,7 @@ export function AppShell() {
       {!isAiOpen && <FloatingToolbar actions={floatingActions} />}
       <StickyMobileCta />
       <BackConfirmDialog />
+      <SaveResultModal />
 
       {/* Mobile Footer outside workstation columns */}
       <div className="lg:hidden">
