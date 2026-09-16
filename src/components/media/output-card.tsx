@@ -6,7 +6,7 @@
  */
 
 import { motion } from "framer-motion";
-import { Check, Database, Download, FileAudio, FileImage, FileText, FileVideo, Sparkles, X } from "lucide-react";
+import { Check, Database, Download, FileAudio, FileImage, FileText, FileVideo, Sparkles, X, Edit2 } from "lucide-react";
 import { useState, useEffect, useRef, type ReactNode } from "react";
 import { formatBytes } from "@/lib/format";
 import { useVault } from "@/lib/vault/vault-context";
@@ -100,17 +100,20 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse", onClear 
             <FileImage className="size-5 text-pulse" strokeWidth={1.75} />
           )}
         </div>
-        <div className="min-w-0 flex-1">
-          <input
-            type="text"
-            value={currentName}
-            onChange={(e) => setCurrentName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") e.currentTarget.blur();
-            }}
-            className="w-full truncate bg-transparent font-mono text-xs font-semibold text-foreground outline-none border-b border-transparent focus:border-pulse/50 transition-colors py-0.5"
-            title="Click to rename"
-          />
+        <div className="min-w-0 flex-1 group/edit">
+          <div className="flex items-center gap-1.5 pr-2">
+            <input
+              type="text"
+              value={currentName}
+              onChange={(e) => setCurrentName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.currentTarget.blur();
+              }}
+              className="min-w-0 flex-1 truncate bg-transparent font-mono text-xs font-semibold text-foreground outline-none border-b border-border/40 hover:border-border/80 focus:border-pulse/50 transition-colors py-0.5"
+              title="Click to rename"
+            />
+            <Edit2 className="size-3 text-muted-foreground opacity-40 group-hover/edit:opacity-100 transition-opacity shrink-0" />
+          </div>
           <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
             {formatBytes(output.size)} · {output.mime}
           </p>

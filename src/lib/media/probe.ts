@@ -57,3 +57,20 @@ export function probeAudioDuration(file: File): Promise<number> {
     audio.src = url;
   });
 }
+
+/**
+ * Extracts embedded ID3/MP4 metadata titles from media files.
+ * Replaces generic names (like '1000076567.mp4') with real titles.
+ */
+export async function probeMetadataTitle(file: File): Promise<string | null> {
+  try {
+    const mm = await import("music-metadata");
+    const metadata = await mm.parseBlob(file);
+    if (metadata?.common?.title) {
+      return metadata.common.title;
+    }
+  } catch (err) {
+    // Silently ignore if metadata is unreadable or absent
+  }
+  return null;
+}

@@ -7,7 +7,7 @@
  */
 
 import { AnimatePresence, motion } from "framer-motion";
-import { FileVideo, UploadCloud, X } from "lucide-react";
+import { FileVideo, UploadCloud, X, Edit2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { formatBytes } from "@/lib/format";
@@ -102,7 +102,7 @@ export function DropZone({
 
   const kindPrefix = accept.endsWith("*") ? accept.slice(0, -1) : "";
 
-  const acceptFile = (f: File | undefined) => {
+  const acceptFile = async (f: File | undefined) => {
     if (!f || disabled) return;
     const matchesKind =
       !kindPrefix ||
@@ -132,14 +132,29 @@ export function DropZone({
           "Over 300 MB — processing may take a while and use significant memory.",
       });
     }
-    onFile(f);
+
+    let finalFile = f;
+    if (f.type.startsWith("video/") || f.type.startsWith("audio/")) {
+      try {
+        const { probeMetadataTitle } = await import("@/lib/media/probe");
+        const realTitle = await probeMetadataTitle(f);
+        if (realTitle) {
+          const ext = f.name.includes(".") ? f.name.substring(f.name.lastIndexOf(".")) : "";
+          finalFile = new File([f], `${realTitle}${ext}`, { type: f.type });
+        }
+      } catch (err) {
+        // Fall back to original file
+      }
+    }
+
+    onFile(finalFile);
   };
 
   const onDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     dragDepth.current = 0;
     setDragging(false);
-    acceptFile(e.dataTransfer.files?.[0]);
+    void acceptFile(e.dataTransfer.files?.[0]);
   };
 
   return (
@@ -206,25 +221,28 @@ export function DropZone({
               <div className="grid size-10 shrink-0 place-items-center rounded-lg border border-primary/30 bg-primary/10">
                 <FileVideo className="size-5 text-primary" strokeWidth={1.75} />
               </div>
-              <div className="min-w-0 flex-1">
-                <input
-                  key={file.name}
-                  type="text"
-                  defaultValue={file.name}
-                  onBlur={(e) => {
-                    if (e.target.value && e.target.value !== file.name) {
-                      const newFile = new File([file], e.target.value, { type: file.type });
-                      onFile(newFile);
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.currentTarget.blur();
-                    }
-                  }}
-                  className="w-full truncate bg-transparent font-mono text-xs font-medium text-foreground outline-none border-b border-transparent focus:border-primary/50 transition-colors py-0.5"
-                  title="Click to rename"
-                />
+              <div className="min-w-0 flex-1 group/edit">
+                <div className="flex items-center gap-1.5 pr-2">
+                  <input
+                    key={file.name}
+                    type="text"
+                    defaultValue={file.name}
+                    onBlur={(e) => {
+                      if (e.target.value && e.target.value !== file.name) {
+                        const newFile = new File([file], e.target.value, { type: file.type });
+                        onFile(newFile);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.currentTarget.blur();
+                      }
+                    }}
+                    className="min-w-0 flex-1 truncate bg-transparent font-mono text-xs font-medium text-foreground outline-none border-b border-border/40 hover:border-border/80 focus:border-primary/50 transition-colors py-0.5"
+                    title="Click to rename"
+                  />
+                  <Edit2 className="size-3 text-muted-foreground opacity-40 group-hover/edit:opacity-100 transition-opacity shrink-0" />
+                </div>
                 <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
                   {formatBytes(file.size)}
                   {file.type ? ` · ${file.type}` : ""}
@@ -266,7 +284,7 @@ export function DropZone({
         className="sr-only"
         aria-label="Upload media file"
         onChange={(e) => {
-          acceptFile(e.target.files?.[0]);
+          void acceptFile(e.target.files?.[0]);
           e.target.value = "";
         }}
       />
