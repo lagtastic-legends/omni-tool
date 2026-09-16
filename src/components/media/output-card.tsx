@@ -35,6 +35,7 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse", onClear 
   const { save } = useVault();
   const haptics = useHaptics();
   const [vaultState, setVaultState] = useState<"idle" | "saved">("idle");
+  const [currentName, setCurrentName] = useState(output.name);
   const onClearRef = useRef(onClear);
   onClearRef.current = onClear;
   const outputRef = useRef(output);
@@ -42,7 +43,7 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse", onClear 
 
   const saveToVault = async () => {
     const item = await save({
-      name: output.name,
+      name: currentName,
       blob: output.blob,
       mime: output.mime,
       size: output.size,
@@ -58,7 +59,7 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse", onClear 
     if (!output) return;
     const unguard = useNavStore.getState().registerDirtyGuard(() => ({
       hasUnsaved: true,
-      message: `You have generated "${outputRef.current?.name ?? "file"}". Going back will discard this processed file. Are you sure you want to proceed?`,
+      message: `You have generated "${currentName}". Going back will discard this processed file. Are you sure you want to proceed?`,
     }));
 
     const unstep = useNavStore.getState().registerStepHandler(() => {
@@ -73,7 +74,7 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse", onClear 
       unguard();
       unstep();
     };
-  }, [output?.url]);
+  }, [output?.url, currentName]);
 
   const isVideo = output.mime.startsWith("video/");
   const isAudio = output.mime.startsWith("audio/");
@@ -100,9 +101,16 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse", onClear 
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-mono text-xs font-semibold text-foreground">
-            {output.name}
-          </p>
+          <input
+            type="text"
+            value={currentName}
+            onChange={(e) => setCurrentName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+            }}
+            className="w-full truncate bg-transparent font-mono text-xs font-semibold text-foreground outline-none border-b border-transparent focus:border-pulse/50 transition-colors py-0.5"
+            title="Click to rename"
+          />
           <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
             {formatBytes(output.size)} · {output.mime}
           </p>
@@ -153,7 +161,7 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse", onClear 
 
       <div className="grid grid-cols-[1fr_auto] gap-2">
         <button
-          onClick={() => void import("@/lib/native-save").then(m => m.nativeSave(output.blob, output.name))}
+          onClick={() => void import("@/lib/native-save").then(m => m.nativeSave(output.blob, currentName))}
           className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-pulse/40 bg-pulse/15 font-display text-xs font-bold tracking-[0.18em] text-pulse transition-colors hover:bg-pulse/25"
         >
           <Download className="size-4" />

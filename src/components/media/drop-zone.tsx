@@ -207,9 +207,24 @@ export function DropZone({
                 <FileVideo className="size-5 text-primary" strokeWidth={1.75} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-mono text-xs font-medium text-foreground">
-                  {file.name}
-                </p>
+                <input
+                  key={file.name}
+                  type="text"
+                  defaultValue={file.name}
+                  onBlur={(e) => {
+                    if (e.target.value && e.target.value !== file.name) {
+                      const newFile = new File([file], e.target.value, { type: file.type });
+                      onFile(newFile);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.currentTarget.blur();
+                    }
+                  }}
+                  className="w-full truncate bg-transparent font-mono text-xs font-medium text-foreground outline-none border-b border-transparent focus:border-primary/50 transition-colors py-0.5"
+                  title="Click to rename"
+                />
                 <p className="mt-0.5 font-mono text-[10px] text-muted-foreground">
                   {formatBytes(file.size)}
                   {file.type ? ` · ${file.type}` : ""}
