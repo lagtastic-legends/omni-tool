@@ -134,16 +134,33 @@ export function DropZone({
     }
 
     let finalFile = f;
+    let realTitle: string | null = null;
+    const ext = f.name.includes(".") ? f.name.substring(f.name.lastIndexOf(".")) : "";
+
     if (f.type.startsWith("video/") || f.type.startsWith("audio/")) {
       try {
         const { probeMetadataTitle } = await import("@/lib/media/probe");
-        const realTitle = await probeMetadataTitle(f);
-        if (realTitle) {
-          const ext = f.name.includes(".") ? f.name.substring(f.name.lastIndexOf(".")) : "";
-          finalFile = new File([f], `${realTitle}${ext}`, { type: f.type });
-        }
+        realTitle = await probeMetadataTitle(f);
       } catch (err) {
-        // Fall back to original file
+        // Fall back
+      }
+    }
+
+    if (realTitle) {
+      finalFile = new File([f], `${realTitle}${ext}`, { type: f.type });
+    } else {
+      // If Android handed us a random numeric name and there's no metadata,
+      // hide the random numbers and give it a clean friendly name.
+      const baseName = f.name.replace(ext, "");
+      if (/^\d+$/.test(baseName) || /^msf:\d+$/.test(baseName) || /^(image|video|audio|file)-\d+$/.test(baseName)) {
+        let prefix = "File";
+        if (f.type.startsWith("video/")) prefix = "Video";
+        else if (f.type.startsWith("audio/")) prefix = "Audio";
+        else if (f.type.startsWith("image/")) prefix = "Image";
+        else if (f.type === "application/pdf") prefix = "Document";
+        
+        const timeCode = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+        finalFile = new File([f], `${prefix}_${timeCode}${ext}`, { type: f.type });
       }
     }
 
