@@ -41,6 +41,10 @@ export function OutputCard({ output, extra, badge, badgeTone = "pulse", onClear 
   const outputRef = useRef(output);
   outputRef.current = output;
 
+  useEffect(() => {
+    setCurrentName(output.name);
+  }, [output.name]);
+
   const saveToVault = async () => {
     const item = await save({
       name: currentName,

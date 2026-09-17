@@ -5,6 +5,7 @@ export interface OmniRecorderPlugin {
   stopRecording(): Promise<{ uri: string }>;
   requestPermissions(): Promise<any>;
   checkPermissions(): Promise<any>;
+  resolveMediaName(options: { name: string }): Promise<{ realName?: string }>;
   addListener(eventName: 'onRecordComplete', listenerFunc: (info: { uri: string }) => void): Promise<PluginListenerHandle> & PluginListenerHandle;
 }
 

@@ -139,34 +139,15 @@ export function MediaConverter() {
   const [audioFormat, setAudioFormat] = useState<AudioFormat>("mp3");
   const [quality, setQuality] = useState<Quality>("balanced");
   const [audioKbps, setAudioKbps] = useState("192");
+  const [customName, setCustomName] = useState<string>("");
   const [videoDuration, setVideoDuration] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [trimRange, setTrimRange] = useState<{ start: number; end: number } | null>(null);
 
-  // Load real video metadata and duration
-  useEffect(() => {
-    if (!file || !file.type.startsWith("video/")) {
-      setVideoDuration(0);
-      setCurrentTime(0);
-      setTrimRange(null);
-      return;
-    }
-    const url = URL.createObjectURL(file);
-    const video = document.createElement("video");
-    video.preload = "metadata";
-    video.src = url;
-    video.onloadedmetadata = () => {
-      const dur = video.duration || 0;
-      setVideoDuration(dur);
-      setCurrentTime(0);
-      setTrimRange({ start: 0, end: dur });
-      URL.revokeObjectURL(url);
-    };
-  }, [file]);
-
+  const effectiveName = customName || (file ? file.name : "");
   const targetExt = mode === "video" ? videoFormat : audioFormat;
-  const inputPath = file ? `input.${extOf(file.name) || "bin"}` : "";
-  const outputName = file ? `${baseName(file.name)}.${targetExt}` : "";
+  const inputPath = file ? `input.${extOf(effectiveName) || "bin"}` : "";
+  const outputName = effectiveName ? `${baseName(effectiveName)}.${targetExt}` : "";
   const outputPath = `output.${targetExt}`;
 
   const handleSnapshot = () => {
@@ -231,10 +212,22 @@ export function MediaConverter() {
           onFile={(f) => {
             reset();
             setFile(f);
+            setCustomName("");
+          }}
+          onRename={(newName) => {
+            setCustomName(newName);
+          }}
+          onProbed={(m) => {
+            setVideoDuration(m.durationSec);
+            setTrimRange({ start: 0, end: m.durationSec });
           }}
           onClear={() => {
             reset();
             setFile(null);
+            setCustomName("");
+            setVideoDuration(0);
+            setCurrentTime(0);
+            setTrimRange(null);
           }}
           preview="video"
           label="Drop a video to convert"

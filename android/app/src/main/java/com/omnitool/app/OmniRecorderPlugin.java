@@ -18,6 +18,12 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.MediaStore;
+
 import androidx.activity.result.ActivityResult;
 
 import com.omnitool.app.recorder.OmniRecordService;
@@ -221,5 +227,93 @@ public class OmniRecorderPlugin extends Plugin {
         if (recordService != null) {
             recordService.stopRecording();
         }
+    }
+
+    @PluginMethod
+    public void resolveMediaName(PluginCall call) {
+        String name = call.getString("name");
+        if (name == null || name.isEmpty()) {
+            call.resolve(new JSObject());
+            return;
+        }
+
+        String idStr = name.replaceAll("\\.[^.]+$", "");
+        if (!idStr.matches("^\\d+$")) {
+            JSObject ret = new JSObject();
+            ret.put("realName", name);
+            call.resolve(ret);
+            return;
+        }
+
+        try {
+            long id = Long.parseLong(idStr);
+            ContentResolver resolver = getContext().getContentResolver();
+
+            // 1. Try Video MediaStore
+            Uri videoUri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id);
+            try (Cursor cursor = resolver.query(videoUri, new String[]{ MediaStore.Video.Media.DISPLAY_NAME, MediaStore.Video.Media.TITLE }, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int nameIdx = cursor.getColumnIndex(MediaStore.Video.Media.DISPLAY_NAME);
+                    if (nameIdx != -1) {
+                        String realName = cursor.getString(nameIdx);
+                        if (realName != null && !realName.isEmpty() && !realName.startsWith(idStr)) {
+                            JSObject ret = new JSObject();
+                            ret.put("realName", realName);
+                            call.resolve(ret);
+                            return;
+                        }
+                    }
+                    int titleIdx = cursor.getColumnIndex(MediaStore.Video.Media.TITLE);
+                    if (titleIdx != -1) {
+                        String title = cursor.getString(titleIdx);
+                        if (title != null && !title.isEmpty() && !title.startsWith(idStr)) {
+                            String ext = name.contains(".") ? name.substring(name.lastIndexOf(".")) : ".mp4";
+                            JSObject ret = new JSObject();
+                            ret.put("realName", title + ext);
+                            call.resolve(ret);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // 2. Try Audio MediaStore
+            Uri audioUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id);
+            try (Cursor cursor = resolver.query(audioUri, new String[]{ MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media.TITLE }, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int nameIdx = cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME);
+                    if (nameIdx != -1) {
+                        String realName = cursor.getString(nameIdx);
+                        if (realName != null && !realName.isEmpty() && !realName.startsWith(idStr)) {
+                            JSObject ret = new JSObject();
+                            ret.put("realName", realName);
+                            call.resolve(ret);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // 3. Try Images MediaStore
+            Uri imagesUri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+            try (Cursor cursor = resolver.query(imagesUri, new String[]{ MediaStore.Images.Media.DISPLAY_NAME }, null, null, null)) {
+                if (cursor != null && cursor.moveToFirst()) {
+                    int nameIdx = cursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME);
+                    if (nameIdx != -1) {
+                        String realName = cursor.getString(nameIdx);
+                        if (realName != null && !realName.isEmpty() && !realName.startsWith(idStr)) {
+                            JSObject ret = new JSObject();
+                            ret.put("realName", realName);
+                            call.resolve(ret);
+                            return;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Silently fall through
+        }
+
+        call.resolve(new JSObject());
     }
 }

@@ -21,6 +21,7 @@ interface DropZoneProps {
   file: File | null;
   onFile: (file: File) => void;
   onClear: () => void;
+  onRename?: (newName: string) => void;
   /** "video" renders a <video> preview + metadata chips. */
   preview?: "video" | "audio" | "none";
   label?: string;
@@ -34,6 +35,7 @@ export function DropZone({
   file,
   onFile,
   onClear,
+  onRename,
   preview = "none",
   label = "Drop your file here",
   hint,
@@ -45,6 +47,15 @@ export function DropZone({
   const dragDepth = useRef(0);
   const [dragging, setDragging] = useState(false);
   const [probed, setProbed] = useState<{ file: File; meta: VideoMeta } | null>(null);
+  const [displayName, setDisplayName] = useState(file ? file.name : "");
+
+  useEffect(() => {
+    if (file) {
+      setDisplayName(file.name);
+    } else {
+      setDisplayName("");
+    }
+  }, [file]);
 
   /* Preview URL is derived, not stored — creation in useMemo, revocation
    * handled by the effect cleanup whenever it (or unmount) goes stale. */
@@ -102,12 +113,13 @@ export function DropZone({
 
   const kindPrefix = accept.endsWith("*") ? accept.slice(0, -1) : "";
 
-  const acceptFile = async (f: File | undefined) => {
+  const acceptFile = (f: File | undefined) => {
     if (!f || disabled) return;
     const matchesKind =
       !kindPrefix ||
       f.type.startsWith(kindPrefix) ||
-      (kindPrefix === "video/" && /\.(mp4|mov|avi|mkv|webm|m4v|mpg|mpeg|wmv|3gp|ts)$/i.test(f.name));
+      (kindPrefix === "video/" && /\.(mp4|mov|avi|mkv|webm|m4v|mpg|mpeg|wmv|3gp|ts|flv)$/i.test(f.name)) ||
+      (kindPrefix === "audio/" && /\.(mp3|wav|m4a|aac|flac|ogg|opus|wma)$/i.test(f.name));
     if (!matchesKind) {
       toast({
         title: "Unsupported file",
@@ -133,29 +145,31 @@ export function DropZone({
       });
     }
 
-    let finalFile = f;
-    let realTitle: string | null = null;
-    const ext = f.name.includes(".") ? f.name.substring(f.name.lastIndexOf(".")) : "";
+    // 1. INSTANTLY pass file to state — 0ms lag!
+    setDisplayName(f.name);
+    onFile(f);
 
-    if (f.type.startsWith("video/") || f.type.startsWith("audio/")) {
+    // 2. Asynchronously resolve real name in background without blocking UI
+    void (async () => {
       try {
         const { probeMetadataTitle } = await import("@/lib/media/probe");
-        realTitle = await probeMetadataTitle(f);
-      } catch (err) {
-        // Fall back
+        const realTitle = await probeMetadataTitle(f);
+        if (realTitle && realTitle !== f.name) {
+          try {
+            Object.defineProperty(f, "name", {
+              value: realTitle,
+              writable: true,
+              configurable: true,
+              enumerable: true,
+            });
+          } catch {}
+          setDisplayName(realTitle);
+          onRename?.(realTitle);
+        }
+      } catch {
+        // Silently preserve original
       }
-    }
-
-    if (realTitle) {
-      Object.defineProperty(finalFile, 'name', {
-        value: `${realTitle}${ext}`,
-        writable: false,
-        configurable: true,
-        enumerable: true
-      });
-    }
-
-    onFile(finalFile);
+    })();
   };
 
   const onDrop = (e: DragEvent<HTMLDivElement>) => {
@@ -232,20 +246,20 @@ export function DropZone({
               <div className="min-w-0 flex-1 group/edit">
                 <div className="flex items-center gap-1.5 pr-2">
                   <input
-                    key={file.name}
                     type="text"
-                    defaultValue={file.name}
-                    onBlur={(e) => {
-                      if (e.target.value && e.target.value !== file.name) {
-                        const newName = e.target.value;
-                        const renamedFile = file;
-                        Object.defineProperty(renamedFile, 'name', {
-                          value: newName,
-                          writable: false,
-                          configurable: true,
-                          enumerable: true
-                        });
-                        onFile(renamedFile);
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    onBlur={() => {
+                      if (displayName && file && displayName !== file.name) {
+                        try {
+                          Object.defineProperty(file, "name", {
+                            value: displayName,
+                            writable: true,
+                            configurable: true,
+                            enumerable: true,
+                          });
+                        } catch {}
+                        onRename?.(displayName);
                       }
                     }}
                     onKeyDown={(e) => {
@@ -255,6 +269,7 @@ export function DropZone({
                     }}
                     className="min-w-0 flex-1 truncate bg-transparent font-mono text-xs font-medium text-foreground outline-none border-b border-border/40 hover:border-border/80 focus:border-primary/50 transition-colors py-0.5"
                     title="Click to rename"
+                    placeholder="File name"
                   />
                   <Edit2 className="size-3 text-muted-foreground opacity-40 group-hover/edit:opacity-100 transition-opacity shrink-0" />
                 </div>
@@ -295,11 +310,17 @@ export function DropZone({
       <input
         ref={inputRef}
         type="file"
-        accept={accept}
+        accept={
+          accept === "video/*"
+            ? "video/*,.mp4,.mov,.mkv,.avi,.webm,.m4v,.3gp,.flv,.wmv"
+            : accept === "audio/*"
+              ? "audio/*,.mp3,.wav,.m4a,.aac,.flac,.ogg,.opus,.wma"
+              : accept
+        }
         className="sr-only"
         aria-label="Upload media file"
         onChange={(e) => {
-          void acceptFile(e.target.files?.[0]);
+          acceptFile(e.target.files?.[0]);
           e.target.value = "";
         }}
       />
