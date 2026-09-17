@@ -305,3 +305,13 @@ export const useNavStore = create<NavState>((set, get) => ({
     return await get()._executeHistoryPop();
   },
 }));
+
+if (typeof window !== "undefined") {
+  window.addEventListener("hashchange", () => {
+    const raw = window.location.hash.replace(/^#/, "");
+    const target = raw && raw !== DASHBOARD_VIEW ? raw : DASHBOARD_VIEW;
+    if (useNavStore.getState().view !== target) {
+      useNavStore.getState().navigate(target, { replace: true });
+    }
+  });
+}
