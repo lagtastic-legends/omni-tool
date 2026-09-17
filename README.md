@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.6.7">
-    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release%20v2.6.7" alt="Release" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.7.0">
+    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release%20v2.7.0" alt="Release" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.6.7/omni-tool-v2.6.7.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.6.7-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.0/omni-tool-v2.7.0.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.7.0-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" />
@@ -39,8 +39,8 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web App** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero install required. Run instantly in any modern browser. |
-| **📱 Android APK (Signed Release)** | [**Download omni-tool-v2.6.7.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.6.7/omni-tool-v2.6.7.apk) | Production signed APK (24.32 MB) optimized for phones, foldables, flips, and tablets. |
-| **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.6.7-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.6.7/omni-tool-v2.6.7-debug.apk) | Debug build (36.41 MB) with remote Chrome WebView debugging enabled for developers. |
+| **📱 Android APK (Signed Release)** | [**Download omni-tool-v2.7.0.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.0/omni-tool-v2.7.0.apk) | Production signed APK optimized for phones, foldables, flips, and tablets. |
+| **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.7.0-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.0/omni-tool-v2.7.0-debug.apk) | Debug build with remote Chrome WebView debugging enabled for developers. |
 
 ---
 
@@ -53,7 +53,8 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 * **Pre-flight Silent Video Guard**: Dual-layer ISO BMFF audio atom detection (`probeHasAudio`) prevents FFmpeg exit code 1 failures when extracting audio from silent videos.
 * **Reactive Inline Renaming**: Direct real-time renaming in DropZone and output cards without cloning blobs or corrupting native streams.
 * **Video Compressor**: Smart multi-tier CRF and preset compression with zero quality loss.
-* **Universal Media Converter**: Transcode MP4, MKV, WebM, AVI, MOV, and extract audio tracks client-side.
+* **Universal Media Converter**: Transcode MP4, MKV, WebM, AVI, MOV, and extract audio tracks client-side. **New: Original lossless audio extraction** via stream copy (`-c:a copy`).
+* **5 GB File Processing**: Supports media files up to 5 GB with intelligent memory warnings at 1.5 GB for mobile devices.
 * **GIF Studio**: Convert video segments into optimized animated GIFs with custom framerate and palette control.
 
 ### 🎛️ Unified Audio DSP Suite (13 Engines)
@@ -102,7 +103,12 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
   - **Subtle Alert Tone** (`/sounds/error.mp3`, 240ms dual low-mid tone)
 * **Global Mute Persistence**: Zustand-driven `isAudioMuted` state synchronized with `localStorage` (`omni_ui_audio_muted`).
 * **1-Tap Mute Controls**: Accessible Radix `Switch` in DesktopSidebar and sleek `AudioToggle` button pills in `TopBar` and `WorkstationRibbon` for mobile and desktop.
-* **Browser Autoplay Compliance**: Completely non-blocking with automated autoplay policy exception handling.
+* **Android WebView AudioContext Unlock**: Automatic silent-buffer playback on first user gesture to bypass Android WebView audio autoplay restrictions, with Howler.js context resume and native `Audio()` fallback.
+
+### 🔐 Android Permissions & Security
+* **Granular Media Access (Android 13+)**: `READ_MEDIA_AUDIO`, `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO` for scoped storage compliance.
+* **Legacy Storage Compatibility**: `READ_EXTERNAL_STORAGE` / `WRITE_EXTERNAL_STORAGE` with `maxSdkVersion=32` for Android 12 and below.
+* **First-Launch Permission Gate**: Styled dialog explaining each permission category with batch request and visual grant/deny feedback.
 
 ---
 
