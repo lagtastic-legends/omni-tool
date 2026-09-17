@@ -12,6 +12,7 @@ export interface VideoMeta {
   durationSec: number;
   width: number;
   height: number;
+  hasAudio?: boolean;
 }
 
 export function probeVideo(file: File): Promise<VideoMeta> {
@@ -26,7 +27,7 @@ export function probeVideo(file: File): Promise<VideoMeta> {
       if (!settled) {
         settled = true;
         URL.revokeObjectURL(url);
-        resolve({ durationSec: 30, width: 1280, height: 720 });
+        resolve({ durationSec: 30, width: 1280, height: 720, hasAudio: true });
       }
     }, 5000);
 
@@ -40,10 +41,30 @@ export function probeVideo(file: File): Promise<VideoMeta> {
     };
 
     video.onloadedmetadata = () => {
+      let hasAudio: boolean | undefined = undefined;
+      try {
+        const stream =
+          typeof (video as any).captureStream === "function"
+            ? (video as any).captureStream()
+            : typeof (video as any).mozCaptureStream === "function"
+              ? (video as any).mozCaptureStream()
+              : null;
+        if (stream && typeof stream.getAudioTracks === "function") {
+          hasAudio = stream.getAudioTracks().length > 0;
+        } else if ((video as any).audioTracks && typeof (video as any).audioTracks.length === "number") {
+          hasAudio = (video as any).audioTracks.length > 0;
+        } else if (typeof (video as any).mozHasAudio !== "undefined") {
+          hasAudio = Boolean((video as any).mozHasAudio);
+        }
+      } catch {
+        // ignore
+      }
+
       finish({
         durationSec: Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 30,
         width: video.videoWidth || 1280,
         height: video.videoHeight || 720,
+        hasAudio,
       });
     };
     video.onerror = () => {
@@ -172,10 +193,17 @@ export async function probeMetadataTitle(file: File): Promise<string | null> {
   return null;
 }
 
-function parseMp4Boxes(buffer: ArrayBuffer): { title: string | null; creationDate: Date | null } {
+function parseMp4Boxes(buffer: ArrayBuffer): {
+  title: string | null;
+  creationDate: Date | null;
+  hasAudio: boolean;
+  hasMoov: boolean;
+} {
   const view = new DataView(buffer);
   let title: string | null = null;
   let creationDate: Date | null = null;
+  let hasAudio = false;
+  let hasMoov = false;
 
   function scan(offset: number, end: number, depth: number) {
     if (depth > 12 || offset >= end) return;
@@ -191,8 +219,21 @@ function parseMp4Boxes(buffer: ArrayBuffer): { title: string | null; creationDat
       const boxEnd = Math.min(offset + size, end);
       const dataOffset = offset + 8;
 
-      if (type === "moov" || type === "udta" || type === "trak") {
+      if (type === "moov") {
+        hasMoov = true;
         scan(dataOffset, boxEnd, depth + 1);
+      } else if (type === "udta" || type === "trak" || type === "mdia") {
+        scan(dataOffset, boxEnd, depth + 1);
+      } else if (type === "hdlr" && dataOffset + 12 <= boxEnd) {
+        const handlerType = String.fromCharCode(
+          view.getUint8(dataOffset + 8),
+          view.getUint8(dataOffset + 9),
+          view.getUint8(dataOffset + 10),
+          view.getUint8(dataOffset + 11),
+        );
+        if (handlerType === "soun") {
+          hasAudio = true;
+        }
       } else if (type === "meta") {
         scan(dataOffset + 4, boxEnd, depth + 1);
       } else if (type === "ilst") {
@@ -240,7 +281,7 @@ function parseMp4Boxes(buffer: ArrayBuffer): { title: string | null; creationDat
   }
 
   scan(0, view.byteLength, 0);
-  return { title, creationDate };
+  return { title, creationDate, hasAudio, hasMoov };
 }
 
 function parseId3v2Title(buffer: ArrayBuffer): string | null {
@@ -275,3 +316,111 @@ function parseId3v2Title(buffer: ArrayBuffer): string | null {
   }
   return null;
 }
+
+/**
+ * Fast check to determine if a video file has an audio track.
+ * Combines zero-delay binary MP4 atom inspection with browser element probe.
+ */
+export async function probeHasAudio(file: File): Promise<boolean> {
+  if (
+    file.type.startsWith("audio/") ||
+    /\.(mp3|wav|m4a|flac|ogg|aac|opus|wma|aiff)$/i.test(file.name)
+  ) {
+    return true;
+  }
+
+  // 1. Fast binary atom probe for MP4/MOV/M4V
+  if (
+    /\.(mp4|mov|m4v|3gp)$/i.test(file.name) ||
+    file.type.startsWith("video/mp4") ||
+    file.type.startsWith("video/quicktime")
+  ) {
+    try {
+      const headSize = Math.min(file.size, 262144);
+      const headBuf = await file.slice(0, headSize).arrayBuffer();
+      const headRes = parseMp4Boxes(headBuf);
+      if (headRes.hasMoov) {
+        return headRes.hasAudio;
+      }
+      if (file.size > 262144) {
+        const tailStart = Math.max(0, file.size - 262144);
+        const tailBuf = await file.slice(tailStart, file.size).arrayBuffer();
+        const tailRes = parseMp4Boxes(tailBuf);
+        if (tailRes.hasMoov) {
+          return tailRes.hasAudio;
+        }
+      }
+    } catch {
+      // Fall through to video element probe
+    }
+  }
+
+  // 2. Video element probe with captureStream
+  return new Promise<boolean>((resolve) => {
+    const url = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.muted = true;
+    let settled = false;
+
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true;
+        URL.revokeObjectURL(url);
+        resolve(true); // default true if undetermined
+      }
+    }, 2500);
+
+    video.onloadedmetadata = () => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        try {
+          const stream =
+            typeof (video as any).captureStream === "function"
+              ? (video as any).captureStream()
+              : typeof (video as any).mozCaptureStream === "function"
+                ? (video as any).mozCaptureStream()
+                : null;
+          if (stream && typeof stream.getAudioTracks === "function") {
+            const tracks = stream.getAudioTracks();
+            URL.revokeObjectURL(url);
+            resolve(tracks.length > 0);
+            return;
+          }
+          if (
+            (video as any).audioTracks &&
+            typeof (video as any).audioTracks.length === "number"
+          ) {
+            const hasTracks = (video as any).audioTracks.length > 0;
+            URL.revokeObjectURL(url);
+            resolve(hasTracks);
+            return;
+          }
+          if (typeof (video as any).mozHasAudio !== "undefined") {
+            const hasMoz = Boolean((video as any).mozHasAudio);
+            URL.revokeObjectURL(url);
+            resolve(hasMoz);
+            return;
+          }
+        } catch {
+          // ignore
+        }
+        URL.revokeObjectURL(url);
+        resolve(true);
+      }
+    };
+
+    video.onerror = () => {
+      if (!settled) {
+        settled = true;
+        clearTimeout(timer);
+        URL.revokeObjectURL(url);
+        resolve(true);
+      }
+    };
+
+    video.src = url;
+  });
+}
+

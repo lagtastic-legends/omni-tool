@@ -75,10 +75,12 @@ export function DropZone({
     if (file) {
       return useNavStore.getState().registerDirtyGuard(() => ({
         hasUnsaved: true,
+        fileName: file.name,
+        category: preview === "video" ? "video" : preview === "audio" ? "audio" : "file",
         message: `You have loaded "${file.name}". Going back will discard your file and progress. Are you sure you want to proceed?`,
       }));
     }
-  }, [file]);
+  }, [file, preview]);
 
   /* Native metadata probe — setState lands inside the async callback,
    * never synchronously in the effect body. Audio probing reports duration

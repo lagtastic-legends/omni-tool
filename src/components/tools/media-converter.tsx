@@ -9,7 +9,7 @@
  */
 
 import { motion } from "framer-motion";
-import { Film, Music4, Wand2 } from "lucide-react";
+import { AlertTriangle, Film, Music4, Wand2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavStore } from "@/lib/navigation/nav-store";
 import { DropZone } from "@/components/media/drop-zone";
@@ -17,6 +17,7 @@ import { OutputCard } from "@/components/media/output-card";
 import { ProcessingStatus } from "@/components/media/processing-status";
 import { useMediaJob } from "@/hooks/use-media-job";
 import { baseName, extOf, mimeFor } from "@/lib/media/ffmpeg-jobs";
+import { probeHasAudio } from "@/lib/media/probe";
 import {
   Select,
   SelectContent,
@@ -143,6 +144,7 @@ export function MediaConverter() {
   const [videoDuration, setVideoDuration] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [trimRange, setTrimRange] = useState<{ start: number; end: number } | null>(null);
+  const [hasAudio, setHasAudio] = useState<boolean | null>(null);
 
   const effectiveName = customName || (file ? file.name : "");
   const targetExt = mode === "video" ? videoFormat : audioFormat;
@@ -177,6 +179,7 @@ export function MediaConverter() {
 
   const start = async () => {
     if (!file) return;
+    if (mode === "audio" && hasAudio === false) return;
     const kbps = Number(audioKbps);
     const args =
       mode === "video"
@@ -213,6 +216,10 @@ export function MediaConverter() {
             reset();
             setFile(f);
             setCustomName("");
+            setHasAudio(null);
+            probeHasAudio(f).then((avail) => {
+              setHasAudio(avail);
+            });
           }}
           onRename={(newName) => {
             setCustomName(newName);
@@ -220,11 +227,15 @@ export function MediaConverter() {
           onProbed={(m) => {
             setVideoDuration(m.durationSec);
             setTrimRange({ start: 0, end: m.durationSec });
+            if (typeof m.hasAudio === "boolean") {
+              setHasAudio(m.hasAudio);
+            }
           }}
           onClear={() => {
             reset();
             setFile(null);
             setCustomName("");
+            setHasAudio(null);
             setVideoDuration(0);
             setCurrentTime(0);
             setTrimRange(null);
@@ -257,6 +268,20 @@ export function MediaConverter() {
             </TabsTrigger>
           </TabsList>
         </Tabs>
+
+        {file && mode === "audio" && hasAudio === false && (
+          <div className="flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-3.5 text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="size-4 shrink-0 mt-0.5 text-amber-500" />
+            <div className="space-y-1">
+              <p className="font-mono text-[11px] font-bold tracking-wide uppercase">
+                No Audio Stream Detected
+              </p>
+              <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
+                This video file is silent and contains no audio tracks to extract. Switch to &ldquo;Video format&rdquo; to transcode or trim this video.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* format selectors */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -340,13 +365,17 @@ export function MediaConverter() {
         {/* run */}
         <motion.button
           onClick={() => void start()}
-          disabled={!file || busy}
-          whileHover={!file || busy ? undefined : { scale: 1.02 }}
-          whileTap={!file || busy ? undefined : { scale: 0.97 }}
+          disabled={!file || busy || (mode === "audio" && hasAudio === false)}
+          whileHover={!file || busy || (mode === "audio" && hasAudio === false) ? undefined : { scale: 1.02 }}
+          whileTap={!file || busy || (mode === "audio" && hasAudio === false) ? undefined : { scale: 0.97 }}
           className="flex min-h-12 w-full items-center justify-center gap-2.5 rounded-xl border border-primary/50 bg-gradient-to-r from-primary/90 to-plasma/80 font-display text-xs font-bold tracking-[0.2em] text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40 glow-box-violet"
         >
           <Wand2 className="size-4" />
-          {busy ? "PROCESSING…" : `CONVERT → ${targetExt.toUpperCase()}`}
+          {busy
+            ? "PROCESSING…"
+            : mode === "audio" && hasAudio === false
+              ? "NO AUDIO TRACK DETECTED"
+              : `CONVERT → ${targetExt.toUpperCase()}`}
         </motion.button>
       </div>
 

@@ -27,6 +27,8 @@ export type StepHandler = () => boolean;
 export interface DirtyCheckResult {
   hasUnsaved: boolean;
   message?: string;
+  fileName?: string;
+  category?: "video" | "audio" | "image" | "pdf" | "file";
 }
 
 export type DirtyGuard = () => boolean | DirtyCheckResult;
@@ -35,6 +37,8 @@ export interface ConfirmDialogState {
   isOpen: boolean;
   title?: string;
   message: string;
+  fileName?: string;
+  category?: "video" | "audio" | "image" | "pdf" | "file";
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -263,6 +267,8 @@ export const useNavStore = create<NavState>((set, get) => ({
     let hasUnsaved = false;
     let guardMessage =
       "You have an active operation or unsaved work in progress. Going back will discard your current progress. Are you sure you want to proceed?";
+    let guardFileName: string | undefined = undefined;
+    let guardCategory: "video" | "audio" | "image" | "pdf" | "file" | undefined = undefined;
 
     for (const guard of state.dirtyGuards) {
       try {
@@ -273,6 +279,8 @@ export const useNavStore = create<NavState>((set, get) => ({
         } else if (typeof res === "object" && res && res.hasUnsaved) {
           hasUnsaved = true;
           if (res.message) guardMessage = res.message;
+          if (res.fileName) guardFileName = res.fileName;
+          if (res.category) guardCategory = res.category;
           break;
         }
       } catch {
@@ -287,6 +295,8 @@ export const useNavStore = create<NavState>((set, get) => ({
             isOpen: true,
             title: "Discard Unsaved Work?",
             message: guardMessage,
+            fileName: guardFileName,
+            category: guardCategory,
             onConfirm: () => {
               set({ confirmDialogState: null });
               // Discard confirmed: proceed directly to leaving the task / popping history

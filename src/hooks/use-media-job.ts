@@ -164,6 +164,12 @@ export function useMediaJob() {
       };
       engine.on("progress", handler);
 
+      const capturedLogs: string[] = [];
+      const logHandler = ({ message }: { type?: string; message: string }) => {
+        if (message) capturedLogs.push(message);
+      };
+      engine.on("log", logHandler);
+
       try {
         /* 1 — stage inputs into the virtual FS --------------------------- */
         setPhase("writing");
@@ -181,6 +187,22 @@ export function useMediaJob() {
           setProgress(i / totalPasses);
           const ret = await engine.exec(["-y", ...spec.passes[i].exec]);
           if (ret !== 0) {
+            const isSilentStream = capturedLogs.some((l) =>
+              /does not contain any stream|Output file #\d+ does not contain any stream/i.test(l),
+            );
+            if (isSilentStream) {
+              throw new Error(
+                "Source video contains no audio track. Audio extraction cannot produce an audio file from a silent video.",
+              );
+            }
+            const isOOM = capturedLogs.some((l) =>
+              /no space left on device|out of memory/i.test(l),
+            );
+            if (isOOM) {
+              throw new Error(
+                "Virtual memory limit exceeded. Please try a smaller file or compact quality preset.",
+              );
+            }
             throw new Error(
               `FFmpeg exited with code ${ret} while ${spec.passes[i].label ?? "processing"}. Check the engine log for the failing command.`,
             );
@@ -218,6 +240,7 @@ export function useMediaJob() {
         setPhase("error");
       } finally {
         engine.off("progress", handler);
+        engine.off("log", logHandler);
         /* 4 — aggressive virtual FS cleanup (prevent memory leaks) -------- */
         const filesToClean = new Set<string>([
           ...spec.write.map((w) => w.path),
