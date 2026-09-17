@@ -50,12 +50,15 @@ interface NavState {
   stepHandlers: StepHandler[];
   dirtyGuards: DirtyGuard[];
   confirmDialogState: ConfirmDialogState | null;
+  isAudioMuted: boolean;
 
   // Actions
   navigate: (view: string, options?: { replace?: boolean }) => void;
   reset: () => void;
   forceReset: () => void;
   setConfirmDialog: (state: ConfirmDialogState | null) => void;
+  setAudioMuted: (muted: boolean) => void;
+  toggleAudioMuted: () => void;
   registerOverlay: (id: string, close: () => boolean | void) => () => void;
   registerStepHandler: (handler: StepHandler) => () => void;
   registerDirtyGuard: (guard: DirtyGuard) => () => void;
@@ -73,6 +76,15 @@ const getInitialView = (): string => {
   return DASHBOARD_VIEW;
 };
 
+const getInitialAudioMuted = (): boolean => {
+  if (typeof window !== "undefined") {
+    try {
+      return localStorage.getItem("omni_ui_audio_muted") === "true";
+    } catch {}
+  }
+  return false;
+};
+
 export const useNavStore = create<NavState>((set, get) => ({
   view: getInitialView(),
   history: [],
@@ -80,6 +92,7 @@ export const useNavStore = create<NavState>((set, get) => ({
   stepHandlers: [],
   dirtyGuards: [],
   confirmDialogState: null,
+  isAudioMuted: getInitialAudioMuted(),
 
   navigate: (nextView, options) => {
     const currentView = get().view;
@@ -137,6 +150,25 @@ export const useNavStore = create<NavState>((set, get) => ({
 
   setConfirmDialog: (state) => {
     set({ confirmDialogState: state });
+  },
+
+  setAudioMuted: (muted) => {
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("omni_ui_audio_muted", String(muted));
+      } catch {}
+    }
+    set({ isAudioMuted: muted });
+  },
+
+  toggleAudioMuted: () => {
+    const next = !get().isAudioMuted;
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("omni_ui_audio_muted", String(next));
+      } catch {}
+    }
+    set({ isAudioMuted: next });
   },
 
   registerOverlay: (id, close) => {

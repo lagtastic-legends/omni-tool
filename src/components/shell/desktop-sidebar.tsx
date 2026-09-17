@@ -15,12 +15,16 @@ import {
   Activity,
   Maximize2,
   HardDrive,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { useNavStore } from "@/lib/navigation/nav-store";
 import { useHaptics } from "@/hooks/use-haptics";
 import { useStdoutTelemetry } from "@/hooks/useStdoutTelemetry";
 import { useWorkstationStore } from "@/hooks/useWorkstationStore";
 import { useAiStore } from "@/store/useAiStore";
+import { useUIAudio } from "@/hooks/useUIAudio";
+import { Switch } from "@/components/ui/switch";
 
 interface NavItem {
   id: string;
@@ -44,6 +48,7 @@ export function DesktopSidebar() {
   const { view, navigate } = useNavStore();
   const { simdThreads, heapUsedMb, flushHeap } = useStdoutTelemetry();
   const { isOpen: isAiOpen, toggleOpen: toggleAi } = useAiStore();
+  const { playHover, playClick, isAudioMuted, toggleAudioMuted, setAudioMuted } = useUIAudio();
   const haptics = useHaptics();
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -67,38 +72,47 @@ export function DesktopSidebar() {
 
       if (e.key === "1") {
         e.preventDefault();
+        playClick();
         haptics.light();
         navigate("dashboard");
       } else if (e.key === "2") {
         e.preventDefault();
+        playClick();
         haptics.light();
         navigate("video-converter");
       } else if (e.key === "3") {
         e.preventDefault();
+        playClick();
         haptics.light();
         navigate("audio-dsp");
       } else if (e.key === "4") {
         e.preventDefault();
+        playClick();
         haptics.light();
         navigate("image-to-pdf");
       } else if (e.key === "5") {
         e.preventDefault();
+        playClick();
         haptics.light();
         navigate("vault");
       } else if (e.key === "[") {
         e.preventDefault();
+        playClick();
         haptics.light();
         toggleSidebar();
       } else if (e.key === "]") {
         e.preventDefault();
+        playClick();
         haptics.light();
         toggleInspector();
       } else if (e.key.toLowerCase() === "f" && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
+        playClick();
         haptics.light();
         toggleFocusMode();
       } else if (e.key.toLowerCase() === "o" && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
+        playClick();
         haptics.light();
         toggleAi();
       }
@@ -106,9 +120,10 @@ export function DesktopSidebar() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [navigate, toggleSidebar, toggleInspector, toggleFocusMode, toggleAi, haptics]);
+  }, [navigate, toggleSidebar, toggleInspector, toggleFocusMode, toggleAi, haptics, playClick]);
 
   const handleNav = (id: string) => {
+    playClick();
     haptics.light();
     navigate(id);
   };
@@ -139,6 +154,7 @@ export function DesktopSidebar() {
 
         <button
           onClick={() => {
+            playClick();
             haptics.light();
             toggleSidebar();
           }}
@@ -181,7 +197,10 @@ export function DesktopSidebar() {
             <div
               key={item.id}
               className="relative"
-              onMouseEnter={() => setHoveredItem(item.id)}
+              onMouseEnter={() => {
+                setHoveredItem(item.id);
+                playHover();
+              }}
               onMouseLeave={() => setHoveredItem(null)}
             >
               <button
@@ -256,6 +275,7 @@ export function DesktopSidebar() {
       <div className="p-2 border-t border-border/70">
         <button
           onClick={() => {
+            playClick();
             haptics.light();
             toggleAi();
           }}
@@ -283,6 +303,52 @@ export function DesktopSidebar() {
         </button>
       </div>
 
+      {/* Audio Feedback Control */}
+      {!sidebarCollapsed ? (
+        <div className="px-3 py-2 border-t border-border/70 text-xs font-mono bg-background/20 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            {isAudioMuted ? (
+              <VolumeX className="size-3.5 text-muted-foreground/70 shrink-0" />
+            ) : (
+              <Volume2 className="size-3.5 text-primary shrink-0" />
+            )}
+            <span className="text-[11px] font-medium text-foreground">Audio Feedback</span>
+          </div>
+          <Switch
+            checked={!isAudioMuted}
+            onCheckedChange={(checked) => {
+              haptics.light();
+              setAudioMuted(!checked);
+              if (checked) {
+                setTimeout(() => playClick(), 40);
+              }
+            }}
+            aria-label="Toggle UI audio feedback"
+          />
+        </div>
+      ) : (
+        <div className="p-2 border-t border-border/70 flex justify-center">
+          <button
+            onClick={() => {
+              haptics.light();
+              toggleAudioMuted();
+              if (isAudioMuted) {
+                setTimeout(() => playClick(), 40);
+              }
+            }}
+            className={`flex size-8 items-center justify-center rounded-lg border transition-all ${
+              !isAudioMuted
+                ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+                : "border-border/60 bg-background/50 text-muted-foreground hover:text-foreground"
+            }`}
+            title={isAudioMuted ? "Enable Audio Feedback" : "Mute Audio Feedback"}
+            aria-label={isAudioMuted ? "Enable Audio Feedback" : "Mute Audio Feedback"}
+          >
+            {isAudioMuted ? <VolumeX className="size-3.5" /> : <Volume2 className="size-3.5" />}
+          </button>
+        </div>
+      )}
+
       {/* Bottom Telemetry & Runtime Status */}
       <div className="border-t border-border/70 p-2.5 font-mono text-[10px] bg-background/30">
         {!sidebarCollapsed ? (
@@ -303,6 +369,7 @@ export function DesktopSidebar() {
               <button
                 suppressHydrationWarning
                 onClick={() => {
+                  playClick();
                   haptics.light();
                   flushHeap();
                 }}

@@ -6,6 +6,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { motion, HTMLMotionProps } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { useHaptics, type HapticImpact } from "@/hooks/use-haptics";
+import { useUIAudio } from "@/hooks/useUIAudio";
 import { cn } from "@/lib/utils";
 
 /**
@@ -86,6 +87,7 @@ export interface ButtonProps
   asChild?: boolean;
   isLoading?: boolean;
   haptic?: HapticImpact | "none";
+  audio?: boolean;
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -97,14 +99,32 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       asChild = false,
       isLoading = false,
       haptic = "light",
+      audio = true,
       children,
       disabled,
       onPointerDown,
+      onMouseEnter,
+      onClick,
       ...props
     },
     ref
   ) => {
     const haptics = useHaptics();
+    const { playHover, playClick } = useUIAudio();
+
+    const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (!disabled && !isLoading && audio) {
+        playHover();
+      }
+      onMouseEnter?.(e);
+    };
+
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (!disabled && !isLoading && audio) {
+        playClick();
+      }
+      onClick?.(e);
+    };
 
     // When asChild is requested (e.g. Next.js Link or Radix Trigger), pass through to Slot
     if (asChild) {
@@ -112,6 +132,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         <Slot
           className={cn(buttonVariants({ variant, size, className }))}
           ref={ref}
+          onMouseEnter={handleMouseEnter}
+          onClick={handleClick}
           {...props}
         >
           {children}
@@ -124,6 +146,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <motion.button
         ref={ref}
         disabled={disabled || isLoading}
+        onMouseEnter={handleMouseEnter}
+        onClick={handleClick}
         onPointerDown={(e) => {
           if (!disabled && !isLoading && haptic !== "none") {
             void haptics.impact(haptic);

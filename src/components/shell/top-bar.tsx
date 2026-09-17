@@ -6,6 +6,7 @@ import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { useAuth } from "@/lib/auth/auth-context";
 import { SearchPalette } from "@/components/shell/search-palette";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
+import { AudioToggle } from "@/components/shell/audio-toggle";
 import { UserAvatar } from "@/components/auth/user-avatar";
 import type { EngineState } from "@/types/omni";
 
@@ -112,6 +113,7 @@ export function TopBar() {
           </div>
 
           <ThemeToggle />
+          <AudioToggle />
           <SearchPalette />
 
           {user ? (

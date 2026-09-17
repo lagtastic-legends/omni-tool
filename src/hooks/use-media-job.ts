@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { useNavStore } from "@/lib/navigation/nav-store";
+import { useUIAudio } from "@/hooks/useUIAudio";
 import { clamp } from "@/lib/format";
 
 export type JobPhase = "idle" | "writing" | "processing" | "reading" | "done" | "error";
@@ -59,6 +60,12 @@ export function useMediaJob() {
   const allocatedFilesRef = useRef<Set<string>>(new Set());
   const startedAtRef = useRef<number | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const { playSuccess, playError } = useUIAudio();
+  const playSuccessRef = useRef(playSuccess);
+  playSuccessRef.current = playSuccess;
+  const playErrorRef = useRef(playError);
+  playErrorRef.current = playError;
 
   /* Revoke dangling blob URLs and clean orphaned virtual FS files on unmount. */
   useEffect(() => {
@@ -233,11 +240,13 @@ export function useMediaJob() {
 
         setOutputs(collected);
         setPhase("done");
+        playSuccessRef.current();
       } catch (err) {
         const message =
           err instanceof Error ? err.message : String(err ?? "unknown job failure");
         setError(message);
         setPhase("error");
+        playErrorRef.current();
       } finally {
         engine.off("progress", handler);
         engine.off("log", logHandler);

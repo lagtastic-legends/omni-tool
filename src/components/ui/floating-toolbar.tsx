@@ -5,6 +5,7 @@ import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { Plus, Layers, Scissors, Settings, Database } from "lucide-react";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { useNavStore } from "@/lib/navigation/nav-store";
+import { useUIAudio } from "@/hooks/useUIAudio";
 
 /**
  * 120Hz Spring Dynamics Tuning
@@ -110,7 +111,10 @@ export function ActionButton({
   onClick,
   accentClass = "text-foreground hover:text-primary hover:bg-primary/10 border-border/80",
 }: ActionButtonProps) {
+  const { playHover, playClick } = useUIAudio();
+
   const handleClick = () => {
+    playClick();
     void triggerHaptic(ImpactStyle.Medium);
     onClick?.();
   };
@@ -122,6 +126,7 @@ export function ActionButton({
       whileHover={{ scale: 1.08 }}
       whileTap={{ scale: 0.9 }}
       transition={physicsSpring}
+      onMouseEnter={() => playHover()}
       onClick={handleClick}
       aria-label={label}
       title={label}
@@ -169,8 +174,10 @@ export function FloatingToolbar({
   onToggle,
 }: FloatingToolbarProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const { playHover, playClick } = useUIAudio();
 
   const handleToggle = () => {
+    playClick();
     const nextState = !isOpen;
     // Trigger Light haptic impact on open/close
     void triggerHaptic(ImpactStyle.Light);
@@ -207,6 +214,7 @@ export function FloatingToolbar({
         <motion.button
           type="button"
           onClick={handleToggle}
+          onMouseEnter={() => playHover()}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.9 }}
           transition={physicsSpring}

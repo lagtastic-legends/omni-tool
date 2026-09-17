@@ -20,6 +20,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { useHaptics } from "@/hooks/use-haptics";
+import { useUIAudio } from "@/hooks/useUIAudio";
 import { useNavStore } from "@/lib/navigation/nav-store";
 import {
   type AudioEffectType,
@@ -64,6 +65,7 @@ export interface AudioProcessOptions {
 export function useAudioProcessor() {
   const { engine, state: engineState, boot } = useFFmpegEngine();
   const haptics = useHaptics();
+  const { playSuccess, playError } = useUIAudio();
 
   const [phase, setPhase] = useState<AudioProcessorPhase>("idle");
   const [progress, setProgress] = useState(0); // 0 .. 100
@@ -277,6 +279,7 @@ export function useAudioProcessor() {
         setPhase("done");
         setCurrentPassLabel(null);
         void haptics.success();
+        playSuccess();
 
         return finalResult;
       } catch (err: any) {
@@ -285,6 +288,7 @@ export function useAudioProcessor() {
         setError(msg);
         setPhase("error");
         void haptics.error();
+        playError();
         return null;
       } finally {
         if (timerRef.current) {

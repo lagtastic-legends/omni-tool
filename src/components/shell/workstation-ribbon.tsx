@@ -22,6 +22,7 @@ import { useWorkstationStore, type WorkstationLayoutMode } from "@/hooks/useWork
 import { useStdoutTelemetry } from "@/hooks/useStdoutTelemetry";
 import { useHaptics } from "@/hooks/use-haptics";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
+import { AudioToggle } from "@/components/shell/audio-toggle";
 import { useAiStore } from "@/store/useAiStore";
 
 const VIEW_TITLES: Record<string, { label: string; tag: string }> = {
@@ -203,6 +204,7 @@ export function WorkstationRibbon() {
 
         {/* Dual Theme Fast Switcher */}
         <ThemeToggle />
+        <AudioToggle />
 
         {/* Quick Launch Ask Omni AI */}
         <button
