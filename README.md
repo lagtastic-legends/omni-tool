@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.6.0">
-    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release%20v2.6.0" alt="Release" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.6.6">
+    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release%20v2.6.6" alt="Release" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.6.0/omni-tool-v2.6.0.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.6.0-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.6.6/omni-tool-v2.6.6.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.6.6-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" />
@@ -39,16 +39,21 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web App** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero install required. Run instantly in any modern browser. |
-| **📱 Android APK (Signed Release)** | [**Download omni-tool-v2.6.0.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.6.0/omni-tool-v2.6.0.apk) | Production signed APK (24.22 MB) optimized for phones, foldables, flips, and tablets. |
-| **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.6.0-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.6.0/omni-tool-v2.6.0-debug.apk) | Debug build (~36.2 MB) with remote Chrome WebView debugging enabled for developers. |
+| **📱 Android APK (Signed Release)** | [**Download omni-tool-v2.6.6.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.6.6/omni-tool-v2.6.6.apk) | Production signed APK (~24.3 MB) optimized for phones, foldables, flips, and tablets. |
+| **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.6.6-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.6.6/omni-tool-v2.6.6-debug.apk) | Debug build (~36.8 MB) with remote Chrome WebView debugging enabled for developers. |
 
 ---
 
 ## ✨ Features & Modules
 
-### 🎥 Video Engineering
+### 🎥 Video Engineering & Media Management
+* **Instant 0ms Video Intake & Timeline Scrubber**: Non-blocking microsecond binary atom parser eliminates UI freezes, mounting video players and timeline scrubbers with zero delay.
+* **Native Android MediaStore Resolver**: Built-in Android plugin automatically resolves real filenames from the Android MediaStore database, replacing numeric photo-picker IDs (e.g., `1000076567.mp4` → `VID_YYYYMMDD_HHMMSS.mp4`).
+* **Hardware Timestamp Recovery**: Inspects ISO BMFF `mvhd` creation atom as a fallback to reconstruct exact camera recording timestamps matching Android conventions.
+* **Pre-flight Silent Video Guard**: Dual-layer ISO BMFF audio atom detection (`probeHasAudio`) prevents FFmpeg exit code 1 failures when extracting audio from silent videos.
+* **Reactive Inline Renaming**: Direct real-time renaming in DropZone and output cards without cloning blobs or corrupting native streams.
 * **Video Compressor**: Smart multi-tier CRF and preset compression with zero quality loss.
-* **Universal Media Converter**: Transcode MP4, MKV, WebM, AVI, MOV, and more client-side.
+* **Universal Media Converter**: Transcode MP4, MKV, WebM, AVI, MOV, and extract audio tracks client-side.
 * **GIF Studio**: Convert video segments into optimized animated GIFs with custom framerate and palette control.
 
 ### 🎛️ Unified Audio DSP Suite (13 Engines)
