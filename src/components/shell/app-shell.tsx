@@ -190,6 +190,7 @@ export function AppShell() {
 
   useEffect(() => {
     (window as any).__omni_navigate = navigate;
+    (window as any).__omni_nav_store = useNavStore;
   }, [navigate]);
 
   useEffect(() => {
