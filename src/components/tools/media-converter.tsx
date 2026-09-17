@@ -17,7 +17,7 @@ import { OutputCard } from "@/components/media/output-card";
 import { ProcessingStatus } from "@/components/media/processing-status";
 import { useMediaJob } from "@/hooks/use-media-job";
 import { baseName, extOf, mimeFor } from "@/lib/media/ffmpeg-jobs";
-import { probeHasAudio } from "@/lib/media/probe";
+import { probeHasAudio, probeAudioCodec } from "@/lib/media/probe";
 import {
   Select,
   SelectContent,
@@ -30,7 +30,7 @@ import { VideoTimelineTrimmer } from "@/components/media/video-timeline-trimmer"
 
 type Mode = "video" | "audio";
 type VideoFormat = "mp4" | "mov" | "mkv" | "avi" | "webm";
-type AudioFormat = "mp3" | "wav" | "m4a" | "flac" | "ogg";
+type AudioFormat = "mp3" | "wav" | "m4a" | "flac" | "ogg" | "original";
 type Quality = "high" | "balanced" | "compact";
 
 const QUALITY_META: Record<Quality, { crf: number; aviQ: number; webmKbps: number; label: string }> = {
@@ -53,6 +53,7 @@ const AUDIO_FORMAT_NOTES: Record<AudioFormat, string> = {
   m4a: "AAC lossy · Apple-friendly",
   flac: "Lossless compressed",
   ogg: "Vorbis lossy · open",
+  original: "Lossless stream copy · fastest",
 };
 
 function buildVideoArgs(
@@ -127,6 +128,8 @@ function buildAudioArgs(
       return ["-i", input, "-vn", "-c:a", "flac", "-compression_level", "5", output];
     case "ogg":
       return ["-i", input, "-vn", "-c:a", "libvorbis", "-q:a", "5", output];
+    case "original":
+      return ["-i", input, "-vn", "-c:a", "copy", output];
   }
 }
 
@@ -145,9 +148,10 @@ export function MediaConverter() {
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [trimRange, setTrimRange] = useState<{ start: number; end: number } | null>(null);
   const [hasAudio, setHasAudio] = useState<boolean | null>(null);
+  const [originalExt, setOriginalExt] = useState<string>("m4a");
 
   const effectiveName = customName || (file ? file.name : "");
-  const targetExt = mode === "video" ? videoFormat : audioFormat;
+  const targetExt = mode === "video" ? videoFormat : audioFormat === "original" ? originalExt : audioFormat;
   const inputPath = file ? `input.${extOf(effectiveName) || "bin"}` : "";
   const outputName = effectiveName ? `${baseName(effectiveName)}.${targetExt}` : "";
   const outputPath = `output.${targetExt}`;
@@ -195,7 +199,9 @@ export function MediaConverter() {
           label:
             mode === "video"
               ? `Transcoding → ${videoFormat.toUpperCase()} (H.264 ultrafast)`
-              : `Extracting audio → ${audioFormat.toUpperCase()}`,
+              : audioFormat === "original"
+                ? `Extracting original audio → ${originalExt.toUpperCase()} (stream copy)`
+                : `Extracting audio → ${audioFormat.toUpperCase()}`,
         },
       ],
       read: [{ path: outputPath, mime: mimeFor(targetExt), name: outputName }],
@@ -219,6 +225,9 @@ export function MediaConverter() {
             setHasAudio(null);
             probeHasAudio(f).then((avail) => {
               setHasAudio(avail);
+            });
+            probeAudioCodec(f).then((info) => {
+              setOriginalExt(info.ext);
             });
           }}
           onRename={(newName) => {
@@ -336,9 +345,9 @@ export function MediaConverter() {
           ) : (
             <div className="space-y-1.5">
               <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                Audio bitrate
+                {audioFormat === "original" ? "Bitrate (original preserved)" : "Audio bitrate"}
               </p>
-              <Select value={audioKbps} onValueChange={setAudioKbps} disabled={busy}>
+              <Select value={audioKbps} onValueChange={setAudioKbps} disabled={busy || audioFormat === "original"}>
                 <SelectTrigger className="min-h-11 font-mono text-sm" aria-label="Audio bitrate">
                   <SelectValue />
                 </SelectTrigger>
@@ -375,7 +384,9 @@ export function MediaConverter() {
             ? "PROCESSING…"
             : mode === "audio" && hasAudio === false
               ? "NO AUDIO TRACK DETECTED"
-              : `CONVERT → ${targetExt.toUpperCase()}`}
+              : audioFormat === "original"
+                ? `EXTRACT ORIGINAL → ${originalExt.toUpperCase()}`
+                : `CONVERT → ${targetExt.toUpperCase()}`}
         </motion.button>
       </div>
 
@@ -394,7 +405,7 @@ export function MediaConverter() {
           <OutputCard
             output={output}
             onClear={reset}
-            badge={mode === "audio" ? "audio extracted" : "transcoded"}
+            badge={mode === "audio" ? (audioFormat === "original" ? "original audio extracted" : "audio extracted") : "transcoded"}
             badgeTone={mode === "audio" ? "neon" : "pulse"}
           />
         )}

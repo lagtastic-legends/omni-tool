@@ -153,7 +153,7 @@ export function useAudioProcessor() {
 
       // 2. File size safety bounds check
       if (file.size > SIZE_BLOCK_BYTES) {
-        const msg = `Audio file size (${(file.size / (1024 * 1024)).toFixed(1)} MB) exceeds WebAssembly memory limit of 900 MB.`;
+        const msg = `Audio file size (${(file.size / (1024 * 1024 * 1024)).toFixed(2)} GB) exceeds the 5 GB processing limit.`;
         setError(msg);
         setPhase("error");
         void haptics.error();

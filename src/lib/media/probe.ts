@@ -424,3 +424,75 @@ export async function probeHasAudio(file: File): Promise<boolean> {
   });
 }
 
+/**
+ * Probe the original audio codec from an MP4/MOV container.
+ * Returns the codec identifier and best-fit output extension for stream copy.
+ */
+export async function probeAudioCodec(
+  file: File,
+): Promise<{ codec: string; ext: string }> {
+  const CODEC_EXT: Record<string, string> = {
+    mp4a: "m4a",
+    opus: "ogg",
+    "mp3 ": "mp3",
+    ".mp3": "mp3",
+    "ac-3": "m4a",
+    "ec-3": "m4a",
+    fLaC: "flac",
+    Opus: "ogg",
+  };
+
+  try {
+    const headSize = Math.min(file.size, 262144);
+    const buf = await file.slice(0, headSize).arrayBuffer();
+    const view = new DataView(buf);
+
+    function findCodec(offset: number, end: number, depth: number): string | null {
+      if (depth > 14 || offset >= end) return null;
+      while (offset + 8 <= end) {
+        const size = view.getUint32(offset);
+        if (size < 8 || offset + size > end + 8) break;
+        const type = String.fromCharCode(
+          view.getUint8(offset + 4),
+          view.getUint8(offset + 5),
+          view.getUint8(offset + 6),
+          view.getUint8(offset + 7),
+        );
+        const boxEnd = Math.min(offset + size, end);
+
+        if (type === "moov" || type === "trak" || type === "mdia" || type === "minf" || type === "stbl") {
+          const found = findCodec(offset + 8, boxEnd, depth + 1);
+          if (found) return found;
+        } else if (type === "stsd" && offset + 16 <= boxEnd) {
+          // stsd has 8 bytes of version/flags + entry_count before entries
+          const entryStart = offset + 16;
+          if (entryStart + 8 <= boxEnd) {
+            const entryType = String.fromCharCode(
+              view.getUint8(entryStart + 4),
+              view.getUint8(entryStart + 5),
+              view.getUint8(entryStart + 6),
+              view.getUint8(entryStart + 7),
+            );
+            return entryType;
+          }
+        }
+        offset += size;
+      }
+      return null;
+    }
+
+    const codec = findCodec(0, view.byteLength, 0);
+    if (codec) {
+      const ext = CODEC_EXT[codec] ?? "m4a";
+      return { codec, ext };
+    }
+  } catch {
+    // Fall through to default
+  }
+
+  // Fallback based on file extension
+  const inputExt = file.name.split(".").pop()?.toLowerCase() ?? "";
+  if (["webm", "mkv"].includes(inputExt)) return { codec: "opus", ext: "ogg" };
+  if (["avi", "wmv"].includes(inputExt)) return { codec: "mp3", ext: "mp3" };
+  return { codec: "aac", ext: "m4a" };
+}

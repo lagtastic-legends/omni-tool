@@ -20,9 +20,9 @@ export const OUTPUT_MIME: Record<string, string> = {
   ogg: "audio/ogg",
 };
 
-/** Wasm heap guard rails (practical limits for the single-thread core). */
-export const SIZE_WARN_BYTES = 300 * 1024 * 1024; // warn above 300 MB
-export const SIZE_BLOCK_BYTES = 900 * 1024 * 1024; // block above 900 MB
+/** Wasm heap guard rails — generous for modern 6 GB+ RAM devices. */
+export const SIZE_WARN_BYTES = 1.5 * 1024 * 1024 * 1024; // warn above 1.5 GB
+export const SIZE_BLOCK_BYTES = 5 * 1024 * 1024 * 1024; // block above 5 GB
 
 export function extOf(name: string): string {
   const idx = name.lastIndexOf(".");

@@ -134,7 +134,7 @@ export function DropZone({
       toast({
         title: "File too large",
         description:
-          "The in-browser engine caps out near 900 MB. Try a smaller file.",
+          "The in-browser engine caps out near 5 GB. Try a smaller file.",
         variant: "destructive",
       });
       return;
@@ -143,7 +143,7 @@ export function DropZone({
       toast({
         title: "Large file ahead",
         description:
-          "Over 300 MB — processing may take a while and use significant memory.",
+          "Over 1.5 GB — processing may use significant memory. Close other apps on mobile.",
       });
     }
 
