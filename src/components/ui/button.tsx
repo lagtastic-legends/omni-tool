@@ -112,6 +112,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const haptics = useHaptics();
     const { playHover, playClick } = useUIAudio();
 
+    const clickedRef = React.useRef(false);
+
     const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
       if (!disabled && !isLoading && audio) {
         playHover();
@@ -119,10 +121,22 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       onMouseEnter?.(e);
     };
 
-    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
       if (!disabled && !isLoading && audio) {
         playClick();
+        clickedRef.current = true;
       }
+      if (!disabled && !isLoading && haptic !== "none") {
+        void haptics.impact(haptic);
+      }
+      onPointerDown?.(e);
+    };
+
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (!disabled && !isLoading && audio && !clickedRef.current) {
+        playClick();
+      }
+      clickedRef.current = false;
       onClick?.(e);
     };
 
@@ -133,6 +147,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className={cn(buttonVariants({ variant, size, className }))}
           ref={ref}
           onMouseEnter={handleMouseEnter}
+          onPointerDown={handlePointerDown}
           onClick={handleClick}
           {...props}
         >
@@ -147,13 +162,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || isLoading}
         onMouseEnter={handleMouseEnter}
+        onPointerDown={handlePointerDown}
         onClick={handleClick}
-        onPointerDown={(e) => {
-          if (!disabled && !isLoading && haptic !== "none") {
-            void haptics.impact(haptic);
-          }
-          onPointerDown?.(e);
-        }}
         whileHover={
           disabled || isLoading
             ? undefined

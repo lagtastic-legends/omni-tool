@@ -294,7 +294,7 @@ export function UnifiedAudioStudio({
             }}
             preview="audio"
             label="Drop source audio track here"
-            hint="Supports MP3, WAV, FLAC, OGG, AAC, M4A up to 5 GB"
+            hint="Supports MP3, WAV, FLAC, OGG, AAC, M4A up to 20 GB"
             onProbed={handleProbed}
             disabled={busy}
           />
