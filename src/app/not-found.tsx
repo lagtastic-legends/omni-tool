@@ -3,7 +3,7 @@ import { Compass, ArrowLeft, ShieldAlert, Terminal } from "lucide-react";
 
 export const metadata = {
   title: "404 — Module Not Found",
-  description: "The requested coordinate or tool route does not exist in Omni Tool.",
+  description: "The requested coordinate or tool route does not exist in ZenoDeck.",
 };
 
 export default function NotFound() {
@@ -51,7 +51,7 @@ export default function NotFound() {
           <span className="flex items-center gap-1.5">
             <Terminal className="size-3 text-primary" /> STATUS: 404_ROUTE_UNRESOLVED
           </span>
-          <span>OMNI_KERNEL_V2</span>
+          <span>ZENODECK_KERNEL_V2</span>
         </div>
       </div>
     </div>

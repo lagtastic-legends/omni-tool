@@ -5,14 +5,14 @@ import { FileText, ArrowLeft, CheckCircle2 } from "lucide-react";
 export const metadata: Metadata = {
   title: "Terms of Service",
   description:
-    "Review the terms of service governing the usage of Omni Tool's client-side WebAssembly media engine.",
+    "Review the terms of service governing the usage of ZenoDeck's client-side WebAssembly media engine.",
   alternates: {
     canonical: "/terms",
   },
   openGraph: {
-    title: "Terms of Service | OMNI TOOL",
-    description: "Terms and conditions for Omni Tool WebAssembly suite.",
-    url: "https://omnitool.app/terms",
+    title: "Terms of Service | ZENODECK",
+    description: "Terms and conditions for ZenoDeck WebAssembly suite.",
+    url: "https://zenodeck.app/terms",
   },
 };
 
@@ -47,7 +47,7 @@ export default function TermsOfServicePage() {
             1. Acceptance of Terms
           </h2>
           <p>
-            By accessing or using OMNI TOOL (whether via web browser or mobile APK build), you agree
+            By accessing or using ZENODECK (whether via web browser or mobile APK build), you agree
             to be bound by these Terms of Service. If you do not agree with any part of these terms,
             you must discontinue using the application.
           </p>
@@ -59,7 +59,7 @@ export default function TermsOfServicePage() {
             2. Local Execution & Intellectual Property
           </h2>
           <p>
-            OMNI TOOL does not claim ownership of any files, media, or outputs generated using our toolkit.
+            ZENODECK does not claim ownership of any files, media, or outputs generated using our toolkit.
             You retain 100% intellectual property rights in and to all media you import, transform, and export.
             Because processing occurs entirely on your device, you are solely responsible for ensuring you have
             the legal rights to modify and convert the files you input.
@@ -71,7 +71,7 @@ export default function TermsOfServicePage() {
           <h2 className="font-display text-lg font-bold text-foreground uppercase tracking-wide">
             3. Acceptable Use Policy
           </h2>
-          <p>You agree not to utilize OMNI TOOL to:</p>
+          <p>You agree not to utilize ZENODECK to:</p>
           <ul className="list-disc list-inside space-y-1.5 pl-2">
             <li>Process content that infringes upon copyright, trademark, or intellectual property rights.</li>
             <li>Forge fraudulent legal documents or falsify verifiable credentials.</li>
@@ -86,7 +86,7 @@ export default function TermsOfServicePage() {
           </h2>
           <p>
             WebAssembly media operations (video encoding, AI inpainting, heavy audio rendering) utilize
-            local CPU, WebGPU, and RAM resources. Omni Tool Labs is not liable for device thermal throttling,
+            local CPU, WebGPU, and RAM resources. ZenoDeck Labs is not liable for device thermal throttling,
             battery depletion, or browser tab termination caused by out-of-memory states on client hardware.
           </p>
         </section>
@@ -112,9 +112,9 @@ export default function TermsOfServicePage() {
             For legal notices or questions concerning these Terms, contact our legal counsel:
           </p>
           <div className="rounded-xl border border-border/60 bg-card/30 p-4 font-mono text-xs space-y-1">
-            <p className="font-bold text-foreground">Omni Tool Labs · Legal Division</p>
+            <p className="font-bold text-foreground">ZenoDeck Labs · Legal Division</p>
             <p>100 Montgomery St, Suite 1400, San Francisco, CA 94104</p>
-            <p className="text-primary">support.omnitool.com@gmail.com</p>
+            <p className="text-primary">support.zenodeck@gmail.com</p>
           </div>
         </section>
       </div>

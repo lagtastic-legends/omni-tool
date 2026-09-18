@@ -15,7 +15,7 @@ export function AppFooter() {
           <div className="space-y-1.5 text-left">
             <div className="flex items-center gap-2">
               <span className="font-display text-xs font-bold tracking-[0.24em] text-foreground uppercase">
-                OMNI TOOL LABS
+                ZENODECK LABS
               </span>
             </div>
 
@@ -26,8 +26,8 @@ export function AppFooter() {
 
             <p className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
               <Mail className="size-3 shrink-0 text-neon" />
-              <a href="mailto:support.omnitool.com@gmail.com" className="hover:text-foreground transition-colors underline">
-                support.omnitool.com@gmail.com
+              <a href="mailto:support.zenodeck@gmail.com" className="hover:text-foreground transition-colors underline">
+                support.zenodeck@gmail.com
               </a>
             </p>
           </div>
@@ -48,7 +48,7 @@ export function AppFooter() {
         {/* Bottom Legal & Links Row */}
         <div className="flex flex-col gap-3 border-t border-border/50 pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="font-mono text-[10px] text-muted-foreground">
-            © {currentYear} Omni Tool Labs, Inc. All rights reserved. Powered by WebAssembly.
+            © {currentYear} ZenoDeck Labs, Inc. All rights reserved. Powered by WebAssembly.
           </p>
 
           <nav aria-label="Legal and Help" className="flex items-center gap-4 font-mono text-[11px]">

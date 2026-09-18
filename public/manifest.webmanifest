@@ -1,4 +1,11 @@
 {
+  "name": "ZenoDeck",
+  "short_name": "ZenoDeck",
+  "description": "Client-Side Media Engineering Suite",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0813",
+  "theme_color": "#0a0813",
   "icons": [
     {
       "src": "../icons/icon-48.webp",

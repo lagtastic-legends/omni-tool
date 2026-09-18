@@ -67,7 +67,7 @@ public class OmniRecordService extends Service {
         PendingIntent pendingStopIntent = PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_IMMUTABLE);
 
         Notification notification = new NotificationCompat.Builder(this, "omni_recorder")
-                .setContentTitle("Omni Tool Studio")
+                .setContentTitle("ZenoDeck Studio")
                 .setContentText("Recording screen natively...")
                 .setSmallIcon(android.R.drawable.ic_media_play)
                 .addAction(android.R.drawable.ic_media_pause, "STOP RECORDING", pendingStopIntent)

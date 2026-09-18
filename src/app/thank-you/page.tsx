@@ -4,7 +4,7 @@ import { CheckCircle2, ArrowRight, ShieldCheck, Cpu } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Action Complete — Thank You",
-  description: "Your request has been successfully processed by Omni Tool.",
+  description: "Your request has been successfully processed by ZenoDeck.",
   alternates: {
     canonical: "/thank-you",
   },

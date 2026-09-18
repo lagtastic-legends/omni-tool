@@ -376,7 +376,7 @@ export function StdoutConsole({
               <span>Isolated Client Architecture</span>
             </div>
             <p className="text-[10px] text-muted-foreground font-sans leading-relaxed">
-              Omni Tool executes transcode filtergraphs strictly within your browser's private WebAssembly memory sandbox. No telemetry or media chunks leave your physical device.
+              ZenoDeck executes transcode filtergraphs strictly within your browser's private WebAssembly memory sandbox. No telemetry or media chunks leave your physical device.
             </p>
 
             <div className="space-y-1.5 pt-1 border-t border-border/40 text-[10px]">

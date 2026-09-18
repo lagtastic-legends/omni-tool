@@ -143,7 +143,7 @@ export function DesktopSidebar() {
             </div>
             <div className="truncate font-mono">
               <span className="font-display text-xs font-black tracking-wider uppercase text-foreground">
-                OMNI TOOL
+                ZENODECK
               </span>
               <p className="text-[9px] text-muted-foreground uppercase tracking-widest truncate">
                 WASM Core Engine

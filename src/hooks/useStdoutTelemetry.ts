@@ -85,7 +85,7 @@ function generateInitialProbedLogs(): TelemetryLogLine[] {
       id: "init-5",
       time: initTime,
       type: "ok",
-      text: "[DAEMON] Omni Tool Media Engine standby. Zero remote network egress verified.",
+      text: "[DAEMON] ZenoDeck Media Engine standby. Zero remote network egress verified.",
     },
   ];
 }

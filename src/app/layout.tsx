@@ -34,15 +34,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://omnitool.app"),
+  metadataBase: new URL("https://zenodeck.app"),
   title: {
-    default: "OMNI TOOL — Client-Side Media Suite",
-    template: "%s | OMNI TOOL",
+    default: "ZenoDeck — Client-Side Media Suite",
+    template: "%s | ZenoDeck",
   },
   description:
     "Heavy-duty client-side media engineering suite. Convert video, edit audio, forge documents, record screens, and erase watermarks 100% on-device with WebAssembly. Zero file uploads.",
-  applicationName: "OMNI TOOL",
+  applicationName: "ZenoDeck",
   keywords: [
+    "ZenoDeck",
     "Omni Tool",
     "ffmpeg.wasm",
     "client-side media",
@@ -54,9 +55,9 @@ export const metadata: Metadata = {
     "offline video compressor",
     "private audio editor",
   ],
-  authors: [{ name: "Omni Tool Team", url: "https://omnitool.app" }],
-  creator: "Omni Tool",
-  publisher: "Omni Tool",
+  authors: [{ name: "ZenoDeck Team", url: "https://zenodeck.app" }],
+  creator: "ZenoDeck",
+  publisher: "ZenoDeck",
   formatDetection: {
     email: false,
     address: false,
@@ -66,11 +67,11 @@ export const metadata: Metadata = {
     canonical: "/",
   },
   openGraph: {
-    title: "OMNI TOOL — Client-Side Media Suite",
+    title: "ZenoDeck — Client-Side Media Suite",
     description:
       "Convert video, edit audio, forge documents, capture your screen and vault the results — 100% locally with WebAssembly. Zero uploads.",
-    url: "https://omnitool.app",
-    siteName: "OMNI TOOL",
+    url: "https://zenodeck.app",
+    siteName: "ZenoDeck",
     locale: "en_US",
     type: "website",
     images: [
@@ -78,17 +79,17 @@ export const metadata: Metadata = {
         url: "/logo.jpg",
         width: 1200,
         height: 630,
-        alt: "OMNI TOOL — 100% On-Device WebAssembly Media Suite",
+        alt: "ZenoDeck — 100% On-Device WebAssembly Media Suite",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "OMNI TOOL — Client-Side Media Suite",
+    title: "ZenoDeck — Client-Side Media Suite",
     description:
       "Heavy-duty utility suite powered by WebAssembly. Zero file uploads, total privacy.",
     images: ["/logo.jpg"],
-    creator: "@omnitool",
+    creator: "@zenodeck",
   },
   robots: {
     index: true,
