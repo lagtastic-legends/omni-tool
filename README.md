@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.7.2">
-    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release%20v2.7.2" alt="Release" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.7.3">
+    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release%20v2.7.3" alt="Release" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.2/omni-tool-v2.7.2.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.7.2-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.3/omni-tool-v2.7.3-release.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.7.3-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" />
@@ -39,8 +39,8 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web App** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero install required. Run instantly in any modern browser. |
-| **📱 Android APK (Signed Release)** | [**Download omni-tool-v2.7.2.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.2/omni-tool-v2.7.2.apk) | Production signed APK (23.25 MB) optimized for phones, foldables, flips, and tablets. |
-| **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.7.2-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.2/omni-tool-v2.7.2-debug.apk) | Debug build (34.77 MB) with remote Chrome WebView debugging enabled for developers. |
+| **📱 Android APK (Signed Release)** | [**Download omni-tool-v2.7.3-release.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.3/omni-tool-v2.7.3-release.apk) | Production signed APK (24.37 MB) optimized for phones, foldables, flips, and tablets. |
+| **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.7.3-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.3/omni-tool-v2.7.3-debug.apk) | Debug build (36.45 MB) with remote Chrome WebView debugging enabled for developers. |
 
 ---
 
