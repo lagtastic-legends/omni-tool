@@ -29,15 +29,15 @@ export function EqualizerTool() {
   const start = async ({ format, outputArgs }: { format: string; outputArgs: string[] }) => {
     if (!file) return;
     const filters = eqFilters(gains);
-    if (filters.length === 0) return; // flat — nothing to do
+    const finalFilters = filters.length > 0 ? filters : ["anull"];
     const srcExt = extOf(file.name) || "mp3";
     const virtualInputPath = `/mnt_0/input.${srcExt}`;
     await run({
       inputFiles: [{ file, name: `input.${srcExt}`, mountPoint: "/mnt_0" }],
       passes: [
         {
-          exec: ["-i", virtualInputPath, "-af", filters.join(","), ...outputArgs, `output.${format}`],
-          label: `Applying EQ · ${activeBands} active band${activeBands === 1 ? "" : "s"}`,
+          exec: ["-i", virtualInputPath, "-af", finalFilters.join(","), ...outputArgs, `output.${format}`],
+          label: activeBands > 0 ? `Applying EQ · ${activeBands} active band${activeBands === 1 ? "" : "s"}` : "Exporting audio with flat EQ",
         },
       ],
       read: [
@@ -65,7 +65,6 @@ export function EqualizerTool() {
       busy={busy}
       onRun={(o) => void start(o)}
       runLabel="APPLY EQUALIZER"
-      runDisabled={activeBands === 0}
       job={job}
       output={outputs[0] ?? null}
       badge="equalized"

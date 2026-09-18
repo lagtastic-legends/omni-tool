@@ -11,13 +11,9 @@ import { AudioWaveform } from "lucide-react";
 import { AudioWorkbench } from "@/components/audio/audio-workbench";
 import { ParamPanel, ParamSlider } from "@/components/audio/param-controls";
 import { useMediaJob } from "@/hooks/use-media-job";
-import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
-import { slowedFilters } from "@/lib/audio/filters";
-import { detectSampleRate } from "@/lib/audio/probe";
 import { baseName, extOf, mimeFor } from "@/lib/media/ffmpeg-jobs";
 
 export function SlowedReverb() {
-  const { engine, appendLog } = useFFmpegEngine();
   const job = useMediaJob();
   const { busy, outputs, run, reset } = job;
 
@@ -25,29 +21,37 @@ export function SlowedReverb() {
   const [factor, setFactor] = useState(0.85);
   const [reverb, setReverb] = useState(0.55);
 
-  const start = async ({ format, kbps, outputArgs }: {
+  const start = async ({ format, outputArgs }: {
     format: string; kbps: number; outputArgs: string[];
   }) => {
-    if (!file || !engine) return;
-    const inputPath = `input.${extOf(file.name) || "mp3"}`;
-    const buffer = new Uint8Array(await file.arrayBuffer());
+    if (!file) return;
+    const srcExt = extOf(file.name) || "mp3";
+    const virtualInputPath = `/mnt_0/input.${srcExt}`;
 
-    /* Stage the input first — the filter chain needs the real sample rate. */
-    await engine.writeFile(inputPath, buffer);
-    const sr = await detectSampleRate(engine, inputPath);
-    appendLog("system", "info", `detected sample rate → ${sr} Hz`);
+    // Zero-copy WORKERFS audio pipeline:
+    // Normalizing to 44.1kHz ensures exact pitch/tempo drop across any source sample rate
+    // (e.g. 48kHz mobile recordings) with 0 MB JavaScript RAM overhead.
+    const filters = [
+      "aformat=sample_rates=44100",
+      `asetrate=${Math.round(44100 * factor)}`,
+      "aresample=44100",
+    ];
 
-    const filters = slowedFilters({
-      factor,
-      reverb,
-      sampleRate: sr,
-    });
+    if (reverb >= 0.05) {
+      if (reverb < 0.4) {
+        filters.push("aecho=0.8:0.85:80|120:0.25|0.2");
+      } else if (reverb < 0.75) {
+        filters.push("aecho=0.8:0.9:120|180|60:0.32|0.28|0.22");
+      } else {
+        filters.push("aecho=0.8:0.95:180|280|90|40:0.38|0.34|0.28|0.22");
+      }
+    }
 
     await run({
-      write: [],
+      inputFiles: [{ file, name: `input.${srcExt}`, mountPoint: "/mnt_0" }],
       passes: [
         {
-          exec: ["-i", inputPath, "-af", filters.join(","), ...outputArgs, `output.${format}`],
+          exec: ["-i", virtualInputPath, "-af", filters.join(","), ...outputArgs, `output.${format}`],
           label: `Slowing to ${Math.round(factor * 100)}% · reverb ${Math.round(reverb * 100)}%`,
         },
       ],
@@ -58,7 +62,7 @@ export function SlowedReverb() {
           name: `${baseName(file.name)}-slowed.${format}`,
         },
       ],
-      cleanup: [inputPath, `output.${format}`],
+      cleanup: [`output.${format}`],
     });
   };
 

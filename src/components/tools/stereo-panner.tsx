@@ -57,7 +57,6 @@ export function StereoPanner() {
       busy={busy}
       onRun={(o) => void start(o)}
       runLabel="APPLY PANNING"
-      runDisabled={balance === 0}
       job={job}
       output={outputs[0] ?? null}
       badge="panned"
@@ -65,6 +64,27 @@ export function StereoPanner() {
       runIcon={<AudioLines className="size-4" />}
       controls={
         <ParamPanel title="image position">
+          <div className="flex gap-2">
+            {[
+              { label: "Hard Left", val: -1 },
+              { label: "Center", val: 0 },
+              { label: "Hard Right", val: 1 },
+            ].map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => setBalance(p.val)}
+                disabled={busy}
+                className={`rounded-full border px-3 py-1 font-mono text-[10px] md:text-xs uppercase tracking-[0.12em] transition-colors ${
+                  balance === p.val
+                    ? "border-primary/60 bg-primary/20 text-primary font-bold"
+                    : "border-border/70 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
           <ParamSlider
             label="Balance"
             value={balance}
@@ -79,13 +99,6 @@ export function StereoPanner() {
             hintLeft="full left"
             hintRight="full right"
           />
-          <button
-            onClick={() => setBalance(0)}
-            disabled={busy}
-            className="w-fit rounded-full border border-border/70 bg-background/50 px-3 py-1.5 font-mono text-[10px] md:text-xs lg:text-[13px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground disabled:opacity-40"
-          >
-            snap to center
-          </button>
         </ParamPanel>
       }
     />

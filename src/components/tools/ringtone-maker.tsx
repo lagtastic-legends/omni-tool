@@ -85,7 +85,7 @@ export function RingtoneMaker() {
         {
           exec: [
             "-i", virtualInputPath,
-            "-af", filters.join(","),
+            "-af", filters.length > 0 ? filters.join(",") : "anull",
             ...ringOutputArgs(format),
             `output.${format}`,
           ],

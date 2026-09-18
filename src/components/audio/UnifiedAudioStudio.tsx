@@ -48,6 +48,7 @@ import {
   type AudioEffectType,
   type AudioFormat,
   type ReverbSpacePreset,
+  type BassTier,
   AUDIO_TOOLS_CATALOG,
   BASS_BOOST_TIERS,
   EQ_FREQUENCIES,
@@ -106,11 +107,24 @@ export function UnifiedAudioStudio({
   const [format, setFormat] = useState<AudioFormat>("mp3");
   const [kbps, setKbps] = useState("320");
 
-  /* Web Audio API Audition Preview */
+  /* Synchronize tool when initialToolId prop changes */
+  useEffect(() => {
+    if (initialToolId && initialToolId !== activeEffect) {
+      setActiveEffect(initialToolId);
+      setParams(getDefaultAudioParams(initialToolId));
+    }
+  }, [initialToolId, activeEffect]);
+
+  /* Web Audio API Real-Time Audition Engine */
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioUrlRef = useRef<string | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const currentDspNodesRef = useRef<AudioNode[]>([]);
+  const animFrameRef = useRef<number | null>(null);
+  const pannerNodeRef = useRef<StereoPannerNode | null>(null);
 
   /* Clean up audio preview url */
   useEffect(() => {
@@ -129,6 +143,223 @@ export function UnifiedAudioStudio({
       }
     };
   }, [file]);
+
+  /* Build & Reconnect Real-Time Web Audio DSP Nodes */
+  const setupDspGraph = useCallback(() => {
+    if (!audioRef.current || typeof window === "undefined") return;
+    try {
+      if (!audioCtxRef.current) {
+        const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+        if (!AudioContextClass) return;
+        audioCtxRef.current = new AudioContextClass();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === "suspended") {
+        void ctx.resume();
+      }
+
+      if (!sourceNodeRef.current) {
+        sourceNodeRef.current = ctx.createMediaElementSource(audioRef.current);
+      }
+      const source = sourceNodeRef.current;
+
+      // Disconnect previous active DSP chain
+      currentDspNodesRef.current.forEach((n) => {
+        try { n.disconnect(); } catch {}
+      });
+      currentDspNodesRef.current = [];
+      pannerNodeRef.current = null;
+      try { source.disconnect(); } catch {}
+
+      const nodes: AudioNode[] = [];
+
+      switch (activeEffect) {
+        case "bass-booster": {
+          const tier = BASS_BOOST_TIERS[params.tier as BassTier] || BASS_BOOST_TIERS[3];
+          const gain = typeof params.customGainDb === "number" ? params.customGainDb : tier.gain;
+          const cutoff = params.cutoff || tier.defaultCutoff;
+          const bassFilter = ctx.createBiquadFilter();
+          bassFilter.type = "lowshelf";
+          bassFilter.frequency.value = cutoff;
+          bassFilter.gain.value = gain;
+          nodes.push(bassFilter);
+
+          if (params.clarity !== false) {
+            const clarityFilter = ctx.createBiquadFilter();
+            clarityFilter.type = "highshelf";
+            clarityFilter.frequency.value = 8000;
+            clarityFilter.gain.value = 3;
+            nodes.push(clarityFilter);
+          }
+          break;
+        }
+
+        case "equalizer": {
+          const gains = params.gains || [0, 0, 0, 0, 0, 0];
+          EQ_FREQUENCIES.forEach((freq, i) => {
+            const g = gains[i] || 0;
+            if (g !== 0) {
+              const eqFilter = ctx.createBiquadFilter();
+              eqFilter.type = "peaking";
+              eqFilter.frequency.value = freq;
+              eqFilter.Q.value = 1.0;
+              eqFilter.gain.value = g;
+              nodes.push(eqFilter);
+            }
+          });
+          break;
+        }
+
+        case "volume-changer": {
+          const gainNode = ctx.createGain();
+          const gainVal = params.normalize ? 1.0 : Math.pow(10, (params.gainDb || 0) / 20);
+          gainNode.gain.value = Math.max(0, Math.min(gainVal, 10));
+          nodes.push(gainNode);
+          break;
+        }
+
+        case "stereo-panner": {
+          if (ctx.createStereoPanner) {
+            const panner = ctx.createStereoPanner();
+            panner.pan.value = Math.max(-1, Math.min(1, params.balance || 0));
+            nodes.push(panner);
+          }
+          break;
+        }
+
+        case "spatial-8d":
+        case "auto-panner": {
+          if (ctx.createStereoPanner) {
+            const panner = ctx.createStereoPanner();
+            panner.pan.value = 0;
+            nodes.push(panner);
+            pannerNodeRef.current = panner;
+          }
+          break;
+        }
+
+        case "noise-reducer": {
+          const hp = ctx.createBiquadFilter();
+          hp.type = "highpass";
+          hp.frequency.value = params.highpassHz || 80;
+          nodes.push(hp);
+
+          const lp = ctx.createBiquadFilter();
+          lp.type = "lowpass";
+          lp.frequency.value = params.lowpassHz || 14000;
+          nodes.push(lp);
+          break;
+        }
+
+        case "vocal-remover": {
+          if (ctx.createChannelSplitter && ctx.createChannelMerger) {
+            const splitter = ctx.createChannelSplitter(2);
+            const merger = ctx.createChannelMerger(2);
+            const inverter = ctx.createGain();
+            inverter.gain.value = -1;
+
+            source.connect(splitter);
+            splitter.connect(merger, 0, 0); // L -> L
+            splitter.connect(inverter, 1);   // R -> Inv
+            inverter.connect(merger, 0, 0); // -R -> L
+            splitter.connect(merger, 0, 1); // L -> R
+            inverter.connect(merger, 0, 1); // -R -> R
+            merger.connect(ctx.destination);
+            currentDspNodesRef.current = [splitter, merger, inverter];
+            return;
+          }
+          break;
+        }
+
+        case "reverb": {
+          const delay = ctx.createDelay();
+          delay.delayTime.value = 0.08;
+          const feedback = ctx.createGain();
+          feedback.gain.value = 0.4;
+          delay.connect(feedback);
+          feedback.connect(delay);
+          source.connect(delay);
+          delay.connect(ctx.destination);
+          nodes.push(delay, feedback);
+          break;
+        }
+      }
+
+      // Connect linear chain: source -> node0 -> node1 -> ... -> destination
+      if (nodes.length > 0) {
+        let prev: AudioNode = source;
+        for (const n of nodes) {
+          prev.connect(n);
+          prev = n;
+        }
+        prev.connect(ctx.destination);
+        currentDspNodesRef.current = nodes;
+      } else {
+        source.connect(ctx.destination);
+      }
+    } catch {
+      try {
+        if (sourceNodeRef.current && audioCtxRef.current) {
+          sourceNodeRef.current.connect(audioCtxRef.current.destination);
+        }
+      } catch {}
+    }
+  }, [activeEffect, params]);
+
+  /* Live parameter updates while audio is actively playing */
+  useEffect(() => {
+    if (isPlaying) {
+      setupDspGraph();
+    }
+  }, [activeEffect, params, isPlaying, setupDspGraph]);
+
+  /* Animated spatial 8D and auto-panning LFO */
+  useEffect(() => {
+    if (!isPlaying || !pannerNodeRef.current) {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      return;
+    }
+
+    const startT = performance.now();
+    const tick = () => {
+      if (!pannerNodeRef.current || !isPlaying) return;
+      const elapsed = (performance.now() - startT) / 1000;
+      if (activeEffect === "spatial-8d") {
+        const cycle = Math.max(params.cycleSec || 8, 1);
+        const intensity = params.intensity ?? 0.85;
+        pannerNodeRef.current.pan.value = Math.sin((elapsed / cycle) * 2 * Math.PI) * intensity;
+      } else if (activeEffect === "auto-panner") {
+        const freq = params.frequencyHz || 0.5;
+        const depth = params.depth ?? 0.85;
+        if (params.waveform === "triangle") {
+          const phase = (elapsed * freq) % 1;
+          const tri = phase < 0.5 ? 4 * phase - 1 : 3 - 4 * phase;
+          pannerNodeRef.current.pan.value = tri * depth;
+        } else {
+          pannerNodeRef.current.pan.value = Math.sin(elapsed * freq * 2 * Math.PI) * depth;
+        }
+      }
+      animFrameRef.current = requestAnimationFrame(tick);
+    };
+
+    animFrameRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+    };
+  }, [isPlaying, activeEffect, params]);
+
+  /* Teardown Web Audio API on unmount */
+  useEffect(() => {
+    return () => {
+      if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
+      currentDspNodesRef.current.forEach((n) => {
+        try { n.disconnect(); } catch {}
+      });
+      if (audioCtxRef.current && audioCtxRef.current.state !== "closed") {
+        try { void audioCtxRef.current.close(); } catch {}
+      }
+    };
+  }, []);
 
   /* Synchronize parameters when active tool changes */
   const handleSelectTool = (toolId: AudioEffectType, initialParamOverrides?: Record<string, any>) => {
@@ -151,6 +382,7 @@ export function UnifiedAudioStudio({
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
+      setupDspGraph();
       audioRef.current.play().catch(() => {});
       setIsPlaying(true);
     }

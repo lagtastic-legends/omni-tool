@@ -241,9 +241,15 @@ export function useAudioProcessor() {
         const filters = getAudioFilterGraph(effect, effectParams);
         const outArgs = audioOutputArgs(outputFormat, kbps);
 
+        const hasComplexFilter = filters.some((f) => f.includes("[") || f.includes(";"));
         const execArgs: string[] = ["-i", virtualInputPath];
-        if (filters.length > 0) {
+        if (hasComplexFilter) {
+          const filterComplex = filters.join(";");
+          execArgs.push("-filter_complex", filterComplex, "-map", "[outa]");
+        } else if (filters.length > 0) {
           execArgs.push("-af", filters.join(","));
+        } else {
+          execArgs.push("-af", "anull");
         }
         execArgs.push(...outArgs, outputPath);
 

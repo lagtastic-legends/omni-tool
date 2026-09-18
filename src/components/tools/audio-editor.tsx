@@ -92,11 +92,13 @@ export function AudioEditor() {
         {
           exec: [
             "-i", virtualInputPath,
-            "-af", projection.filters.join(","),
+            "-af", projection.filters.length > 0 ? projection.filters.join(",") : "anull",
             ...audioOutputArgs(format, k),
             `output.${format}`,
           ],
-          label: `Editing · ${projection.filters.length} filter${projection.filters.length === 1 ? "" : "s"}`,
+          label: projection.filters.length > 0
+            ? `Editing · ${projection.filters.length} filter${projection.filters.length === 1 ? "" : "s"}`
+            : "Exporting audio passthrough",
         },
       ],
       read: [

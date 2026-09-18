@@ -76,6 +76,33 @@ export function BassBooster() {
       runIcon={<Speaker className="size-4" />}
       controls={
         <ParamPanel title="low-end engine">
+          <div className="flex flex-wrap gap-1.5 pb-1">
+            {[
+              { label: "Warm", val: 2, cut: "110", clar: false },
+              { label: "Punchy", val: 4, cut: "100", clar: true },
+              { label: "Deep Club", val: 6, cut: "90", clar: true },
+              { label: "Heavy Sub", val: 8, cut: "80", clar: true },
+              { label: "Earthquake", val: 10, cut: "70", clar: true },
+            ].map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => {
+                  setIntensity(p.val);
+                  setCutoff(p.cut);
+                  setClarity(p.clar);
+                }}
+                disabled={busy}
+                className={`rounded-full border px-2.5 py-1 font-mono text-[9px] md:text-[10px] uppercase tracking-[0.12em] transition-colors ${
+                  intensity === p.val
+                    ? "border-primary/60 bg-primary/20 text-primary font-bold"
+                    : "border-border/70 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
           <ParamSlider
             label="Intensity"
             value={intensity}

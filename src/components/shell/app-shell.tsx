@@ -144,7 +144,7 @@ function ToolView({ toolId }: { toolId: string }) {
   return (
     <ToolShell toolId={toolId}>
       <Suspense fallback={<ToolSkeleton />}>
-        <Tool />
+        <Tool key={toolId} />
       </Suspense>
     </ToolShell>
   );

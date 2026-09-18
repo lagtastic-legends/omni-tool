@@ -63,7 +63,6 @@ export function VolumeChanger() {
       busy={busy}
       onRun={(o) => void start(o)}
       runLabel="CHANGE VOLUME"
-      runDisabled={!normalize && db === 0}
       job={job}
       output={outputs[0] ?? null}
       badge={normalize ? "normalized" : "re-gained"}
@@ -71,6 +70,33 @@ export function VolumeChanger() {
       runIcon={<Volume2 className="size-4" />}
       controls={
         <ParamPanel title="gain stage">
+          <div className="flex flex-wrap gap-1.5 pb-1">
+            {[
+              { label: "-12 dB", dbVal: -12, norm: false },
+              { label: "-6 dB", dbVal: -6, norm: false },
+              { label: "0 dB (Flat)", dbVal: 0, norm: false },
+              { label: "+6 dB", dbVal: 6, norm: false },
+              { label: "+12 dB", dbVal: 12, norm: false },
+              { label: "Normalize", dbVal: 0, norm: true },
+            ].map((p) => (
+              <button
+                key={p.label}
+                type="button"
+                onClick={() => {
+                  setNormalize(p.norm);
+                  setDb(p.dbVal);
+                }}
+                disabled={busy}
+                className={`rounded-full border px-2.5 py-1 font-mono text-[9px] md:text-[10px] uppercase tracking-[0.12em] transition-colors ${
+                  (p.norm && normalize) || (!normalize && !p.norm && db === p.dbVal)
+                    ? "border-primary/60 bg-primary/20 text-primary font-bold"
+                    : "border-border/70 bg-background/50 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+                }`}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
           <ParamSlider
             label="Volume"
             value={db}

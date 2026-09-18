@@ -274,10 +274,7 @@ export function buildVocalRemoverFilter(p: VocalRemoverParams): string[] {
   // Bass-Preserved Mode (Filter graph preserving rhythm kick/sub below crossover frequency)
   const cutoff = p.bassPreserveCutoffHz ?? 140;
   return [
-    `asplit=2[vocal][bass]`,
-    `[vocal]pan=stereo|c0=c0-c1|c1=c1-c0,highpass=f=${cutoff}[vocal_clean]`,
-    `[bass]lowpass=f=${cutoff}[bass_clean]`,
-    `[vocal_clean][bass_clean]amix=inputs=2:weights=1|1`,
+    `[0:a]asplit=2[vocal_in][bass_in];[vocal_in]pan=stereo|c0=c0-c1|c1=c1-c0,highpass=f=${cutoff}[vocal_clean];[bass_in]lowpass=f=${cutoff}[bass_clean];[vocal_clean][bass_clean]amix=inputs=2:weights=1|1[outa]`,
   ];
 }
 
