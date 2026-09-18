@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.7.1">
-    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release%20v2.7.1" alt="Release" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.7.2">
+    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release%20v2.7.2" alt="Release" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.1/omni-tool-v2.7.1.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.7.1-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.2/omni-tool-v2.7.2.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.7.2-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" />
@@ -39,8 +39,8 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web App** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero install required. Run instantly in any modern browser. |
-| **📱 Android APK (Signed Release)** | [**Download omni-tool-v2.7.1.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.1/omni-tool-v2.7.1.apk) | Production signed APK (23.25 MB) optimized for phones, foldables, flips, and tablets. |
-| **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.7.1-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.1/omni-tool-v2.7.1-debug.apk) | Debug build (34.77 MB) with remote Chrome WebView debugging enabled for developers. |
+| **📱 Android APK (Signed Release)** | [**Download omni-tool-v2.7.2.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.2/omni-tool-v2.7.2.apk) | Production signed APK (23.25 MB) optimized for phones, foldables, flips, and tablets. |
+| **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.7.2-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.2/omni-tool-v2.7.2-debug.apk) | Debug build (34.77 MB) with remote Chrome WebView debugging enabled for developers. |
 
 ---
 
@@ -54,7 +54,7 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 * **Reactive Inline Renaming**: Direct real-time renaming in DropZone and output cards without cloning blobs or corrupting native streams.
 * **Video Compressor**: Smart multi-tier CRF and preset compression with zero quality loss.
 * **Universal Media Converter**: Transcode MP4, MKV, WebM, AVI, MOV, and extract audio tracks client-side. **New: Original lossless audio extraction** via stream copy (`-c:a copy`).
-* **20 GB File Processing**: Supports media files up to 20 GB with intelligent memory warnings at 3 GB for mobile devices, backed by `android:largeHeap="true"` in the native Android APK.
+* **20 GB Zero-Copy WORKERFS Streaming Engine**: Direct kernel-level chunked streaming of files up to 20 GB into WebAssembly with 0 MB input RAM overhead, preventing V8 `ArrayBuffer` allocation limits and WASM heap exhaustion. Backed by `android:largeHeap="true"` in the native Android APK.
 * **GIF Studio**: Convert video segments into optimized animated GIFs with custom framerate and palette control.
 
 ### 🎛️ Unified Audio DSP Suite (13 Engines)

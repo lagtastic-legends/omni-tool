@@ -205,12 +205,33 @@ export function useAudioProcessor() {
         // Yield to let browser update UI & show allocation stage
         await new Promise((resolve) => setTimeout(resolve, 20));
 
-        // 5. Write source buffer into WASM Virtual FS
-        setCurrentPassLabel("Allocating Virtual Memory & Loading Audio...");
-        const inputData = new Uint8Array(await file.arrayBuffer());
+        // 5. Mount source buffer into WASM Virtual FS via zero-copy WORKERFS
+        setCurrentPassLabel("Mounting Audio Stream (Zero-Copy)...");
+        const mountDir = `/mnt_aud_${runId}`;
+        let virtualInputPath = `${mountDir}/${inputPath}`;
+        let mounted = false;
 
-        await activeEngine.writeFile(inputPath, inputData);
-        allocatedFilesRef.current.add(inputPath);
+        try {
+          await activeEngine.mount(
+            "WORKERFS" as any,
+            {
+              blobs: [{ name: inputPath, data: file }],
+            } as any,
+            mountDir as any,
+          );
+          mounted = true;
+        } catch (mountErr) {
+          if (file.size < 350 * 1024 * 1024) {
+            virtualInputPath = inputPath;
+            const inputData = new Uint8Array(await file.arrayBuffer());
+            await activeEngine.writeFile(inputPath, inputData);
+            allocatedFilesRef.current.add(inputPath);
+          } else {
+            throw new Error(
+              `Unable to stream ${(file.size / (1024 * 1024 * 1024)).toFixed(1)} GB audio file into WebAssembly: ${mountErr instanceof Error ? mountErr.message : String(mountErr)}.`,
+            );
+          }
+        }
         setProgress(15);
 
         // 6. Build Filter Graph for the chosen effect
@@ -220,7 +241,7 @@ export function useAudioProcessor() {
         const filters = getAudioFilterGraph(effect, effectParams);
         const outArgs = audioOutputArgs(outputFormat, kbps);
 
-        const execArgs: string[] = ["-i", inputPath];
+        const execArgs: string[] = ["-i", virtualInputPath];
         if (filters.length > 0) {
           execArgs.push("-af", filters.join(","));
         }
@@ -298,6 +319,14 @@ export function useAudioProcessor() {
 
         // 10. Guaranteed Virtual FS memory cleanup
         if (engine) {
+          if (mounted) {
+            try {
+              await engine.unmount(mountDir as any);
+            } catch {}
+            try {
+              await engine.deleteDir(mountDir);
+            } catch {}
+          }
           try {
             await engine.deleteFile(inputPath);
             allocatedFilesRef.current.delete(inputPath);

@@ -26,8 +26,18 @@ export interface JobPass {
   label?: string;
 }
 
+export interface JobInputFile {
+  file: File | Blob;
+  /** Custom virtual filename (default: file.name or "input.bin") */
+  name?: string;
+  /** Virtual mount point (default: "/mnt_0") */
+  mountPoint?: string;
+}
+
 export interface JobSpec {
-  write: { path: string; data: Uint8Array }[];
+  write?: { path: string; data: Uint8Array }[];
+  /** Zero-copy streaming input files mounted directly via WORKERFS */
+  inputFiles?: JobInputFile[];
   passes: JobPass[];
   read: { path: string; mime: string; name: string }[];
   /** Virtual paths to unlink at the end (best-effort). */
@@ -178,11 +188,48 @@ export function useMediaJob() {
       engine.on("log", logHandler);
 
       try {
-        /* 1 — stage inputs into the virtual FS --------------------------- */
+        /* 1 — stage inputs: zero-copy WORKERFS mounting for large files ------ */
         setPhase("writing");
-        for (const w of spec.write) {
-          allocatedFilesRef.current.add(w.path);
-          await engine.writeFile(w.path, w.data);
+        const mountedDirs: string[] = [];
+
+        if (spec.inputFiles && spec.inputFiles.length > 0) {
+          for (let i = 0; i < spec.inputFiles.length; i++) {
+            const item = spec.inputFiles[i];
+            const mountDir = item.mountPoint || `/mnt_${i}`;
+            const virtualName =
+              item.name || (item.file instanceof File ? item.file.name : `input_${i}.bin`);
+            try {
+              // Zero-copy WORKERFS mount — streams directly from disk via FileReaderSync!
+              await engine.mount(
+                "WORKERFS" as any,
+                {
+                  blobs: [{ name: virtualName, data: item.file }],
+                } as any,
+                mountDir as any,
+              );
+              mountedDirs.push(mountDir);
+            } catch (mountErr) {
+              // If WORKERFS mount is not supported on this platform/browser
+              // and the file is reasonably sized (< 350 MB), fall back to memory write
+              if (item.file.size < 350 * 1024 * 1024) {
+                const targetPath = `${mountDir}/${virtualName}`;
+                const buf = new Uint8Array(await item.file.arrayBuffer());
+                await engine.writeFile(targetPath, buf);
+                allocatedFilesRef.current.add(targetPath);
+              } else {
+                throw new Error(
+                  `Unable to stream ${(item.file.size / (1024 * 1024 * 1024)).toFixed(1)} GB file into WebAssembly: ${mountErr instanceof Error ? mountErr.message : String(mountErr)}. Try closing other open tabs or apps.`,
+                );
+              }
+            }
+          }
+        }
+
+        if (spec.write) {
+          for (const w of spec.write) {
+            allocatedFilesRef.current.add(w.path);
+            await engine.writeFile(w.path, w.data);
+          }
         }
 
         /* 2 — sequential exec passes -------------------------------------- */
@@ -207,7 +254,7 @@ export function useMediaJob() {
             );
             if (isOOM) {
               throw new Error(
-                "Virtual memory limit exceeded. Please try a smaller file or compact quality preset.",
+                "WebAssembly memory limit reached while encoding output. For massive files (up to 20 GB), extracting audio or using a compact quality preset is recommended.",
               );
             }
             throw new Error(
@@ -223,6 +270,11 @@ export function useMediaJob() {
         for (const r of spec.read) {
           allocatedFilesRef.current.add(r.path);
           const data = await engine.readFile(r.path, "binary");
+          // Immediately delete file from WASM memory to free heap
+          try {
+            await engine.deleteFile(r.path);
+            allocatedFilesRef.current.delete(r.path);
+          } catch {}
           if (!(data instanceof Uint8Array) || data.byteLength === 0) {
             throw new Error(`Output "${r.name}" came back empty — conversion failed.`);
           }
@@ -250,9 +302,20 @@ export function useMediaJob() {
       } finally {
         engine.off("progress", handler);
         engine.off("log", logHandler);
+
+        // Unmount zero-copy filesystems
+        for (const dir of mountedDirs) {
+          try {
+            await engine.unmount(dir as any);
+          } catch {}
+          try {
+            await engine.deleteDir(dir);
+          } catch {}
+        }
+
         /* 4 — aggressive virtual FS cleanup (prevent memory leaks) -------- */
         const filesToClean = new Set<string>([
-          ...spec.write.map((w) => w.path),
+          ...(spec.write ? spec.write.map((w) => w.path) : []),
           ...spec.read.map((r) => r.path),
           ...(spec.cleanup ?? []),
         ]);

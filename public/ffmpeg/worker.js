@@ -92,11 +92,19 @@ const mount = ({ fsType, options, mountPoint }) => {
     const fs = ffmpeg.FS.filesystems[str];
     if (!fs)
         return false;
+    try {
+        ffmpeg.FS.mkdir(mountPoint);
+    } catch (e) {}
     ffmpeg.FS.mount(fs, options, mountPoint);
     return true;
 };
 const unmount = ({ mountPoint }) => {
-    ffmpeg.FS.unmount(mountPoint);
+    try {
+        ffmpeg.FS.unmount(mountPoint);
+    } catch (e) {}
+    try {
+        ffmpeg.FS.rmdir(mountPoint);
+    } catch (e) {}
     return true;
 };
 self.onmessage = async ({ data: { id, type, data: _data }, }) => {

@@ -34,13 +34,13 @@ export function BassBooster() {
       cutoff: Number(cutoff),
       clarity,
     });
-    const inputPath = `input.${extOf(file.name) || "mp3"}`;
-    const buffer = new Uint8Array(await file.arrayBuffer());
+    const srcExt = extOf(file.name) || "mp3";
+    const virtualInputPath = `/mnt_0/input.${srcExt}`;
     await run({
-      write: [{ path: inputPath, data: buffer }],
+      inputFiles: [{ file, name: `input.${srcExt}`, mountPoint: "/mnt_0" }],
       passes: [
         {
-          exec: ["-i", inputPath, "-af", filters.join(","), ...outputArgs, `output.${format}`],
+          exec: ["-i", virtualInputPath, "-af", filters.join(","), ...outputArgs, `output.${format}`],
           label: `Boosting bass +${(intensity * 1.8).toFixed(1)} dB @ ${cutoff} Hz`,
         },
       ],
@@ -51,7 +51,7 @@ export function BassBooster() {
           name: `${baseName(file.name)}-bass.${format}`,
         },
       ],
-      cleanup: [inputPath, `output.${format}`],
+      cleanup: [`output.${format}`],
     });
   };
 

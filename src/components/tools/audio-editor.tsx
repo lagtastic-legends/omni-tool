@@ -83,15 +83,15 @@ export function AudioEditor() {
 
   const startJob = async () => {
     if (!file || !valid) return;
-    const inputPath = `input.${extOf(file.name) || "mp3"}`;
-    const buffer = new Uint8Array(await file.arrayBuffer());
+    const srcExt = extOf(file.name) || "mp3";
+    const virtualInputPath = `/mnt_0/input.${srcExt}`;
     const k = Number(kbps);
     await run({
-      write: [{ path: inputPath, data: buffer }],
+      inputFiles: [{ file, name: `input.${srcExt}`, mountPoint: "/mnt_0" }],
       passes: [
         {
           exec: [
-            "-i", inputPath,
+            "-i", virtualInputPath,
             "-af", projection.filters.join(","),
             ...audioOutputArgs(format, k),
             `output.${format}`,
@@ -106,7 +106,7 @@ export function AudioEditor() {
           name: `${baseName(file.name)}-edited.${format}`,
         },
       ],
-      cleanup: [inputPath, `output.${format}`],
+      cleanup: [`output.${format}`],
     });
   };
 

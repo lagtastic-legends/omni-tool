@@ -28,17 +28,16 @@ export function VideoMute() {
   const start = async () => {
     if (!file) return;
     const srcExt = extOf(file.name) || "mp4";
-    const inputPath = `input.${srcExt}`;
-    const buffer = new Uint8Array(await file.arrayBuffer());
+    const virtualInputPath = `/mnt_0/input.${srcExt}`;
     setUsedFallback(false);
 
     const canCopy = SAFE_COPY_EXTS.has(srcExt);
     const copyExt = canCopy ? srcExt : "mp4";
     const copySpec: JobSpec = {
-      write: [{ path: inputPath, data: buffer }],
+      inputFiles: [{ file, name: `input.${srcExt}`, mountPoint: "/mnt_0" }],
       passes: [
         {
-          exec: ["-i", inputPath, "-c", "copy", "-an", `output.${copyExt}`],
+          exec: ["-i", virtualInputPath, "-c", "copy", "-an", `output.${copyExt}`],
           label: "Stripping audio (stream copy)",
         },
       ],
@@ -49,15 +48,15 @@ export function VideoMute() {
           name: `${baseName(file.name)}-muted.${copyExt}`,
         },
       ],
-      cleanup: [inputPath, `output.${copyExt}`],
+      cleanup: [`output.${copyExt}`],
     };
 
     const fallbackSpec: JobSpec = {
-      write: [{ path: inputPath, data: buffer }],
+      inputFiles: [{ file, name: `input.${srcExt}`, mountPoint: "/mnt_0" }],
       passes: [
         {
           exec: [
-            "-i", inputPath,
+            "-i", virtualInputPath,
             "-c:v", "libx264",
             "-preset", "ultrafast",
             "-pix_fmt", "yuv420p",
@@ -74,7 +73,7 @@ export function VideoMute() {
           name: `${baseName(file.name)}-muted.mp4`,
         },
       ],
-      cleanup: [inputPath, "output.mp4"],
+      cleanup: ["output.mp4"],
     };
 
     try {

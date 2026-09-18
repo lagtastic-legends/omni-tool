@@ -185,14 +185,14 @@ export function MediaConverter() {
     if (!file) return;
     if (mode === "audio" && hasAudio === false) return;
     const kbps = Number(audioKbps);
+    const virtualInputPath = `/mnt_0/input.${srcExt}`;
     const args =
       mode === "video"
-        ? buildVideoArgs(inputPath, outputPath, videoFormat, quality, kbps, trimRange)
-        : buildAudioArgs(inputPath, outputPath, audioFormat, kbps);
+        ? buildVideoArgs(virtualInputPath, outputPath, videoFormat, quality, kbps, trimRange)
+        : buildAudioArgs(virtualInputPath, outputPath, audioFormat, kbps);
 
-    const buffer = new Uint8Array(await file.arrayBuffer());
     await run({
-      write: [{ path: inputPath, data: buffer }],
+      inputFiles: [{ file, name: `input.${srcExt}`, mountPoint: "/mnt_0" }],
       passes: [
         {
           exec: args,
@@ -205,7 +205,7 @@ export function MediaConverter() {
         },
       ],
       read: [{ path: outputPath, mime: mimeFor(targetExt), name: outputName }],
-      cleanup: [inputPath, outputPath],
+      cleanup: [outputPath],
     });
   };
 

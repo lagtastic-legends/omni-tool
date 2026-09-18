@@ -20,14 +20,14 @@ export function ReverseAudio() {
 
   const start = async ({ format, outputArgs }: { format: string; outputArgs: string[] }) => {
     if (!file) return;
-    const inputPath = `input.${extOf(file.name) || "mp3"}`;
-    const buffer = new Uint8Array(await file.arrayBuffer());
+    const srcExt = extOf(file.name) || "mp3";
+    const virtualInputPath = `/mnt_0/input.${srcExt}`;
     await run({
-      write: [{ path: inputPath, data: buffer }],
+      inputFiles: [{ file, name: `input.${srcExt}`, mountPoint: "/mnt_0" }],
       passes: [
         {
           exec: [
-            "-i", inputPath,
+            "-i", virtualInputPath,
             "-af", reverseFilters().join(","),
             ...outputArgs,
             `output.${format}`,
@@ -42,7 +42,7 @@ export function ReverseAudio() {
           name: `${baseName(file.name)}-reversed.${format}`,
         },
       ],
-      cleanup: [inputPath, `output.${format}`],
+      cleanup: [`output.${format}`],
     });
   };
 

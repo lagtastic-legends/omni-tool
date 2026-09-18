@@ -70,8 +70,8 @@ export function RingtoneMaker() {
 
   const startJob = async () => {
     if (!file || !valid) return;
-    const inputPath = `input.${extOf(file.name) || "mp3"}`;
-    const buffer = new Uint8Array(await file.arrayBuffer());
+    const srcExt = extOf(file.name) || "mp3";
+    const virtualInputPath = `/mnt_0/input.${srcExt}`;
     const filters = trimFadeFilters({
       startSec: start,
       endSec: end,
@@ -80,11 +80,11 @@ export function RingtoneMaker() {
       boostDb: boost,
     });
     await run({
-      write: [{ path: inputPath, data: buffer }],
+      inputFiles: [{ file, name: `input.${srcExt}`, mountPoint: "/mnt_0" }],
       passes: [
         {
           exec: [
-            "-i", inputPath,
+            "-i", virtualInputPath,
             "-af", filters.join(","),
             ...ringOutputArgs(format),
             `output.${format}`,
@@ -99,7 +99,7 @@ export function RingtoneMaker() {
           name: `${baseName(file.name)}-ringtone.${format}`,
         },
       ],
-      cleanup: [inputPath, `output.${format}`],
+      cleanup: [`output.${format}`],
     });
   };
 

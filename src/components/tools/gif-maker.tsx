@@ -78,18 +78,17 @@ export function GifMaker() {
   const startJob = async () => {
     if (!file || !validRange) return;
     const srcExt = extOf(file.name) || "mp4";
-    const inputPath = `input.${srcExt}`;
-    const buffer = new Uint8Array(await file.arrayBuffer());
+    const virtualInputPath = `/mnt_0/input.${srcExt}`;
     const clipLen = (end - start).toFixed(2);
     const scale = `fps=${fps},scale='min(iw,${width})':-1:flags=lanczos`;
 
     await run({
-      write: [{ path: inputPath, data: buffer }],
+      inputFiles: [{ file, name: `input.${srcExt}`, mountPoint: "/mnt_0" }],
       passes: [
         {
           exec: [
             "-ss", start.toFixed(2),
-            "-i", inputPath,
+            "-i", virtualInputPath,
             "-t", clipLen,
             "-vf", `${scale},palettegen=stats_mode=diff`,
             "palette.png",
@@ -99,7 +98,7 @@ export function GifMaker() {
         {
           exec: [
             "-ss", start.toFixed(2),
-            "-i", inputPath,
+            "-i", virtualInputPath,
             "-t", clipLen,
             "-i", "palette.png",
             "-lavfi", `${scale}[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=4`,
@@ -110,7 +109,7 @@ export function GifMaker() {
         },
       ],
       read: [{ path: "output.gif", mime: mimeFor("gif"), name: outputName }],
-      cleanup: [inputPath, "palette.png", "output.gif"],
+      cleanup: ["palette.png", "output.gif"],
     });
   };
 

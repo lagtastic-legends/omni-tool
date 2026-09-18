@@ -62,14 +62,15 @@ export function VideoCompressor() {
     return resolution;
   }, [resolution, meta]);
 
-  const outputName = file ? `${baseName(file.name)}-compressed.mp4` : "";
   const output = outputs[0] ?? null;
 
 
   const start = async () => {
     if (!file) return;
-    const inputPath = `input.${extOf(file.name) || "bin"}`;
+    const srcExt = extOf(file.name) || "mp4";
+    const virtualInputPath = `/mnt_0/input.${srcExt}`;
     const outputPath = "output.mp4";
+    const outputName = `${baseName(file.name)}-compressed.mp4`;
 
     const vf =
       effectiveResolution === "original"
@@ -77,20 +78,20 @@ export function VideoCompressor() {
         : `scale=-2:'min(ih,${effectiveResolution})'`;
 
     const args = [
-      "-i", inputPath,
+      "-i", virtualInputPath,
       "-c:v", "libx264",
       "-preset", "ultrafast",
       "-crf", String(crf),
       "-pix_fmt", "yuv420p",
+      "-max_muxing_queue_size", "1024",
       ...(vf ? ["-vf", vf] : []),
       ...(keepAudio ? ["-c:a", "aac", "-b:a", "128k"] : ["-an"]),
       "-movflags", "+faststart",
       outputPath,
     ];
 
-    const buffer = new Uint8Array(await file.arrayBuffer());
     await run({
-      write: [{ path: inputPath, data: buffer }],
+      inputFiles: [{ file, name: `input.${srcExt}`, mountPoint: "/mnt_0" }],
       passes: [
         {
           exec: args,
@@ -98,7 +99,7 @@ export function VideoCompressor() {
         },
       ],
       read: [{ path: outputPath, mime: mimeFor("mp4"), name: outputName }],
-      cleanup: [inputPath, outputPath],
+      cleanup: [outputPath],
     });
   };
 
