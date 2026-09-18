@@ -56,13 +56,13 @@ export function slowedFilters({ factor, reverb, sampleRate }: SlowedParams): str
 }
 
 function echoForIntensity(reverb: number): string {
-  if (reverb < 0.4) {
-    return "aecho=0.8:0.85:80|120:0.25|0.2";
+  if (reverb < 0.35) {
+    return "aecho=0.85:0.7:16|24:0.22|0.16,highpass=f=50,treble=g=-2:f=6500";
   }
-  if (reverb < 0.75) {
-    return "aecho=0.8:0.9:120|180|60:0.32|0.28|0.22";
+  if (reverb < 0.7) {
+    return "aecho=0.82:0.75:18|26|34|42:0.28|0.22|0.16|0.12,highpass=f=50,treble=g=-3:f=5500";
   }
-  return "aecho=0.8:0.95:180|280|90|40:0.38|0.34|0.28|0.22";
+  return "aecho=0.80:0.8:20|28|36|48:0.34|0.26|0.20|0.14,highpass=f=50,treble=g=-3:f=5000";
 }
 
 /* ------------------------------------------------------------------ */
@@ -97,11 +97,12 @@ export interface SpatialParams {
 }
 
 export function spatialFilters({ cycleSec, intensity }: SpatialParams): string[] {
-  const hz = (1 / cycleSec).toFixed(4);
+  const hz = (1 / Math.max(cycleSec, 1)).toFixed(4);
   return [
     "aformat=channel_layouts=stereo",
-    "extrastereo=m=1.2",
-    `apulsator=hz=${hz}:amount=${intensity.toFixed(2)}:mode=sine:width=0.8`,
+    "extrastereo=m=1.35",
+    `apulsator=hz=${hz}:amount=${intensity.toFixed(2)}:mode=sine:width=1`,
+    "aecho=0.88:0.75:18|28:0.2|0.14",
   ];
 }
 

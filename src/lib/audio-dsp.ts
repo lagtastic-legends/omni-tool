@@ -186,42 +186,58 @@ export const REVERB_SPACES: Record<ReverbSpacePreset, ReverbPresetMeta> = {
     name: "Bathroom",
     desc: "Short dense reflections with bright acoustic tile reverberation",
     badge: "Tile Acoustic",
-    buildFilter: () => ["aecho=0.8:0.7:20|40:0.4|0.3"],
+    buildFilter: () => ["aecho=0.85:0.7:15|25:0.35|0.25", "highpass=f=80"],
   },
   "small-room": {
     id: "small-room",
     name: "Small Room",
     desc: "Intimate acoustic chamber with natural early reflections",
     badge: "Intimate",
-    buildFilter: () => ["aecho=0.8:0.8:40|60:0.3|0.25"],
+    buildFilter: () => ["aecho=0.85:0.75:20|32:0.3|0.22", "highpass=f=60"],
   },
   "medium-room": {
     id: "medium-room",
     name: "Medium Room",
     desc: "Balanced studio tracking room with warm mid resonance",
     badge: "Studio Live",
-    buildFilter: () => ["aecho=0.8:0.85:80|120:0.35|0.25"],
+    buildFilter: () => [
+      "aecho=0.82:0.75:24|38|48:0.28|0.22|0.16",
+      "highpass=f=50",
+      "treble=g=-2:f=6000",
+    ],
   },
   "large-room": {
     id: "large-room",
     name: "Large Room",
     desc: "Spacious concert chamber with extended decay tail",
     badge: "Concert Hall",
-    buildFilter: () => ["aecho=0.8:0.88:100|180:0.4|0.3"],
+    buildFilter: () => [
+      "aecho=0.80:0.78:28|42|54:0.32|0.24|0.18",
+      "highpass=f=50",
+      "treble=g=-2:f=5500",
+    ],
   },
   "church-hall": {
     id: "church-hall",
     name: "Church Hall",
     desc: "Long resonant sanctuary decay with secondary stereo diffusion",
     badge: "Sanctuary",
-    buildFilter: () => ["aecho=0.8:0.9:140|220|320:0.45|0.35|0.25"],
+    buildFilter: () => [
+      "aecho=0.78:0.8:30|46|62|78:0.34|0.26|0.20|0.14",
+      "highpass=f=50",
+      "treble=g=-3:f=5000",
+    ],
   },
   cathedral: {
     id: "cathedral",
     name: "Cathedral",
     desc: "Massive ethereal cathedral space with multi-tap cavern reflections",
     badge: "Cavernous",
-    buildFilter: () => ["aecho=0.8:0.92:200|350|500|700:0.5|0.4|0.3|0.2"],
+    buildFilter: () => [
+      "aecho=0.76:0.82:32|50|68|86:0.36|0.28|0.22|0.16",
+      "highpass=f=40",
+      "treble=g=-3:f=4500",
+    ],
   },
   "slowed-reverb": {
     id: "slowed-reverb",
@@ -231,7 +247,9 @@ export const REVERB_SPACES: Record<ReverbSpacePreset, ReverbPresetMeta> = {
     buildFilter: (sampleRate = 44100) => [
       `asetrate=${Math.round(sampleRate * 0.85)}`,
       `aresample=${sampleRate}`,
-      "aecho=0.8:0.92:160|280|420:0.4|0.32|0.24",
+      "aecho=0.82:0.75:18|26|34|42:0.28|0.22|0.16|0.12",
+      "highpass=f=50",
+      "treble=g=-3:f=5500",
     ],
   },
   "spatial-8d-reverb": {
@@ -241,9 +259,9 @@ export const REVERB_SPACES: Record<ReverbSpacePreset, ReverbPresetMeta> = {
     badge: "360° Orbit",
     buildFilter: () => [
       "aformat=channel_layouts=stereo",
-      "extrastereo=m=1.3",
-      "apulsator=hz=0.125:amount=0.85:mode=sine:width=0.8",
-      "aecho=0.8:0.85:60|120:0.25|0.18",
+      "extrastereo=m=1.35",
+      "apulsator=hz=0.125:amount=0.85:mode=sine:width=1",
+      "aecho=0.88:0.75:18|28:0.2|0.14",
     ],
   },
 };
@@ -284,10 +302,12 @@ export function buildVocalRemoverFilter(p: VocalRemoverParams): string[] {
 
 export function buildSpatial8DFilter(p: Spatial8DParams): string[] {
   const hz = (1 / Math.max(p.cycleSec, 1)).toFixed(4);
+  const widening = p.widening ? Math.max(1.0, Math.min(p.widening, 2.0)) : 1.35;
   return [
     "aformat=channel_layouts=stereo",
-    `extrastereo=m=${p.widening.toFixed(2)}`,
-    `apulsator=hz=${hz}:amount=${p.intensity.toFixed(2)}:mode=sine:width=0.8`,
+    `extrastereo=m=${widening.toFixed(2)}`,
+    `apulsator=hz=${hz}:amount=${p.intensity.toFixed(2)}:mode=sine:width=1`,
+    "aecho=0.88:0.75:18|28:0.2|0.14",
   ];
 }
 
@@ -298,7 +318,7 @@ export function buildSpatial8DFilter(p: Spatial8DParams): string[] {
 export function buildAutoPannerFilter(p: AutoPannerParams): string[] {
   return [
     "aformat=channel_layouts=stereo",
-    `apulsator=hz=${p.frequencyHz.toFixed(3)}:amount=${p.depth.toFixed(2)}:mode=${p.waveform}:width=0.8`,
+    `apulsator=hz=${p.frequencyHz.toFixed(3)}:amount=${p.depth.toFixed(2)}:mode=${p.waveform}:width=1`,
   ];
 }
 

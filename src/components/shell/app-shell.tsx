@@ -185,6 +185,26 @@ export function AppShell() {
     };
   }, []);
 
+  /* Global Single-Stream Audio Coordinator: ensures never more than one audio/video element plays concurrently */
+  useEffect(() => {
+    const handlePlay = (e: Event) => {
+      const target = e.target as HTMLMediaElement;
+      if (!target || (target.tagName !== "AUDIO" && target.tagName !== "VIDEO")) return;
+      document.querySelectorAll("audio, video").forEach((media) => {
+        if (media !== target && !media.paused) {
+          try {
+            (media as HTMLMediaElement).pause();
+          } catch {}
+        }
+      });
+    };
+
+    document.addEventListener("play", handlePlay, true);
+    return () => {
+      document.removeEventListener("play", handlePlay, true);
+    };
+  }, []);
+
   const { view, navigate, reset } = useNavStore();
   const { isOpen: isAiOpen, toggleOpen: toggleAi } = useAiStore();
 

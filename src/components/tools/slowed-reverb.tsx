@@ -38,12 +38,15 @@ export function SlowedReverb() {
     ];
 
     if (reverb >= 0.05) {
-      if (reverb < 0.4) {
-        filters.push("aecho=0.8:0.85:80|120:0.25|0.2");
-      } else if (reverb < 0.75) {
-        filters.push("aecho=0.8:0.9:120|180|60:0.32|0.28|0.22");
+      if (reverb < 0.35) {
+        // Light room ambience: Haas micro-reflections (16ms & 24ms), zero slapback
+        filters.push("aecho=0.85:0.7:16|24:0.22|0.16,highpass=f=50,treble=g=-2:f=6500");
+      } else if (reverb < 0.7) {
+        // Medium studio hall: dense 4-tap diffuse reflections, warm damping
+        filters.push("aecho=0.82:0.75:18|26|34|42:0.28|0.22|0.16|0.12,highpass=f=50,treble=g=-3:f=5500");
       } else {
-        filters.push("aecho=0.8:0.95:180|280|90|40:0.38|0.34|0.28|0.22");
+        // Deep cathedral wash: multi-tap spatial bloom with progressive decay
+        filters.push("aecho=0.80:0.8:20|28|36|48:0.34|0.26|0.20|0.14,highpass=f=50,treble=g=-3:f=5000");
       }
     }
 

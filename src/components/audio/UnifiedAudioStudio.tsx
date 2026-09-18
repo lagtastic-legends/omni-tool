@@ -125,6 +125,8 @@ export function UnifiedAudioStudio({
   const currentDspNodesRef = useRef<AudioNode[]>([]);
   const animFrameRef = useRef<number | null>(null);
   const pannerNodeRef = useRef<StereoPannerNode | null>(null);
+  const spatialFilterRef = useRef<BiquadFilterNode | null>(null);
+  const spatialGainRef = useRef<GainNode | null>(null);
 
   /* Clean up audio preview url */
   useEffect(() => {
@@ -169,6 +171,8 @@ export function UnifiedAudioStudio({
       });
       currentDspNodesRef.current = [];
       pannerNodeRef.current = null;
+      spatialFilterRef.current = null;
+      spatialGainRef.current = null;
       try { source.disconnect(); } catch {}
 
       const nodes: AudioNode[] = [];
@@ -227,7 +231,56 @@ export function UnifiedAudioStudio({
           break;
         }
 
-        case "spatial-8d":
+        case "spatial-8d": {
+          if (ctx.createStereoPanner) {
+            // 1. Azimuth stereo panner for smooth horizontal 360° rotation
+            const panner = ctx.createStereoPanner();
+            panner.pan.value = 0;
+            pannerNodeRef.current = panner;
+
+            // 2. Dynamic Head-Shadow / Pinna filter (attenuates high-freq when source is behind the head)
+            const headShadowFilter = ctx.createBiquadFilter();
+            headShadowFilter.type = "lowpass";
+            headShadowFilter.frequency.value = 18000;
+            spatialFilterRef.current = headShadowFilter;
+
+            // 3. Proximity gain modulation (subtle volume attenuation behind head)
+            const proximityGain = ctx.createGain();
+            proximityGain.gain.value = 1.0;
+            spatialGainRef.current = proximityGain;
+
+            // 4. Binaural room reflection / Haas externalization micro-delay
+            const roomDelay = ctx.createDelay();
+            roomDelay.delayTime.value = 0.022; // 22ms Haas reflection
+            const roomGain = ctx.createGain();
+            roomGain.gain.value = 0.18;
+            const roomDamp = ctx.createBiquadFilter();
+            roomDamp.type = "lowpass";
+            roomDamp.frequency.value = 4500;
+
+            source.connect(panner);
+            panner.connect(headShadowFilter);
+            headShadowFilter.connect(proximityGain);
+            proximityGain.connect(ctx.destination);
+
+            source.connect(roomDelay);
+            roomDelay.connect(roomDamp);
+            roomDamp.connect(roomGain);
+            roomGain.connect(ctx.destination);
+
+            currentDspNodesRef.current = [
+              panner,
+              headShadowFilter,
+              proximityGain,
+              roomDelay,
+              roomDamp,
+              roomGain,
+            ];
+            return;
+          }
+          break;
+        }
+
         case "auto-panner": {
           if (ctx.createStereoPanner) {
             const panner = ctx.createStereoPanner();
@@ -272,16 +325,32 @@ export function UnifiedAudioStudio({
         }
 
         case "reverb": {
-          const delay = ctx.createDelay();
-          delay.delayTime.value = 0.08;
-          const feedback = ctx.createGain();
-          feedback.gain.value = 0.4;
-          delay.connect(feedback);
-          feedback.connect(delay);
-          source.connect(delay);
-          delay.connect(ctx.destination);
-          nodes.push(delay, feedback);
-          break;
+          // Psychoacoustic Haas diffusion: wet/dry balance with zero discrete slapback delay
+          const wetGain = ctx.createGain();
+          wetGain.gain.value = 0.32;
+          const dryGain = ctx.createGain();
+          dryGain.gain.value = 0.88;
+
+          const delay1 = ctx.createDelay();
+          delay1.delayTime.value = 0.022; // 22ms Haas reflection
+          const delay2 = ctx.createDelay();
+          delay2.delayTime.value = 0.035; // 35ms Haas reflection
+
+          const lowpass = ctx.createBiquadFilter();
+          lowpass.type = "lowpass";
+          lowpass.frequency.value = 5200; // warm acoustic absorption
+
+          source.connect(dryGain);
+          dryGain.connect(ctx.destination);
+
+          source.connect(delay1);
+          delay1.connect(delay2);
+          delay2.connect(lowpass);
+          lowpass.connect(wetGain);
+          wetGain.connect(ctx.destination);
+
+          currentDspNodesRef.current = [dryGain, wetGain, delay1, delay2, lowpass];
+          return;
         }
       }
 
@@ -327,7 +396,25 @@ export function UnifiedAudioStudio({
       if (activeEffect === "spatial-8d") {
         const cycle = Math.max(params.cycleSec || 8, 1);
         const intensity = params.intensity ?? 0.85;
-        pannerNodeRef.current.pan.value = Math.sin((elapsed / cycle) * 2 * Math.PI) * intensity;
+        const theta = (elapsed / cycle) * 2 * Math.PI;
+        const panX = Math.sin(theta) * intensity;
+        const depthY = Math.cos(theta); // +1 = directly in front, -1 = directly behind
+
+        if (pannerNodeRef.current) {
+          pannerNodeRef.current.pan.value = Math.max(-1, Math.min(1, panX));
+        }
+        if (spatialFilterRef.current) {
+          // In front (+1): 18000 Hz (open, bright)
+          // Behind (-1): 6500 Hz (warm head-shadow absorption)
+          const cutoff = 12250 + 5750 * depthY;
+          spatialFilterRef.current.frequency.value = Math.max(3000, Math.min(20000, cutoff));
+        }
+        if (spatialGainRef.current) {
+          // In front (+1): 1.0
+          // Behind (-1): 0.88 (subtle ear/head volume dip)
+          const gain = 0.94 + 0.06 * depthY;
+          spatialGainRef.current.gain.value = gain;
+        }
       } else if (activeEffect === "auto-panner") {
         const freq = params.frequencyHz || 0.5;
         const depth = params.depth ?? 0.85;
@@ -524,7 +611,7 @@ export function UnifiedAudioStudio({
               reset();
               setFile(null);
             }}
-            preview="audio"
+            preview="none"
             label="Drop source audio track here"
             hint="Supports MP3, WAV, FLAC, OGG, AAC, M4A up to 20 GB"
             onProbed={handleProbed}
