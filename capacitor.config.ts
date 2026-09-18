@@ -10,7 +10,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
  */
 const config: CapacitorConfig = {
   appId: "com.omnitool.app",
-  appName: "ZenoDeck",
+  appName: "Omni Tool",
   webDir: "out",
   android: {
     // WebView must reach getUserMedia for the QR scanner & Studio Recorder.

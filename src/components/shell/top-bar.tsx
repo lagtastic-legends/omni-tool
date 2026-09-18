@@ -57,11 +57,11 @@ export function TopBar() {
               transition={{ type: "spring", stiffness: 260, damping: 18 }}
               className="relative grid size-9 sm:size-10 place-items-center rounded-xl border border-primary/40 overflow-hidden glow-box-violet"
             >
-              <img src="/logo.jpg" alt="ZenoDeck" className="w-full h-full object-cover" />
+              <img src="/logo.jpg" alt="Omni Tool" className="w-full h-full object-cover" />
             </motion.div>
           <div className="flex flex-col leading-none">
             <span className="font-display text-xs sm:text-sm font-bold tracking-[0.24em] sm:tracking-[0.32em] text-foreground">
-              ZENODECK
+              OMNI&nbsp;TOOL
             </span>
             <span className="mt-0.5 hidden font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground sm:block">
               client-side media suite

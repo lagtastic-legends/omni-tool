@@ -30,7 +30,7 @@ export const useAiStore = create<AiState>()(
         {
           id: 'welcome-msg',
           role: 'model',
-          content: "Hello! I'm **Zeno**, your client-side AI co-pilot for ZenoDeck. I can guide you through video compression, vocal cancellation, 8D audio, PDF tools, and local storage.",
+          content: "Hello! I'm **Omni**, your client-side AI co-pilot. I can guide you through video compression, vocal cancellation, 8D audio, PDF tools, and local storage.",
           timestamp: Date.now(),
         }
       ],
@@ -74,7 +74,7 @@ export const useAiStore = create<AiState>()(
           {
             id: `welcome-${Date.now()}`,
             role: 'model',
-            content: "Hello! I'm **Zeno**, your client-side AI co-pilot for ZenoDeck. How can I help you today?",
+            content: "Hello! I'm **Omni**, your client-side AI co-pilot. How can I help you today?",
             timestamp: Date.now(),
           }
         ]

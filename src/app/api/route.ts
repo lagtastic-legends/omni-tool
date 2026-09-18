@@ -9,7 +9,7 @@ export const dynamic = "force-static";
 
 export function GET() {
   return NextResponse.json({
-    app: "zenodeck",
+    app: "omni-tool",
     status: "ok",
     engine: "client-side-wasm",
   });

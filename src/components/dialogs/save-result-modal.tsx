@@ -158,7 +158,7 @@ export function SaveResultModal() {
           // Native Capacitor share
           await Share.share({
             title: filename,
-            text: `Sharing ${filename} from ZenoDeck`,
+            text: `Sharing ${filename} from Omni Tool`,
             url: uri,
             dialogTitle: `Share ${filename}`,
           });
@@ -173,7 +173,7 @@ export function SaveResultModal() {
           } else {
             await navigator.share({
               title: filename,
-              text: `Processed with ZenoDeck: ${filename}`,
+              text: `Processed with Omni Tool: ${filename}`,
               url: window.location.href,
             });
           }

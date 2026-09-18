@@ -135,7 +135,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
               RESTRICTED AREA
             </h1>
             <p className="mt-2 font-body text-[13px] leading-relaxed text-on-surface-variant">
-              ZenoDeck&apos;s modules are locked behind your Google identity.
+              Omni Tool&apos;s modules are locked behind your Google identity.
               Authenticate to restore access to the full suite.
             </p>
           </div>
