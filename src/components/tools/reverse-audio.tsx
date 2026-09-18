@@ -24,7 +24,11 @@ export function ReverseAudio() {
     const virtualInputPath = `/mnt_0/input.${srcExt}`;
     const filterChain = ["areverse"];
     if (includeEcho) {
-      filterChain.push("aecho=0.8:0.85:120|240:0.3|0.2");
+      filterChain.push(
+        "aecho=0.82:0.75:18|26|34|42:0.28|0.22|0.16|0.12",
+        "highpass=f=50",
+        "treble=g=-3:f=5500",
+      );
     }
     await run({
       inputFiles: [{ file, name: `input.${srcExt}`, mountPoint: "/mnt_0" }],

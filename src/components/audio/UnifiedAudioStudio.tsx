@@ -375,8 +375,18 @@ export function UnifiedAudioStudio({
     }
   }, [activeEffect, params]);
 
-  /* Live parameter updates while audio is actively playing */
+  /* Live parameter updates while audio is actively playing or effect changes */
   useEffect(() => {
+    if (audioRef.current) {
+      if (activeEffect === "tempo-changer") {
+        try {
+          audioRef.current.preservesPitch = true;
+        } catch {}
+        audioRef.current.playbackRate = Math.max(0.5, Math.min(2.0, params.speed || 1.0));
+      } else {
+        audioRef.current.playbackRate = 1.0;
+      }
+    }
     if (isPlaying) {
       setupDspGraph();
     }
@@ -459,6 +469,10 @@ export function UnifiedAudioStudio({
 
   const updateParam = (key: string, value: any) => {
     setParams((prev) => ({ ...prev, [key]: value }));
+    if (activeEffect === "trimmer" && key === "startSec" && audioRef.current && !isPlaying) {
+      audioRef.current.currentTime = value;
+      setCurrentTime(value);
+    }
   };
 
   /* Playback controls */
@@ -469,6 +483,22 @@ export function UnifiedAudioStudio({
       audioRef.current.pause();
       setIsPlaying(false);
     } else {
+      if (activeEffect === "tempo-changer") {
+        try {
+          audioRef.current.preservesPitch = true;
+        } catch {}
+        audioRef.current.playbackRate = Math.max(0.5, Math.min(2.0, params.speed || 1.0));
+      } else {
+        audioRef.current.playbackRate = 1.0;
+      }
+      if (activeEffect === "trimmer") {
+        const start = params.startSec || 0;
+        const end = params.endSec || duration || 30;
+        if (audioRef.current.currentTime < start || audioRef.current.currentTime >= end) {
+          audioRef.current.currentTime = start;
+          setCurrentTime(start);
+        }
+      }
       setupDspGraph();
       audioRef.current.play().catch(() => {});
       setIsPlaying(true);
@@ -525,8 +555,25 @@ export function UnifiedAudioStudio({
       {/* Hidden Audio Player for Web Audio API Audition */}
       <audio
         ref={audioRef}
-        onTimeUpdate={(e) => setCurrentTime((e.target as HTMLAudioElement).currentTime)}
-        onEnded={() => setIsPlaying(false)}
+        onTimeUpdate={(e) => {
+          const el = e.target as HTMLAudioElement;
+          setCurrentTime(el.currentTime);
+          if (activeEffect === "trimmer" && typeof params.endSec === "number" && params.endSec > 0) {
+            if (el.currentTime >= params.endSec) {
+              el.pause();
+              el.currentTime = params.startSec || 0;
+              setCurrentTime(params.startSec || 0);
+              setIsPlaying(false);
+            }
+          }
+        }}
+        onEnded={() => {
+          setIsPlaying(false);
+          if (activeEffect === "trimmer") {
+            if (audioRef.current) audioRef.current.currentTime = params.startSec || 0;
+            setCurrentTime(params.startSec || 0);
+          }
+        }}
         className="hidden"
       />
 

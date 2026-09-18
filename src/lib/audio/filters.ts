@@ -82,6 +82,7 @@ export function bassFilters({ intensity, cutoff, clarity }: BassParams): string[
   const gain = (intensity * 1.8).toFixed(1); // up to +18 dB
   const chain = [`bass=g=${gain}:f=${cutoff}:t=q:w=0.8`];
   if (clarity) chain.push("treble=g=3:f=8000:t=q:w=1");
+  if (intensity > 3) chain.push("alimiter=limit=0.98");
   return chain;
 }
 
@@ -123,19 +124,32 @@ export const EQ_PRESETS: { name: string; gains: EqGains }[] = [
 ];
 
 export function eqFilters(gains: EqGains): string[] {
-  return EQ_BANDS.map((f, i) =>
+  const bands = EQ_BANDS.map((f, i) =>
     gains[i] === 0
       ? null
       : `equalizer=f=${f}:t=q:w=1:g=${gains[i]?.toFixed(1)}`,
   ).filter((s): s is string => s !== null);
+
+  if (bands.length > 0 && gains.some((g) => g > 0)) {
+    bands.push("alimiter=limit=0.98");
+  }
+  return bands;
 }
 
 /* ------------------------------------------------------------------ */
 /* Reverse                                                             */
 /* ------------------------------------------------------------------ */
 
-export function reverseFilters(): string[] {
-  return ["areverse"];
+export function reverseFilters(includeEcho?: boolean): string[] {
+  const chain = ["areverse"];
+  if (includeEcho) {
+    chain.push(
+      "aecho=0.82:0.75:18|26|34|42:0.28|0.22|0.16|0.12",
+      "highpass=f=50",
+      "treble=g=-3:f=5500",
+    );
+  }
+  return chain;
 }
 
 /* ------------------------------------------------------------------ */
@@ -166,7 +180,9 @@ export interface VolumeParams {
 }
 
 export function volumeFilters({ db, normalize }: VolumeParams): string[] {
-  return normalize ? ["dynaudnorm=f=250:g=15:p=0.9"] : [`volume=${db}dB`];
+  if (normalize) return ["dynaudnorm=f=250:g=15:p=0.9"];
+  if (db > 0) return [`volume=${db}dB`, "alimiter=limit=0.98"];
+  return [`volume=${db}dB`];
 }
 
 /* ------------------------------------------------------------------ */

@@ -165,6 +165,9 @@ export function buildBassFilter(p: BassBoosterParams): string[] {
   if (p.clarity) {
     chain.push("treble=g=3:f=8000:t=q:w=1");
   }
+  if (gain > 6) {
+    chain.push("alimiter=limit=0.98");
+  }
   return chain;
 }
 
@@ -277,14 +280,14 @@ export function buildReverbFilter(p: ReverbParams): string[] {
 
 export function buildVocalRemoverFilter(p: VocalRemoverParams): string[] {
   if (p.mode === "phase_cancel") {
-    // Exact center-channel vocal phase cancellation
-    return ["pan=stereo|c0=c0-c1|c1=c1-c0"];
+    // Center-channel vocal cancellation with mono-safe phase matching
+    return ["pan=stereo|c0=c0-c1|c1=c0-c1"];
   }
 
   if (p.mode === "karaoke_bandpass") {
-    // Vocal band attenuation in 200Hz - 5000Hz while leaving extreme ends untouched
+    // Vocal band attenuation in 200Hz - 5000Hz with mono-safe phase matching
     return [
-      "pan=stereo|c0=c0-c1|c1=c1-c0",
+      "pan=stereo|c0=c0-c1|c1=c0-c1",
       "equalizer=f=3000:t=q:w=1.5:g=-6",
     ];
   }
@@ -292,7 +295,7 @@ export function buildVocalRemoverFilter(p: VocalRemoverParams): string[] {
   // Bass-Preserved Mode (Filter graph preserving rhythm kick/sub below crossover frequency)
   const cutoff = p.bassPreserveCutoffHz ?? 140;
   return [
-    `[0:a]asplit=2[vocal_in][bass_in];[vocal_in]pan=stereo|c0=c0-c1|c1=c1-c0,highpass=f=${cutoff}[vocal_clean];[bass_in]lowpass=f=${cutoff}[bass_clean];[vocal_clean][bass_clean]amix=inputs=2:weights=1|1[outa]`,
+    `[0:a]asplit=2[vocal_in][bass_in];[vocal_in]pan=stereo|c0=c0-c1|c1=c0-c1,highpass=f=${cutoff}[vocal_clean];[bass_in]lowpass=f=${cutoff}[bass_clean];[vocal_clean][bass_clean]amix=inputs=2:weights=1|1[outa]`,
   ];
 }
 
@@ -340,10 +343,15 @@ export const EQ_PRESET_MAP: Record<string, [number, number, number, number, numb
 };
 
 export function buildEqualizerFilter(p: EqualizerParams): string[] {
-  return EQ_FREQUENCIES.map((f, i) => {
+  const bands = EQ_FREQUENCIES.map((f, i) => {
     const gain = p.gains[i];
     return gain === 0 ? null : `equalizer=f=${f}:t=q:w=1:g=${gain.toFixed(1)}`;
   }).filter((s): s is string => s !== null);
+
+  if (bands.length > 0 && p.gains.some((g) => g > 0)) {
+    bands.push("alimiter=limit=0.98");
+  }
+  return bands;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -363,12 +371,11 @@ export function buildNoiseReducerFilter(p: NoiseReducerParams): string[] {
 /* -------------------------------------------------------------------------- */
 
 export function buildPitchShifterFilter(p: PitchShifterParams): string[] {
-  const rate = p.sampleRate || 44100;
   if (p.semitones === 0) return [];
 
   // Pitch multiplier: 2^(semitones / 12)
   const pitchRatio = Math.pow(2, p.semitones / 12);
-  const newRate = Math.round(rate * pitchRatio);
+  const newRate = Math.round(44100 * pitchRatio);
   const tempoScale = 1 / pitchRatio;
 
   // atempo filter accepts 0.5 to 2.0; cascade if outside this boundary
@@ -384,7 +391,13 @@ export function buildPitchShifterFilter(p: PitchShifterParams): string[] {
   }
   tempoFilters.push(`atempo=${remaining.toFixed(4)}`);
 
-  return [`asetrate=${newRate}`, ...tempoFilters, `aresample=${rate}`];
+  // aformat=44100 normalizes source (e.g. 48kHz mobile audio) so pitch transposition is 100% exact
+  return [
+    "aformat=sample_rates=44100",
+    `asetrate=${newRate}`,
+    ...tempoFilters,
+    "aresample=44100",
+  ];
 }
 
 /* -------------------------------------------------------------------------- */
@@ -394,7 +407,11 @@ export function buildPitchShifterFilter(p: PitchShifterParams): string[] {
 export function buildReverseAudioFilter(p?: ReverseAudioParams): string[] {
   const chain = ["areverse"];
   if (p?.includeEcho) {
-    chain.push("aecho=0.8:0.85:120|240:0.3|0.2");
+    chain.push(
+      "aecho=0.82:0.75:18|26|34|42:0.28|0.22|0.16|0.12",
+      "highpass=f=50",
+      "treble=g=-3:f=5500",
+    );
   }
   return chain;
 }

@@ -75,7 +75,7 @@ export function VideoCompressor() {
     const vf =
       effectiveResolution === "original"
         ? null
-        : `scale=-2:'min(ih,${effectiveResolution})'`;
+        : `scale=-2:'trunc(min(ih,${effectiveResolution})/2)*2'`;
 
     const args = [
       "-i", virtualInputPath,
