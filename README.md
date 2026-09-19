@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.7.4">
-    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release%20v2.7.4" alt="Release" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.8.0">
+    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release%20v2.8.0" alt="Release" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.4/omni-tool-v2.7.4-release.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.7.4-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
+  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.8.0/omni-tool-v2.8.0-release.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.8.0-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" />
@@ -39,14 +39,19 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web App** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero install required. Run instantly in any modern browser. |
-| **📱 Android APK (Signed Release)** | [**Download omni-tool-v2.7.4-release.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.4/omni-tool-v2.7.4-release.apk) | Production signed APK (24.37 MB) optimized for phones, foldables, flips, and tablets. |
-| **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.7.4-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.7.4/omni-tool-v2.7.4-debug.apk) | Debug build (36.45 MB) with remote Chrome WebView debugging enabled for developers. |
+| **📱 Android APK (Signed Release)** | [**Download omni-tool-v2.8.0-release.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.8.0/omni-tool-v2.8.0-release.apk) | Production signed APK (24.37 MB) optimized for phones, foldables, flips, and tablets. |
+| **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.8.0-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.8.0/omni-tool-v2.8.0-debug.apk) | Debug build (36.45 MB) with remote Chrome WebView debugging enabled for developers. |
 
 ---
 
 ## ✨ Features & Modules
 
 ### 🎥 Video Engineering & Media Management
+* **Offline Hardware-Accelerated Video Engine (WebCodecs + WebGL 2.0)**: 100% client-side, zero-server video processing pipeline. Demuxing, decoding, hardware shader filtering, encoding, and muxing execute entirely inside a dedicated Web Worker off the main UI thread.
+* **Dual-Mode Zero-Copy Pipeline**: High-throughput `SharedArrayBuffer` ring buffer synchronized with `Atomics.wait`/`notify` for multi-threaded desktop browsers, paired with an automatic zero-copy `TransferableChunkQueue` fallback for Capacitor Android WebViews.
+* **WebGL 2.0 OffscreenCanvas Shader Engine**: Custom GLSL ES 3.00 shader pipeline supporting real-time hardware color grading, brightness/contrast adjustments, saturation scaling, and direct zero-copy GPU video frame capture via `new VideoFrame(canvas)`.
+* **Fast-Start ISO-BMFF MP4 Muxer**: Specialized container muxer that positions header index boxes (`moov`) ahead of media data (`mdat`), enabling instantaneous playback and zero-buffering progressive streaming.
+* **Localized Editor Workspace Color System ("The Edit Bay")**: Scoped UI design system (`.omni-editor-workspace`) preventing global CSS bleed, coupled with a pure black (`#000000`) viewport background eliminating letterbox seams and strongly typed `EditorCanvasTheme` constants for 60/120fps Canvas 2D/WebGL timeline rendering.
 * **Instant 0ms Video Intake & Timeline Scrubber**: Non-blocking microsecond binary atom parser eliminates UI freezes, mounting video players and timeline scrubbers with zero delay.
 * **Native Android MediaStore Resolver**: Built-in Android plugin automatically resolves real filenames from the Android MediaStore database, replacing numeric photo-picker IDs (e.g., `1000076567.mp4` → `VID_YYYYMMDD_HHMMSS.mp4`).
 * **Hardware Timestamp Recovery**: Inspects ISO BMFF `mvhd` creation atom as a fallback to reconstruct exact camera recording timestamps matching Android conventions.
@@ -145,7 +150,8 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 ## 🛠️ Tech Stack
 
 * **Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
-* **Engine**: [FFmpeg.wasm 0.12](https://github.com/ffmpegwasm/ffmpeg.wasm) & [pdf-lib](https://pdf-lib.js.org/)
+* **Video Engine**: [WebCodecs API](https://w3c.github.io/webcodecs/) (Hardware VideoDecoder/VideoEncoder), [WebGL 2.0](https://www.khronos.org/webgl/) (`OffscreenCanvas`), & ISO-BMFF Fast-Start Muxer
+* **Media & Audio Engine**: [FFmpeg.wasm 0.12](https://github.com/ffmpegwasm/ffmpeg.wasm), [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API), & [pdf-lib](https://pdf-lib.js.org/)
 * **Mobile Runtime**: [Capacitor 8](https://capacitorjs.com/)
 * **Native Haptics**: [@capacitor/haptics](https://capacitorjs.com/docs/apis/haptics)
 * **UI Audio Engine**: [use-sound](https://github.com/joshwcomeau/use-sound) & [Howler.js](https://howlerjs.com/)
