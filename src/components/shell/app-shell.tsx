@@ -6,7 +6,7 @@
  */
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Compass, Database, Layers, Loader2, Scissors, Sparkles, Video } from "lucide-react";
+import { Compass, Database, Film, Layers, Loader2, Scissors, Sparkles, Video } from "lucide-react";
 import { lazy, Suspense, useEffect } from "react";
 import { AuthGateway } from "@/components/auth/auth-gateway";
 import { AuthGuard } from "@/components/auth/auth-guard";
@@ -29,6 +29,7 @@ import { DesktopInspector } from "@/components/shell/desktop-inspector";
 import { WorkstationRibbon } from "@/components/shell/workstation-ribbon";
 
 /* Dynamic code-split tool modules to control memory & isolate thread workloads */
+const VideoEditor = lazy(() => import("@/components/tools/video-editor").then((m) => ({ default: m.VideoEditor })));
 const MediaConverter = lazy(() => import("@/components/tools/media-converter").then((m) => ({ default: m.MediaConverter })));
 const VideoCompressor = lazy(() => import("@/components/tools/video-compressor").then((m) => ({ default: m.VideoCompressor })));
 const VideoMute = lazy(() => import("@/components/tools/video-mute").then((m) => ({ default: m.VideoMute })));
@@ -85,6 +86,7 @@ function ToolSkeleton() {
 
 /** tool id → module implementation (grows every phase) */
 const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
+  "video-editor": VideoEditor,
   "video-converter": MediaConverter,
   "video-compressor": VideoCompressor,
   "video-mute": VideoMute,
@@ -231,6 +233,7 @@ export function AppShell() {
       onClick: () => toggleAi(),
     },
     { id: "matrix", label: "Tool Matrix", icon: Layers, onClick: () => reset() },
+    { id: "editor", label: "The Edit Bay", icon: Film, onClick: () => navigate("video-editor") },
     { id: "converter", label: "Media Studio", icon: Scissors, onClick: () => navigate("video-converter") },
     { id: "vault", label: "File Vault", icon: Database, onClick: () => navigate("vault") },
     { id: "recorder", label: "Studio Recorder", icon: Video, onClick: () => navigate("studio-recorder") },

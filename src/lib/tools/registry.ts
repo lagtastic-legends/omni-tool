@@ -6,6 +6,7 @@ import {
   FileImage,
   FileText,
   FileVideo,
+  Film,
   Fingerprint,
   Gauge,
   ImagePlay,
@@ -66,6 +67,17 @@ export const CATEGORY_ORDER: ToolCategory[] = [
  */
 export const TOOL_REGISTRY: ToolMeta[] = [
   /* ---------------- PHASE 2 — Video & Visual Engine ---------------- */
+  {
+    id: "video-editor",
+    name: "Video Editor",
+    description: "Multi-track WebCodecs & WebGL 2.0 offline timeline studio.",
+    category: "video",
+    icon: Film,
+    phase: 2,
+    status: "online",
+    accent: "blue",
+    requiresEngine: false,
+  },
   {
     id: "video-converter",
     name: "Video Converter",
