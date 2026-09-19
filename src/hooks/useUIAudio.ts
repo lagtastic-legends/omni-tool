@@ -150,7 +150,7 @@ function getSoundBuffer(ctx: AudioContext, type: SoundType): AudioBuffer {
         break;
     }
     buf = ctx.createBuffer(1, pcm.length, SAMPLE_RATE);
-    buf.copyToChannel(pcm, 0);
+    buf.getChannelData(0).set(pcm);
     soundBuffers.set(type, buf);
   }
   return buf;

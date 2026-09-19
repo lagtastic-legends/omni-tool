@@ -185,12 +185,11 @@ export function useMediaJob() {
       const logHandler = ({ message }: { type?: string; message: string }) => {
         if (message) capturedLogs.push(message);
       };
-      engine.on("log", logHandler);
+      const mountedDirs: string[] = [];
 
       try {
         /* 1 — stage inputs: zero-copy WORKERFS mounting for large files ------ */
         setPhase("writing");
-        const mountedDirs: string[] = [];
 
         if (spec.inputFiles && spec.inputFiles.length > 0) {
           for (let i = 0; i < spec.inputFiles.length; i++) {

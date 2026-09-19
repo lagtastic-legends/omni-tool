@@ -194,10 +194,10 @@ export function AppShell() {
     const handlePlay = (e: Event) => {
       const target = e.target as HTMLMediaElement;
       if (!target || (target.tagName !== "AUDIO" && target.tagName !== "VIDEO")) return;
-      document.querySelectorAll("audio, video").forEach((media) => {
+      document.querySelectorAll<HTMLMediaElement>("audio, video").forEach((media) => {
         if (media !== target && !media.paused) {
           try {
-            (media as HTMLMediaElement).pause();
+            media.pause();
           } catch {}
         }
       });

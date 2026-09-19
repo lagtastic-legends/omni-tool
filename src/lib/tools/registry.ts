@@ -70,13 +70,13 @@ export const TOOL_REGISTRY: ToolMeta[] = [
   {
     id: "video-editor",
     name: "Video Editor",
-    description: "Multi-track WebCodecs & WebGL 2.0 offline timeline studio.",
+    description: "Timeline video editor: trim, split, color grade, titles & effects.",
     category: "video",
     icon: Film,
     phase: 2,
     status: "online",
     accent: "blue",
-    requiresEngine: false,
+    requiresEngine: true,
   },
   {
     id: "video-converter",

@@ -200,6 +200,8 @@ export function useAudioProcessor() {
       const inputExt = extOf(file.name) || "mp3";
       const inputPath = `in_${runId}.${inputExt}`;
       const outputPath = `out_${runId}.${outputFormat}`;
+      const mountDir = `/mnt_aud_${runId}`;
+      let mounted = false;
 
       try {
         // Yield to let browser update UI & show allocation stage
@@ -207,9 +209,7 @@ export function useAudioProcessor() {
 
         // 5. Mount source buffer into WASM Virtual FS via zero-copy WORKERFS
         setCurrentPassLabel("Mounting Audio Stream (Zero-Copy)...");
-        const mountDir = `/mnt_aud_${runId}`;
         let virtualInputPath = `${mountDir}/${inputPath}`;
-        let mounted = false;
 
         try {
           await activeEngine.mount(

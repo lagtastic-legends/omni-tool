@@ -185,6 +185,7 @@ export function MediaConverter() {
     if (!file) return;
     if (mode === "audio" && hasAudio === false) return;
     const kbps = Number(audioKbps);
+    const srcExt = extOf(effectiveName) || "bin";
     const virtualInputPath = `/mnt_0/input.${srcExt}`;
     const args =
       mode === "video"
