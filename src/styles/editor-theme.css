@@ -1,0 +1,76 @@
+/**
+ * OMNI TOOL — Editor Workspace Scoped Color System
+ * "The Edit Bay" Localized Theme Configuration
+ *
+ * ARCHITECTURAL CONSTRAINTS:
+ * 1. Scoped strictly to `.omni-editor-workspace` — never bleeds into global :root,
+ *    dashboard, navigation, or document hub.
+ * 2. Pure black viewport background (#000000) behind the video canvas to eliminate
+ *    visual seams with letterboxed video frames.
+ * 3. Exact color mapping matching the Canvas 2D / WebGL timeline theme engine.
+ */
+
+.omni-editor-workspace {
+  /* -------------------------------------------------------------------------
+   * 1. Base / Viewport Colors
+   * ------------------------------------------------------------------------- */
+  --editor-viewport-bg: #000000;         /* Viewport background directly behind video */
+  --editor-workspace-bg: #121212;        /* Workspace app canvas area outside viewport */
+
+  /* -------------------------------------------------------------------------
+   * 2. Panels & Toolbars
+   * ------------------------------------------------------------------------- */
+  --editor-panel-bg: #1E1E1E;            /* Workspace panels, inspectors, docks, and toolbars */
+  --editor-panel-border: rgba(255, 255, 255, 0.08); /* Subtle separator borders */
+  --editor-panel-header-bg: #181818;     /* Secondary panel header strip */
+  --editor-toolbar-bg: #1E1E1E;          /* Bottom/top tool docks */
+
+  /* -------------------------------------------------------------------------
+   * 3. Typography & Icons
+   * ------------------------------------------------------------------------- */
+  --editor-text-primary: #E2E8F0;        /* 87% opacity white for high-legibility UI labels */
+  --editor-text-muted: #94A3B8;          /* Inactive text, secondary timestamps, timecode */
+  --editor-icon-default: #94A3B8;        /* Default inactive editor icons */
+
+  /* -------------------------------------------------------------------------
+   * 4. Active States & Selection
+   * ------------------------------------------------------------------------- */
+  --editor-accent: #3B82F6;              /* Active tool, selected clip outline, focus indicator */
+  --editor-accent-hover: #2563EB;        /* Interactive button hover state */
+  --editor-accent-subtle: rgba(59, 130, 246, 0.15); /* Selected track item background glow */
+
+  /* -------------------------------------------------------------------------
+   * 5. Timeline Tracks & Playhead
+   * ------------------------------------------------------------------------- */
+  --editor-track-video: #0284C7;         /* Timeline Video Track fill */
+  --editor-track-audio: #059669;         /* Timeline Audio Track fill */
+  --editor-track-text: #8B5CF6;          /* Timeline Text & Subtitle Track fill */
+  --editor-track-effects: #EA580C;       /* Timeline Adjustment & Effects Track fill */
+  --editor-playhead: #EF4444;            /* Current Time Indicator (CTI) head & needle */
+  --editor-playhead-line: #EF4444;       /* Playhead vertical tracking line */
+}
+
+/* ---------------------------------------------------------------------------
+ * Scoped Utility Classes (Only active inside .omni-editor-workspace)
+ * --------------------------------------------------------------------------- */
+.omni-editor-workspace {
+  background-color: var(--editor-workspace-bg);
+  color: var(--editor-text-primary);
+}
+
+.omni-editor-workspace .editor-viewport {
+  background-color: var(--editor-viewport-bg);
+}
+
+.omni-editor-workspace .editor-panel {
+  background-color: var(--editor-panel-bg);
+  border-color: var(--editor-panel-border);
+}
+
+.omni-editor-workspace .editor-icon {
+  color: var(--editor-icon-default);
+}
+
+.omni-editor-workspace .editor-icon-active {
+  color: var(--editor-accent);
+}
