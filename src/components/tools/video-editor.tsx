@@ -383,7 +383,11 @@ export function VideoEditor() {
       // Clip Box
       ctx.fillStyle = getTimelineTrackColor(clip.track);
       ctx.beginPath();
-      ctx.roundRect(clipX, tc.y + 2, clipW, tc.h - 4, 4);
+      if (typeof (ctx as any).roundRect === "function") {
+        (ctx as any).roundRect(clipX, tc.y + 2, clipW, tc.h - 4, 4);
+      } else {
+        ctx.rect(clipX, tc.y + 2, clipW, tc.h - 4);
+      }
       ctx.fill();
 
       // Border highlight

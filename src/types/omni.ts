@@ -60,7 +60,7 @@ export interface ToolMeta {
   phase: number;
   status: ToolStatus;
   /** Tailwind-friendly accent key used for the icon tile + glow. */
-  accent: "violet" | "cyan" | "fuchsia" | "emerald" | "amber";
+  accent: "violet" | "cyan" | "fuchsia" | "emerald" | "amber" | "blue";
   /** false for tools that run without the FFmpeg engine (defaults true). */
   requiresEngine?: boolean;
 }

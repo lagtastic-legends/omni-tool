@@ -13,6 +13,10 @@ export const ACCENT_STYLES: Record<
     tile: "border-cyan-400/30 bg-cyan-500/10 text-cyan-300",
     phaseChip: "border-cyan-400/25 text-cyan-300/90",
   },
+  blue: {
+    tile: "border-blue-400/30 bg-blue-500/10 text-blue-300",
+    phaseChip: "border-blue-400/25 text-blue-300/90",
+  },
   fuchsia: {
     tile: "border-fuchsia-400/30 bg-fuchsia-500/10 text-fuchsia-300",
     phaseChip: "border-fuchsia-400/25 text-fuchsia-300/90",

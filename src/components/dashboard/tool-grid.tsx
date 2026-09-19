@@ -38,7 +38,7 @@ const ToolCard = memo(function ToolCard({
   const { toast } = useToast();
   const haptics = useHaptics();
   const navigate = useNavStore((s) => s.navigate);
-  const accent = ACCENT_STYLES[tool.accent];
+  const accent = (tool.accent && ACCENT_STYLES[tool.accent]) || ACCENT_STYLES.violet;
   const locked = tool.status !== "online";
   const requiresEngine = tool.requiresEngine !== false;
   const isEngineReady = !requiresEngine || engineState === "ready";
