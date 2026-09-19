@@ -24,6 +24,8 @@ import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { BackConfirmDialog } from "@/components/navigation/back-confirm-dialog";
 import { SaveResultModal } from "@/components/dialogs/save-result-modal";
+import { PermissionGate } from "@/components/shell/permission-gate";
+import { useAuth } from "@/lib/auth/auth-context";
 import { DesktopSidebar } from "@/components/shell/desktop-sidebar";
 import { DesktopInspector } from "@/components/shell/desktop-inspector";
 import { WorkstationRibbon } from "@/components/shell/workstation-ribbon";
@@ -209,6 +211,9 @@ export function AppShell() {
 
   const { view, navigate, reset } = useNavStore();
   const { isOpen: isAiOpen, toggleOpen: toggleAi } = useAiStore();
+  const { mode, user } = useAuth();
+  const isGuest = typeof window !== "undefined" && sessionStorage.getItem("omni_guest_session") === "true";
+  const isLoginScreen = (mode === "configured" && !user && !isGuest) || view === "auth-gateway";
 
   useEffect(() => {
     (window as any).__omni_navigate = navigate;
@@ -287,15 +292,18 @@ export function AppShell() {
         <DesktopInspector />
       </div>
 
-      {!isAiOpen && <FloatingToolbar actions={floatingActions} />}
-      <StickyMobileCta />
+      {!isAiOpen && !isLoginScreen && <FloatingToolbar actions={floatingActions} />}
+      {!isLoginScreen && <StickyMobileCta />}
       <BackConfirmDialog />
       <SaveResultModal />
+      {!isLoginScreen && <PermissionGate />}
 
       {/* Mobile Footer outside workstation columns */}
-      <div className="lg:hidden">
-        <AppFooter />
-      </div>
+      {!isLoginScreen && (
+        <div className="lg:hidden">
+          <AppFooter />
+        </div>
+      )}
     </div>
   );
 }

@@ -5,18 +5,24 @@
  *
  * On first launch (or when permissions haven't been granted), shows a styled
  * dialog explaining why each permission is needed, then requests them in batch.
- * Persisted to localStorage so it only shows once per install.
+ *
+ * Rendered via createPortal to document.body to guarantee 100% dead-centered
+ * viewport positioning without clipping from transformed parent containers.
  */
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Capacitor } from "@capacitor/core";
 import { Filesystem } from "@capacitor/filesystem";
 import { LocalNotifications } from "@capacitor/local-notifications";
 import { Music, ImageIcon, Bell, Shield, X } from "lucide-react";
 import { OmniRecorder } from "@/lib/native-recorder";
+import { useNavStore } from "@/lib/navigation/nav-store";
+import { useHaptics } from "@/hooks/use-haptics";
+import { useAuth } from "@/lib/auth/auth-context";
 
-const PERMISSION_KEY = "omni_permissions_requested_v1";
+const PERMISSION_KEY = "omni_permissions_requested_v2";
 
 interface PermissionCategory {
   icon: React.ReactNode;
@@ -26,8 +32,12 @@ interface PermissionCategory {
 }
 
 export function PermissionGate() {
+  const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [requesting, setRequesting] = useState(false);
+  const haptics = useHaptics();
+  const { mode, user } = useAuth();
+
   const [categories, setCategories] = useState<PermissionCategory[]>([
     {
       icon: <Music className="size-5 text-violet-400" />,
@@ -50,15 +60,43 @@ export function PermissionGate() {
   ]);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Expose global inspection & manual trigger
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      (window as any).__omni_show_permissions = () => setVisible(true);
+    }
+  }, []);
+
+  // Back button closes dialog if open
+  useEffect(() => {
+    if (visible) {
+      return useNavStore.getState().registerOverlay("permission-gate", () => {
+        dismiss();
+        return true;
+      });
+    }
+  }, [visible]);
+
+  // Initial trigger check on native Android
+  useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
+    const isGuest = typeof window !== "undefined" && sessionStorage.getItem("omni_guest_session") === "true";
+    const isLocked = mode === "configured" && !user && !isGuest;
+    if (isLocked) return;
+
     const alreadyRequested = localStorage.getItem(PERMISSION_KEY);
     if (alreadyRequested) return;
+
     // Small delay to let the app settle before showing the dialog
     const timer = setTimeout(() => setVisible(true), 1200);
     return () => clearTimeout(timer);
-  }, []);
+  }, [mode, user]);
 
   const requestAll = async () => {
+    void haptics.medium();
     setRequesting(true);
 
     const updated = [...categories];
@@ -93,35 +131,53 @@ export function PermissionGate() {
     localStorage.setItem(PERMISSION_KEY, Date.now().toString());
 
     // Auto-dismiss after a brief delay to show results
-    setTimeout(() => setVisible(false), 800);
-    setRequesting(false);
+    setTimeout(() => {
+      setVisible(false);
+      setRequesting(false);
+    }, 800);
   };
 
   const dismiss = () => {
+    void haptics.light();
     localStorage.setItem(PERMISSION_KEY, Date.now().toString());
     setVisible(false);
   };
 
-  return (
+  if (!mounted || typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
     <AnimatePresence>
       {visible && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="app-permissions-title"
+          className="fixed inset-0 z-[250] flex items-center justify-center p-4 sm:p-6 pointer-events-auto select-none"
         >
+          {/* Full-screen Dark Backdrop covering 100% of viewport */}
           <motion.div
-            initial={{ scale: 0.92, opacity: 0, y: 20 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={dismiss}
+            className="fixed inset-0 bg-black/85 backdrop-blur-md"
+          />
+
+          {/* Modal Container — Dead-Centered */}
+          <motion.div
+            initial={{ scale: 0.92, opacity: 0, y: 16 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.92, opacity: 0, y: 20 }}
-            transition={{ type: "spring", damping: 24, stiffness: 300 }}
-            className="relative w-full max-w-sm rounded-2xl border border-border/60 bg-card p-6 shadow-2xl"
+            exit={{ scale: 0.92, opacity: 0, y: 16 }}
+            transition={{ type: "spring", damping: 26, stiffness: 360 }}
+            className="relative w-full max-w-sm rounded-2xl border border-border/80 bg-card text-card-foreground p-6 shadow-2xl focus:outline-none"
           >
             {/* Close button */}
             <button
               onClick={dismiss}
-              className="absolute top-3 right-3 rounded-full p-1.5 text-muted-foreground/60 hover:text-foreground hover:bg-muted/40 transition-colors"
+              className="absolute top-3 right-3 rounded-full p-1.5 text-muted-foreground/60 hover:text-foreground hover:bg-muted/40 transition-colors cursor-pointer"
               aria-label="Skip permissions"
             >
               <X className="size-4" />
@@ -133,7 +189,7 @@ export function PermissionGate() {
                 <Shield className="size-5 text-primary" />
               </div>
               <div>
-                <h2 className="font-display text-sm font-bold tracking-wide">
+                <h2 id="app-permissions-title" className="font-display text-sm font-bold tracking-wide">
                   App Permissions
                 </h2>
                 <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.14em]">
@@ -175,7 +231,7 @@ export function PermissionGate() {
             <div className="flex gap-3">
               <button
                 onClick={dismiss}
-                className="flex-1 rounded-xl border border-border/60 bg-card/60 py-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:bg-muted/40"
+                className="flex-1 rounded-xl border border-border/60 bg-card/60 py-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:bg-muted/40 cursor-pointer"
               >
                 Skip
               </button>
@@ -184,14 +240,15 @@ export function PermissionGate() {
                 disabled={requesting}
                 whileHover={requesting ? undefined : { scale: 1.02 }}
                 whileTap={requesting ? undefined : { scale: 0.97 }}
-                className="flex-[2] rounded-xl border border-primary/50 bg-gradient-to-r from-primary/90 to-plasma/80 py-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-opacity disabled:opacity-60 glow-box-violet"
+                className="flex-[2] rounded-xl border border-primary/50 bg-gradient-to-r from-primary/90 to-plasma/80 py-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-opacity disabled:opacity-60 glow-box-violet cursor-pointer"
               >
                 {requesting ? "Requesting…" : "Grant Access"}
               </motion.button>
             </div>
           </motion.div>
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

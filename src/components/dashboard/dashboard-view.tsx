@@ -9,8 +9,6 @@ import { motion } from "framer-motion";
 import { Activity, ArrowDown, Boxes, Database, FileAudio, FileImage, FileText, FileVideo, Files, Sparkles, Timer } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
-import { OmniRecorder } from "@/lib/native-recorder";
-import { PermissionGate } from "@/components/shell/permission-gate";
 import { EngineBootPanel } from "@/components/engine/engine-boot-panel";
 import { ToolGrid } from "@/components/dashboard/tool-grid";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
@@ -109,12 +107,6 @@ export function DashboardView() {
     }
   }, []);
 
-  useEffect(() => {
-    if (Capacitor.isNativePlatform()) {
-      OmniRecorder.requestPermissions().catch(console.warn);
-    }
-  }, []);
-
   const onlineCount = useMemo(
     () =>
       TOOL_REGISTRY.filter(
@@ -126,8 +118,6 @@ export function DashboardView() {
 
   return (
     <div className="flex flex-col gap-10">
-      {/* Android permission request dialog — shows once on first launch */}
-      <PermissionGate />
       {/* hero ------------------------------------------------------------ */}
       <section className="space-y-5 text-center pt-2 sm:pt-4">
         <motion.p
