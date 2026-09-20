@@ -3,9 +3,9 @@
   "version": "2.8.1",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3000 2>&1 | tee dev.log",
+    "dev": "next dev -p 3000",
     "build": "next build --webpack",
-    "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
+    "start": "next start -p 3000",
     "lint": "eslint .",
     "db:push": "prisma db push --accept-data-loss",
     "db:generate": "prisma generate",
