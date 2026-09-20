@@ -10,7 +10,7 @@
  * viewport positioning without clipping from transformed parent containers.
  */
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Capacitor } from "@capacitor/core";
@@ -70,6 +70,12 @@ export function PermissionGate() {
     }
   }, []);
 
+  const dismiss = useCallback(() => {
+    void haptics.light();
+    localStorage.setItem(PERMISSION_KEY, Date.now().toString());
+    setVisible(false);
+  }, [haptics]);
+
   // Back button closes dialog if open
   useEffect(() => {
     if (visible) {
@@ -78,7 +84,7 @@ export function PermissionGate() {
         return true;
       });
     }
-  }, [visible]);
+  }, [visible, dismiss]);
 
   // Initial trigger check on native Android
   useEffect(() => {
@@ -137,11 +143,6 @@ export function PermissionGate() {
     }, 800);
   };
 
-  const dismiss = () => {
-    void haptics.light();
-    localStorage.setItem(PERMISSION_KEY, Date.now().toString());
-    setVisible(false);
-  };
 
   if (!mounted || typeof document === "undefined") {
     return null;

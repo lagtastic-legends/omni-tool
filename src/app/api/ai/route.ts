@@ -8,23 +8,89 @@ CRITICAL RULE: DO NOT write code, solve programming problems, or help build proj
 
 Keep your valid answers concise and friendly, matching a Dark Sci-Fi aesthetic.`;
 
+// In-memory sliding window rate limiter (20 requests/minute per client IP)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const windowMs = 60_000;
+  const maxRequests = 25;
+
+  // Cleanup expired entries periodically
+  if (rateLimitMap.size > 1000) {
+    for (const [key, val] of rateLimitMap.entries()) {
+      if (val.resetAt < now) rateLimitMap.delete(key);
+    }
+  }
+
+  const record = rateLimitMap.get(ip);
+  if (!record || record.resetAt < now) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + windowMs });
+    return true;
+  }
+
+  if (record.count >= maxRequests) {
+    return false;
+  }
+
+  record.count += 1;
+  return true;
+}
+
 export async function POST(req: Request) {
   try {
+    const origin = req.headers.get("origin") || "*";
     const corsHeaders = {
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": origin,
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     };
 
+    // Client IP detection (X-Forwarded-For or CF-Connecting-IP)
+    const clientIp =
+      req.headers.get("cf-connecting-ip") ||
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      "127.0.0.1";
+
+    if (!checkRateLimit(clientIp)) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded. Please wait a moment before sending more requests." },
+        { status: 429, headers: corsHeaders }
+      );
+    }
+
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Internal Server Error: API key missing" },
+        { error: "Internal Server Error: AI Service Key Unconfigured" },
         { status: 500, headers: corsHeaders }
       );
     }
 
-    const body = await req.json();
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { error: "Invalid JSON payload" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    if (!body || !Array.isArray(body.contents) || body.contents.length === 0) {
+      return NextResponse.json(
+        { error: "Missing or invalid 'contents' in request body" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
+    if (body.contents.length > 50) {
+      return NextResponse.json(
+        { error: "Conversation history exceeds maximum permitted length (50 turns)" },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const isStream = searchParams.get("stream") === "true";
 
@@ -32,8 +98,8 @@ export async function POST(req: Request) {
       ? "streamGenerateContent?alt=sse" 
       : "generateContent";
 
-    // Primary: Gemini 3.8 Flash. Fallback: Gemini 3.6 Flash if Google API sheds 503 load
-    const candidateModels = ["gemini-3.8-flash", "gemini-3.8-flash", "gemini-3.6-flash"];
+    // Primary: Gemini 3.8 Flash. Fallback: Gemini 3.6 Flash if primary sheds load
+    const candidateModels = ["gemini-3.8-flash", "gemini-3.6-flash"];
     let response: Response | null = null;
     let lastErrorData = "";
 
@@ -46,7 +112,6 @@ export async function POST(req: Request) {
         },
       };
 
-      // Set low thinking level on Gemini 3.8 to minimize compute spikes that trigger 503s
       if (model.startsWith("gemini-3.8")) {
         payload.generationConfig = {
           thinkingConfig: {
@@ -73,7 +138,6 @@ export async function POST(req: Request) {
         }
 
         lastErrorData = await res.text();
-        // Transient 503 (High demand) or 429 (Rate limit): wait briefly and retry
         if (res.status === 503 || res.status === 429) {
           if (i < candidateModels.length - 1) {
             await new Promise((r) => setTimeout(r, 400));
@@ -118,11 +182,12 @@ export async function POST(req: Request) {
   }
 }
 
-export async function OPTIONS() {
+export async function OPTIONS(req: Request) {
+  const origin = req.headers.get("origin") || "*";
   return new Response(null, {
     status: 204,
     headers: {
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": origin,
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },

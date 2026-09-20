@@ -70,6 +70,16 @@ export default function AskOmni({ showTrigger = false }: AskOmniProps) {
     }
   }, [messages, isLoading, isStreaming, isOpen, scrollToBottom]);
 
+  const handleStop = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    setStreaming(false);
+    setLoading(false);
+    haptics.light();
+  }, [haptics, setLoading, setStreaming]);
+
   // Global escape key to close or stop
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -84,17 +94,7 @@ export default function AskOmni({ showTrigger = false }: AskOmniProps) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, isStreaming, setIsOpen]);
-
-  const handleStop = () => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-    setStreaming(false);
-    setLoading(false);
-    haptics.light();
-  };
+  }, [isOpen, isStreaming, setIsOpen, handleStop]);
 
   const handleSendPrompt = async (promptText: string, isRetry = false) => {
     if (!promptText.trim() || isLoading || isStreaming) return;

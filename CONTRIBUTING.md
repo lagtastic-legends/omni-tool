@@ -77,8 +77,14 @@ Omni Tool uses Capacitor to package the static Next.js export into an Android ap
 1. Create a feature branch (`git checkout -b feature/my-new-tool`).
 2. Follow existing TypeScript, Tailwind CSS, and component conventions.
 3. Ensure zero file data is ever dispatched to network sockets or external APIs.
-4. Test that `npm run build` succeeds with 0 errors.
-5. Submit your PR with a clear summary of your changes.
+4. Run the full verification suite and verify all pass with 0 errors:
+   ```bash
+   npm test
+   npx eslint . --quiet
+   npx tsc --noEmit
+   npm run build
+   ```
+5. Submit your PR using the pull request template with a clear summary of your changes.
 
 ---
 

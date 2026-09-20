@@ -24,7 +24,7 @@ import {
   ScanLine,
   Trash2,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import QRCode from "qrcode";
 import { OutputCard } from "@/components/media/output-card";
@@ -44,7 +44,7 @@ interface ScanEntry {
   ts: number;
 }
 
-let scanId = 0;
+let scanCounter = 0;
 
 function isProbablyUrl(text: string): boolean {
   return /^(https?:\/\/|www\.)\S+$/i.test(text.trim());
@@ -63,8 +63,8 @@ function QrScanner() {
   const [lastResult, setLastResult] = useState<ScanEntry | null>(null);
   const [history, setHistory] = useState<ScanEntry[]>([]);
   const [copied, setCopied] = useState(false);
-
-  const viewfinderId = useRef(`omni-qr-viewfinder-${Math.random().toString(36).slice(2, 9)}`);
+  const uid = useId();
+  const viewfinderId = useRef(`omni-qr-viewfinder-${uid.replace(/:/g, "")}`);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -96,7 +96,7 @@ function QrScanner() {
 
   const recordResult = useCallback(
     (text: string) => {
-      const entry: ScanEntry = { id: ++scanId, text, ts: Date.now() };
+      const entry: ScanEntry = { id: ++scanCounter, text, ts: Date.now() };
       setLastResult(entry);
       setHistory((prev) => [entry, ...prev].slice(0, 8));
       toast({ title: "QR decoded", description: text.slice(0, 80) });

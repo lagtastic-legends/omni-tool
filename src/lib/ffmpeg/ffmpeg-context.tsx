@@ -48,8 +48,8 @@ const CORE_VER = "0.12.10";
 
 const ENGINE_ASSETS = {
   worker: "/ffmpeg/worker.js",
-  core: `https://unpkg.com/@ffmpeg/core@${CORE_VER}/dist/esm/ffmpeg-core.js`,
-  wasm: `https://unpkg.com/@ffmpeg/core@${CORE_VER}/dist/umd/ffmpeg-core.wasm`,
+  core: "/ffmpeg/ffmpeg-core.js",
+  wasm: "/ffmpeg/ffmpeg-core.wasm",
 } as const;
 
 export interface FFmpegEngineContextValue {
@@ -177,20 +177,21 @@ export function FFmpegEngineProvider({ children }: { children: ReactNode }) {
         `Spawning module worker → ${ENGINE_ASSETS.worker}`,
       );
 
-      /* Core glue script is tiny — no progress needed. Fetching directly via CDN. */
-      const coreURL = ENGINE_ASSETS.core;
+      /* Resolve assets against current origin (supports localhost, subpaths, & Capacitor) */
+      const coreURL = new URL(ENGINE_ASSETS.core, window.location.href).href;
+      const wasmSource = new URL(ENGINE_ASSETS.wasm, window.location.href).href;
 
       setStage("fetch");
       const totalBytesGuess = WASM_BYTES_FALLBACK;
       appendLog(
         "system",
         "info",
-        `Fetching WASM core → ${ENGINE_ASSETS.wasm}`,
+        `Loading WASM core locally → ${ENGINE_ASSETS.wasm}`,
       );
 
       /* The big one: ~31 MB with real byte-level progress. */
       const wasmURL = await toBlobURL(
-        ENGINE_ASSETS.wasm,
+        wasmSource,
         "application/wasm",
         true,
         ({ received, total, done }) => {

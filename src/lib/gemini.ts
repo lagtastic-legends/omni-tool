@@ -1,3 +1,5 @@
+import { Capacitor } from "@capacitor/core";
+
 export type MessageRole = "user" | "model";
 
 export interface ChatMessage {
@@ -7,6 +9,18 @@ export interface ChatMessage {
   timestamp?: number;
 }
 
+function getApiBaseUrl(): string {
+  if (typeof window !== "undefined") {
+    // Native Capacitor mobile shell needs absolute URL to remote API
+    if (Capacitor.isNativePlatform()) {
+      return process.env.NEXT_PUBLIC_API_URL || "https://omni-tool-two.vercel.app";
+    }
+    // Standard web browser: relative URL works across localhost, staging, and custom domains
+    return "";
+  }
+  return process.env.NEXT_PUBLIC_API_URL || "https://omni-tool-two.vercel.app";
+}
+
 export const generateAiResponse = async (messages: ChatMessage[]) => {
   try {
     const contents = messages.map(msg => ({
@@ -14,8 +28,8 @@ export const generateAiResponse = async (messages: ChatMessage[]) => {
       parts: [{ text: msg.content }]
     }));
 
-    // For Capacitor, this must be changed to the absolute URL of the hosted backend
-    const response = await fetch("https://omni-tool-two.vercel.app/api/ai/", {
+    const baseUrl = getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/api/ai/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -24,7 +38,7 @@ export const generateAiResponse = async (messages: ChatMessage[]) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || `HTTP ${response.status}`);
     }
 
@@ -43,8 +57,8 @@ export const streamAiResponse = async function* (messages: ChatMessage[], signal
       parts: [{ text: msg.content }]
     }));
 
-    // For Capacitor, this must be changed to the absolute URL of the hosted backend
-    const response = await fetch("https://omni-tool-two.vercel.app/api/ai/?stream=true", {
+    const baseUrl = getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/api/ai/?stream=true`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -87,7 +101,7 @@ export const streamAiResponse = async function* (messages: ChatMessage[], signal
             if (text) {
               yield text;
             }
-          } catch (e) {
+          } catch {
             // ignore JSON parse errors from partial chunks
           }
         }
