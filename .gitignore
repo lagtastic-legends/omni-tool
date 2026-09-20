@@ -53,4 +53,5 @@ server.log
 # Skills directory
 /skills/
 scratch/
+dist/
 *.apk

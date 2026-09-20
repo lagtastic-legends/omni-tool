@@ -1,6 +1,6 @@
-# Contributing to Omni Tool
+# Contributing to ZenoDeck
 
-Thank you for your interest in contributing to **Omni Tool**! We welcome contributions from developers, designers, and open-source enthusiasts.
+Thank you for your interest in contributing to **ZenoDeck**! We welcome contributions from developers, designers, and open-source enthusiasts passionate about on-device computing, privacy-first media engineering, and native performance.
 
 ---
 
@@ -8,6 +8,7 @@ Thank you for your interest in contributing to **Omni Tool**! We welcome contrib
 
 * Be respectful, inclusive, and collaborative.
 * Focus on delivering high-performance, private, client-side tools that never compromise user data privacy.
+* Adhere strictly to the **Zero-Upload Architecture**: all media and document transformations must occur in WebAssembly or browser-native hardware APIs.
 
 ---
 
@@ -15,8 +16,8 @@ Thank you for your interest in contributing to **Omni Tool**! We welcome contrib
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/lagtastic-legends/omni-tool.git
-   cd omni-tool
+   git clone https://github.com/lagtastic-legends/ZenoDeck.git
+   cd ZenoDeck
    ```
 
 2. **Install dependencies:**
@@ -32,11 +33,16 @@ Thank you for your interest in contributing to **Omni Tool**! We welcome contrib
    ```
    Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+4. **Run build check:**
+   ```bash
+   npm run build
+   ```
+
 ---
 
 ## Mobile Build Pipeline (Android APK)
 
-Omni Tool uses Capacitor to package the static Next.js export into an Android application:
+ZenoDeck uses Capacitor to package the static Next.js export into a native Android application:
 
 1. **Generate Static Export:**
    - **Windows (PowerShell):**
@@ -74,14 +80,21 @@ Omni Tool uses Capacitor to package the static Next.js export into an Android ap
 
 ## Pull Request Guidelines
 
-1. Create a feature branch (`git checkout -b feature/my-new-tool`).
-2. Follow existing TypeScript, Tailwind CSS, and component conventions.
-3. Ensure zero file data is ever dispatched to network sockets or external APIs.
-4. Test that `npm run build` succeeds with 0 errors.
-5. Submit your PR with a clear summary of your changes.
+1. **Create a feature branch:**
+   ```bash
+   git checkout -b feature/my-feature-name
+   ```
+2. **Commit Conventions:** Follow Conventional Commits format:
+   - `feat: add WebCodecs AV1 decoder support`
+   - `fix: resolve iOS Safari audio unlock race condition`
+   - `perf: optimize WebAssembly memory buffer growth`
+   - `docs: update mobile build instructions`
+3. **Zero-Upload Guarantee**: Verify that zero file data or media streams are ever dispatched over network sockets or remote APIs.
+4. **Verification**: Verify that `npm run build` succeeds cleanly with 0 TypeScript or lint errors.
+5. **PR Description**: Fill out the pull request template completely, describing the changes, motivation, and verification steps.
 
 ---
 
 ## Questions & Support
 
-Reach out to the maintainers at [support.omnitool.com@gmail.com](mailto:support.omnitool.com@gmail.com).
+Reach out to the maintainers at [support.zenodeck@gmail.com](mailto:support.zenodeck@gmail.com) or join the discussion in GitHub Issues.

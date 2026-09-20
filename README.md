@@ -39,8 +39,8 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web App** | [**zenodeck.vercel.app**](https://zenodeck.vercel.app) | Live PWA with zero install required. Run instantly in any modern browser. |
-| **📱 Android APK (Signed Release)** | [**Download Latest Release APK**](https://github.com/lagtastic-legends/ZenoDeck/releases) | Production signed APK optimized for phones, foldables, flips, and tablets. |
-| **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.8.0-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.8.0/omni-tool-v2.8.0-debug.apk) | Debug build (36.45 MB) with remote Chrome WebView debugging enabled for developers. |
+| **📱 Android APK (Signed Production)** | [**Download ZenoDeck-v3.0.0-release.apk**](https://github.com/lagtastic-legends/ZenoDeck/releases) | Production signed APK optimized for phones, foldables, flips, and tablets. |
+| **🛠️ Android APK (Development Debug)** | [**Download Latest Debug APK**](https://github.com/lagtastic-legends/ZenoDeck/releases) | Debug build with remote Chrome WebView debugging enabled for developers. |
 
 ---
 
@@ -166,8 +166,8 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/lagtastic-legends/omni-tool.git
-cd omni-tool
+git clone https://github.com/lagtastic-legends/ZenoDeck.git
+cd ZenoDeck
 npm install
 ```
 
