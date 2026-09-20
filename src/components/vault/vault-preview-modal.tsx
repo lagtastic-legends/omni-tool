@@ -284,14 +284,14 @@ export const VaultPreviewModal = memo(function VaultPreviewModal({
       if (Capacitor.isNativePlatform()) {
         await Share.share({
           title: item.name,
-          text: `Sharing ${item.name} from Omni Tool Vault`,
+          text: `Sharing ${item.name} from ZenoDeck Vault`,
           url: previewUrl,
           dialogTitle: `Share ${item.name}`,
         });
       } else if (navigator.share) {
         await navigator.share({
           title: item.name,
-          text: `Sharing ${item.name} from Omni Tool Vault`,
+          text: `Sharing ${item.name} from ZenoDeck Vault`,
           url: window.location.href,
         });
       } else {

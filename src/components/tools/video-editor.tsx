@@ -201,7 +201,7 @@ export function VideoEditor() {
   // Text & Title Overlay
   const [textOverlay, setTextOverlay] = useState<EditorTextOverlay>({
     enabled: false,
-    text: "Omni Tool Studio",
+    text: "ZenoDeck Studio",
     position: "bottom",
     size: "md",
     theme: "box",

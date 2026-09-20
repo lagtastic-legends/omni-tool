@@ -62,7 +62,7 @@ export const CATEGORY_ORDER: ToolCategory[] = [
 /* ------------------------------------------------------------------ */
 
 /**
- * Single source of truth for every module in the Omni Tool suite.
+ * Single source of truth for every module in the ZenoDeck suite.
  * Later phases flip `status` to "online" and wire implementations.
  */
 export const TOOL_REGISTRY: ToolMeta[] = [

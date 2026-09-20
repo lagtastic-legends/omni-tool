@@ -1,7 +1,8 @@
 "use client";
 
 /**
- * Client view router & hierarchical navigation engine for Omni Tool.
+ * Client view router & hierarchical navigation engine for ZenoDeck.
+ * Coordinates view transitions, back navigation stack, and active tool selection.
  *
  * Implements a 5-tier back navigation protocol:
  *  1. Overlays & drawers (AI chat, Search, Modals, Floating Toolbar).

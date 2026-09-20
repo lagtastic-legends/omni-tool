@@ -135,7 +135,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
               RESTRICTED AREA
             </h1>
             <p className="mt-2 font-body text-[13px] leading-relaxed text-on-surface-variant">
-              Omni Tool&apos;s modules are locked behind your Google identity.
+              ZenoDeck&apos;s modules are locked behind your Google identity.
               Authenticate to restore access to the full suite.
             </p>
           </div>
@@ -162,15 +162,29 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
           <AnimatePresence>
             {error && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 font-body text-xs leading-relaxed text-red-400"
+                className="w-full rounded-xl border border-red-400/30 bg-red-500/10 p-3 font-body text-xs text-left leading-relaxed text-red-300 space-y-2"
                 role="alert"
               >
-                {error}
-              </motion.p>
+                <div className="font-semibold text-red-400 flex items-center gap-1.5">
+                  <span>Authentication Notice:</span>
+                </div>
+                <div className="font-mono text-[11.5px] break-all">{error}</div>
+                {error.includes("unauthorized-domain") && (
+                  <div className="rounded-lg bg-zinc-900/80 p-2.5 border border-white/10 text-[11px] text-zinc-300 font-sans space-y-1.5">
+                    <p className="font-semibold text-amber-300">⚙️ How to authorize this domain:</p>
+                    <ol className="list-decimal list-inside space-y-1 text-zinc-300 text-[11px]">
+                      <li>Open <a href="https://console.firebase.google.com" target="_blank" rel="noreferrer" className="underline text-primary hover:text-primary/80">Firebase Console</a> (Project: <code className="bg-black/50 px-1 py-0.5 rounded text-amber-200">omni-tool-7ba2d</code>)</li>
+                      <li>Go to <strong>Authentication &rarr; Settings &rarr; Authorized domains</strong></li>
+                      <li>Add <code className="bg-black/50 px-1 py-0.5 rounded text-white font-mono">{typeof window !== "undefined" ? window.location.hostname : "vercel.app"}</code> or <code className="bg-black/50 px-1 py-0.5 rounded text-white font-mono">vercel.app</code></li>
+                    </ol>
+                    <p className="pt-1 text-[10.5px] text-zinc-400">Or tap <strong>Continue as Guest</strong> above to use all tools immediately.</p>
+                  </div>
+                )}
+              </motion.div>
             )}
           </AnimatePresence>
 

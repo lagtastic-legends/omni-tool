@@ -1,5 +1,5 @@
 /**
- * Shared formatting helpers used across the Omni Tool UI.
+ * Shared formatting helpers used across the ZenoDeck UI.
  */
 
 export function formatBytes(bytes: number, fractionDigits = 1): string {

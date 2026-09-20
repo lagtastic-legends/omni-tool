@@ -3,7 +3,7 @@ import { Compass, ArrowLeft, ShieldAlert, Terminal } from "lucide-react";
 
 export const metadata = {
   title: "404 — Module Not Found",
-  description: "The requested coordinate or tool route does not exist in Omni Tool.",
+  description: "The requested coordinate or tool route does not exist in ZenoDeck.",
 };
 
 export default function NotFound() {
