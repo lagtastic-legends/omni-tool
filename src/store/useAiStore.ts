@@ -30,7 +30,7 @@ export const useAiStore = create<AiState>()(
         {
           id: 'welcome-msg',
           role: 'model',
-          content: "Hello! I'm **Omni**, your client-side AI co-pilot. I can guide you through video compression, vocal cancellation, 8D audio, PDF tools, and local storage.",
+          content: "Hello! I'm **Zeno**, your client-side AI co-pilot. I can guide you through video compression, vocal cancellation, 8D audio, PDF tools, and local storage.",
           timestamp: Date.now(),
         }
       ],
@@ -74,14 +74,14 @@ export const useAiStore = create<AiState>()(
           {
             id: `welcome-${Date.now()}`,
             role: 'model',
-            content: "Hello! I'm **Omni**, your client-side AI co-pilot. How can I help you today?",
+            content: "Hello! I'm **Zeno**, your client-side AI co-pilot. How can I help you today?",
             timestamp: Date.now(),
           }
         ]
       }),
     }),
     {
-      name: 'omni-ai-storage',
+      name: 'zeno-ai-storage',
       partialize: (state) => ({ messages: state.messages, isExpanded: state.isExpanded }),
       merge: (persistedState: any, currentState: AiState) => {
         const raw = persistedState?.messages;

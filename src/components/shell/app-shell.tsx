@@ -232,7 +232,7 @@ export function AppShell() {
   const floatingActions = [
     {
       id: "ai",
-      label: "Ask Omni AI",
+      label: "Ask Zeno AI",
       icon: Sparkles,
       accentClass: "text-neon border-neon/50 bg-neon/15 hover:bg-neon/25 shadow-[0_0_12px_rgba(0,240,255,0.3)]",
       onClick: () => toggleAi(),

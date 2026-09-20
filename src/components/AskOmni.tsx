@@ -203,7 +203,7 @@ export default function AskOmni({ showTrigger = false }: AskOmniProps) {
             haptics.light();
             toggleOpen();
           }}
-          aria-label="Open Ask Omni AI Assistant"
+          aria-label="Open Ask Zeno AI Assistant"
           className="fixed bottom-24 right-6 z-50 p-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(0,240,255,0.4)] transition-all duration-300 transform hover:scale-105 active:scale-95"
         >
           <Sparkles className="w-6 h-6" />
@@ -244,7 +244,7 @@ export default function AskOmni({ showTrigger = false }: AskOmniProps) {
                 <div className="flex flex-col leading-none">
                   <div className="flex items-center gap-2">
                     <h3 className="font-display font-bold text-sm tracking-wide text-foreground">
-                      Ask Omni
+                      Ask Zeno
                     </h3>
                     {/* Live Neural Status Badge */}
                     <div className="flex items-center gap-1 rounded-full bg-secondary/80 border border-border/60 px-2 py-0.5 text-[9px] font-mono font-semibold">
@@ -333,7 +333,7 @@ export default function AskOmni({ showTrigger = false }: AskOmniProps) {
               {/* Animated Thinking Bar when waiting for response */}
               <AnimatePresence>
                 {isLoading && !isStreaming && (
-                  <AiThinkingIndicator statusText="Omni is analyzing your query..." />
+                  <AiThinkingIndicator statusText="Zeno is analyzing your query..." />
                 )}
               </AnimatePresence>
 
@@ -366,7 +366,7 @@ export default function AskOmni({ showTrigger = false }: AskOmniProps) {
                   placeholder={
                     isStreaming
                       ? 'Generating response...'
-                      : 'Ask Omni about audio, video, PDF, or vault...'
+                      : 'Ask Zeno about audio, video, PDF, or vault...'
                   }
                   className="w-full bg-secondary/50 border border-border/80 rounded-xl py-3 pl-3.5 pr-20 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/40 transition-all font-body"
                 />

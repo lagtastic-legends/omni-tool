@@ -5,14 +5,14 @@ import { ShieldCheck, Lock, HardDrive, Cpu, ArrowLeft } from "lucide-react";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "Omni Tool enforces a zero-upload architecture. Learn how your files remain 100% on your device with WebAssembly.",
+    "ZenoDeck enforces a zero-upload architecture. Learn how your files remain 100% on your device with WebAssembly.",
   alternates: {
     canonical: "/privacy",
   },
   openGraph: {
-    title: "Privacy Policy | OMNI TOOL",
+    title: "Privacy Policy | ZENODECK",
     description: "Zero uploads. Zero servers. Total data privacy.",
-    url: "https://omnitool.app/privacy",
+    url: "https://zenodeck.vercel.app/privacy",
   },
 };
 
@@ -77,9 +77,9 @@ export default function PrivacyPolicyPage() {
             1. Overview of Data Architecture
           </h2>
           <p>
-            OMNI TOOL was engineered from the ground up to guarantee absolute file sovereignty.
+            ZenoDeck was engineered from the ground up to guarantee absolute file sovereignty.
             Traditional web utilities upload your private media to cloud clusters for processing.
-            In contrast, OMNI TOOL compiles native binaries (including FFmpeg, PDF engines, and AI vision
+            In contrast, ZenoDeck compiles native binaries (including FFmpeg, PDF engines, and AI vision
             models) into WebAssembly (WASM) bytecode that executes strictly on your local device CPU/GPU.
           </p>
         </section>
@@ -138,9 +138,9 @@ export default function PrivacyPolicyPage() {
             If you have questions regarding this Privacy Policy or our on-device security safeguards, please reach out to:
           </p>
           <div className="rounded-xl border border-border/60 bg-card/30 p-4 font-mono text-xs space-y-1">
-            <p className="font-bold text-foreground">Omni Tool Labs · Data Protection</p>
+            <p className="font-bold text-foreground">ZenoDeck Labs · Data Protection</p>
             <p>100 Montgomery St, Suite 1400, San Francisco, CA 94104</p>
-            <p className="text-primary">support.omnitool.com@gmail.com</p>
+            <p className="text-primary">support.zenodeck@gmail.com</p>
           </div>
         </section>
       </div>

@@ -7,6 +7,14 @@ export interface ChatMessage {
   timestamp?: number;
 }
 
+const getAiEndpoint = (params = ""): string => {
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return `/api/ai/${params}`;
+  }
+  const fallback = process.env.NEXT_PUBLIC_APP_URL || "https://zenodeck.vercel.app";
+  return `${fallback}/api/ai/${params}`;
+};
+
 export const generateAiResponse = async (messages: ChatMessage[]) => {
   try {
     const contents = messages.map(msg => ({
@@ -14,8 +22,7 @@ export const generateAiResponse = async (messages: ChatMessage[]) => {
       parts: [{ text: msg.content }]
     }));
 
-    // For Capacitor, this must be changed to the absolute URL of the hosted backend
-    const response = await fetch("https://omni-tool-two.vercel.app/api/ai/", {
+    const response = await fetch(getAiEndpoint(), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -43,8 +50,7 @@ export const streamAiResponse = async function* (messages: ChatMessage[], signal
       parts: [{ text: msg.content }]
     }));
 
-    // For Capacitor, this must be changed to the absolute URL of the hosted backend
-    const response = await fetch("https://omni-tool-two.vercel.app/api/ai/?stream=true", {
+    const response = await fetch(getAiEndpoint("?stream=true"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

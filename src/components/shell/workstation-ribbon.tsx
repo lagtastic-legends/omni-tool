@@ -207,7 +207,7 @@ export function WorkstationRibbon() {
         <ThemeToggle />
         <AudioToggle />
 
-        {/* Quick Launch Ask Omni AI */}
+        {/* Quick Launch Ask Zeno AI */}
         <button
           onClick={() => {
             haptics.light();
@@ -218,10 +218,10 @@ export function WorkstationRibbon() {
               ? "bg-primary text-primary-foreground border-primary shadow-sm font-bold"
               : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/60"
           }`}
-          title="Ask Omni AI Co-Pilot"
+          title="Ask Zeno AI Co-Pilot"
         >
           <Sparkles className="size-3 text-current animate-pulse" />
-          <span className="font-semibold">OMNI AI</span>
+          <span className="font-semibold">ZENO AI</span>
         </button>
       </div>
     </div>

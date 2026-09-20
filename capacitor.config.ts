@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 /**
- * OMNI TOOL — Capacitor configuration (Android).
+ * ZENODECK — Capacitor configuration (Android).
  *
  * The web app is a single-canvas client-side SPA, which static-exports
  * cleanly into `out/` (see `scripts/build-mobile.sh`). The android/
@@ -10,7 +10,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
  */
 const config: CapacitorConfig = {
   appId: "com.omnitool.app",
-  appName: "Omni Tool",
+  appName: "ZenoDeck",
   webDir: "out",
   android: {
     // WebView must reach getUserMedia for the QR scanner & Studio Recorder.

@@ -143,7 +143,7 @@ export function DesktopSidebar() {
             </div>
             <div className="truncate font-mono">
               <span className="font-display text-xs font-black tracking-wider uppercase text-foreground">
-                OMNI TOOL
+                ZENODECK
               </span>
               <p className="text-[9px] text-muted-foreground uppercase tracking-widest truncate">
                 WASM Core Engine
@@ -271,7 +271,7 @@ export function DesktopSidebar() {
         })}
       </nav>
 
-      {/* Ask Omni AI Quick Launcher */}
+      {/* Ask Zeno AI Quick Launcher */}
       <div className="p-2 border-t border-border/70">
         <button
           onClick={() => {
@@ -284,12 +284,12 @@ export function DesktopSidebar() {
               ? "bg-primary text-primary-foreground border-primary shadow-sm font-bold"
               : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/60"
           } ${sidebarCollapsed ? "justify-center" : "justify-between"}`}
-          title="Ask Omni AI Co-Pilot ([O] key)"
+          title="Ask Zeno AI Co-Pilot ([O] key)"
         >
           <div className="flex items-center gap-2 min-w-0">
             <Sparkles className="size-4 shrink-0 text-current animate-pulse" />
             {!sidebarCollapsed && (
-              <span className="font-bold text-xs truncate">Ask Omni AI</span>
+              <span className="font-bold text-xs truncate">Ask Zeno AI</span>
             )}
           </div>
           {!sidebarCollapsed && (

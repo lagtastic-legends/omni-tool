@@ -1,22 +1,22 @@
 <p align="center">
-  <img src="public/logo.jpg" alt="Omni Tool Logo" width="128" height="128" style="border-radius: 28px; box-shadow: 0 12px 32px rgba(139, 92, 246, 0.35);" />
+  <img src="public/logo.jpg" alt="ZenoDeck Logo" width="128" height="128" style="border-radius: 28px; box-shadow: 0 12px 32px rgba(139, 92, 246, 0.35);" />
 </p>
 
-<h1 align="center">Omni Tool</h1>
+<h1 align="center">ZenoDeck</h1>
 
 <p align="center">
   <strong>The Heavy-Duty, 100% Client-Side WebAssembly Media & Document Suite</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/tag/v2.8.0">
-    <img src="https://img.shields.io/github/v/release/lagtastic-legends/omni-tool?style=for-the-badge&color=8B5CF6&label=Latest%20Release%20v2.8.0" alt="Release" />
+  <a href="https://github.com/lagtastic-legends/ZenoDeck/releases">
+    <img src="https://img.shields.io/github/v/release/lagtastic-legends/ZenoDeck?style=for-the-badge&color=8B5CF6&label=Latest%20Release" alt="Release" />
   </a>
-  <a href="https://omni-tool-two.vercel.app">
+  <a href="https://zenodeck.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/omni-tool/releases/download/v2.8.0/omni-tool-v2.8.0-release.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-Download%20v2.8.0-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
+  <a href="https://github.com/lagtastic-legends/ZenoDeck/releases">
+    <img src="https://img.shields.io/badge/Android%20APK-Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" />
@@ -28,9 +28,9 @@
 
 ## ⚡ Overview
 
-**Omni Tool** is a high-performance, private media engineering suite and document workstation that runs entirely in your browser and on your Android device. 
+**ZenoDeck** is a high-performance, private media engineering suite and document workstation that runs entirely in your browser and on your Android device. 
 
-Unlike traditional cloud converters that upload your sensitive documents and videos to remote servers, Omni Tool executes everything **100% on-device** using self-hosted **WebAssembly (FFmpeg WASM)** and the native **Web Audio API**. Not a single byte leaves your hardware.
+Unlike traditional cloud converters that upload your sensitive documents and videos to remote servers, ZenoDeck executes everything **100% on-device** using self-hosted **WebAssembly (FFmpeg WASM)** and the native **Web Audio API**. Not a single byte leaves your hardware.
 
 ---
 
@@ -38,8 +38,8 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
-| **🌐 Web App** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero install required. Run instantly in any modern browser. |
-| **📱 Android APK (Signed Release)** | [**Download omni-tool-v2.8.0-release.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.8.0/omni-tool-v2.8.0-release.apk) | Production signed APK (24.37 MB) optimized for phones, foldables, flips, and tablets. |
+| **🌐 Web App** | [**zenodeck.vercel.app**](https://zenodeck.vercel.app) | Live PWA with zero install required. Run instantly in any modern browser. |
+| **📱 Android APK (Signed Release)** | [**Download Latest Release APK**](https://github.com/lagtastic-legends/ZenoDeck/releases) | Production signed APK optimized for phones, foldables, flips, and tablets. |
 | **🛠️ Android APK (Development Debug)** | [**Download omni-tool-v2.8.0-debug.apk**](https://github.com/lagtastic-legends/omni-tool/releases/download/v2.8.0/omni-tool-v2.8.0-debug.apk) | Debug build (36.45 MB) with remote Chrome WebView debugging enabled for developers. |
 
 ---
@@ -97,7 +97,7 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 * **5-Tier Universal Back Navigation Guard**: Mobile hardware back button, floating toolbar back, header back arrow, backdrop touch dismissal, and route stack management ensure seamless exit protection without accidental app termination.
 * **Dual-Tier Native Haptics**: `@capacitor/haptics` integration with light ticks on navigation and medium feedback on button taps.
 * **Expanding Floating Toolbar**: Sleek vertical glassmorphic pill menu with staggered pop-in animation, Android safe area conformance, and minimum 44x44px touch bounding boxes.
-* **Ask Omni AI Assistant**: On-device streaming assistant seamlessly integrated into the floating toolbar.
+* **Ask Zeno AI Assistant**: On-device streaming assistant seamlessly integrated into the floating toolbar.
 
 ### 🎧 Tactile UI Audio Architecture & 0ms APK Sound Feedback
 * **In-Memory Web Audio Synthesis (0ms Latency)**: Pure mathematical PCM synthesis evaluated directly in-memory via `AudioBuffer` objects, eliminating asynchronous network XHR fetching, decoding errors, and frame truncation in mobile WebViews.
@@ -123,7 +123,7 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 
 ```text
   ┌─────────────────────────────────────────────────────────┐
-  │                 OMNI TOOL RUNTIME                       │
+  │                 ZENODECK RUNTIME                        │
   │                                                         │
   │   Next.js 16 (App Router) + Tailwind CSS + Radix UI     │
   │   Framer Motion (120Hz Critical-Damping Physics)        │
@@ -224,8 +224,8 @@ Contributions, bug reports, and feature suggestions are welcome! See [CONTRIBUTI
 
 ## 📬 Support & Contact
 
-* **Official Support Email**: [support.omnitool.com@gmail.com](mailto:support.omnitool.com@gmail.com)
-* **Website**: [https://omni-tool-two.vercel.app](https://omni-tool-two.vercel.app)
+* **Official Support Email**: [support.zenodeck@gmail.com](mailto:support.zenodeck@gmail.com)
+* **Website**: [https://zenodeck.vercel.app](https://zenodeck.vercel.app)
 
 ---
 
