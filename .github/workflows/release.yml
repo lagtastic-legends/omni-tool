@@ -55,12 +55,19 @@ jobs:
         run: |
           mkdir -p dist
           cp android/app/build/outputs/apk/release/app-release.apk dist/ZenoDeck-${{ github.ref_name }}-release.apk
+          if [ -f "RELEASE_NOTES_${{ github.ref_name }}.md" ]; then
+            cp "RELEASE_NOTES_${{ github.ref_name }}.md" dist/RELEASE_NOTES.md
+          elif [ -f "RELEASE_NOTES_v3.1.0.md" ]; then
+            cp "RELEASE_NOTES_v3.1.0.md" dist/RELEASE_NOTES.md
+          else
+            cp "RELEASE_NOTES_v3.0.0.md" dist/RELEASE_NOTES.md
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: "ZenoDeck ${{ github.ref_name }}"
-          body_path: RELEASE_NOTES_v3.0.0.md
+          body_path: dist/RELEASE_NOTES.md
           draft: false
           prerelease: false
           files: |

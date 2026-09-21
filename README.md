@@ -5,18 +5,18 @@
 <h1 align="center">ZenoDeck</h1>
 
 <p align="center">
-  <strong>The Heavy-Duty, 100% Client-Side WebAssembly Media & Document Suite</strong>
+  <strong>The Heavy-Duty, 100% Client-Side WebAssembly Media & Document Workstation</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/lagtastic-legends/ZenoDeck/releases">
-    <img src="https://img.shields.io/github/v/release/lagtastic-legends/ZenoDeck?style=for-the-badge&color=8B5CF6&label=Latest%20Release" alt="Release" />
+  <a href="https://github.com/lagtastic-legends/zenodeck/releases">
+    <img src="https://img.shields.io/badge/Release-v3.1.0-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.1.0" />
   </a>
   <a href="https://zenodeck.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/ZenoDeck/releases">
-    <img src="https://img.shields.io/badge/Android%20APK-Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK" />
+  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.1.0/ZenoDeck-v3.1.0-release.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-v3.1.0%20Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License" />
@@ -28,23 +28,94 @@
 
 ## ⚡ Overview
 
-**ZenoDeck** is a high-performance, private media engineering suite and document workstation that runs entirely in your browser and on your Android device. 
+**ZenoDeck** is a high-performance, private media engineering suite and document workstation engineered for the modern web and native Android devices. 
 
-Unlike traditional cloud converters that upload your sensitive documents and videos to remote servers, ZenoDeck executes everything **100% on-device** using self-hosted **WebAssembly (FFmpeg WASM)** and the native **Web Audio API**. Not a single byte leaves your hardware.
+Unlike traditional cloud converters and SaaS editing tools that upload your sensitive documents, personal audio, and private videos to remote servers, ZenoDeck executes every computation **100% on-device** using client-side **WebAssembly (FFmpeg WASM)**, the hardware-accelerated **WebCodecs API**, **WebGL 2.0 Shaders**, and the native **Web Audio API**. Not a single byte ever leaves your hardware.
 
 ---
 
-## 🚀 Instant Download & Live App
+## 🚀 Instant Download & Live Deployment
 
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
-| **🌐 Web App** | [**zenodeck.vercel.app**](https://zenodeck.vercel.app) | Live PWA with zero install required. Run instantly in any modern browser. |
-| **📱 Android APK (Signed Production)** | [**Download ZenoDeck-v3.0.0-release.apk**](https://github.com/lagtastic-legends/ZenoDeck/releases) | Production signed APK optimized for phones, foldables, flips, and tablets. |
-| **🛠️ Android APK (Development Debug)** | [**Download Latest Debug APK**](https://github.com/lagtastic-legends/ZenoDeck/releases) | Debug build with remote Chrome WebView debugging enabled for developers. |
+| **🌐 Web Application** | [**zenodeck.vercel.app**](https://zenodeck.vercel.app) | Live PWA with zero installation required. Instant launch in any modern browser. |
+| **📱 Android APK (Signed Production v3.1.0)** | [**Download ZenoDeck-v3.1.0-release.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.1.0/ZenoDeck-v3.1.0-release.apk) | Production signed APK optimized for all phones (slabs, flips, foldables) and tablets. |
+| **📦 GitHub Releases & Source** | [**GitHub Releases Hub**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.1.0) | Complete release packages, checksums, changelogs, and release assets. |
 
 ---
 
-## ✨ Features & Modules
+## 🌟 What's New in v3.1.0 (Milestone Highlights)
+
+### 🎬 1. Video Editor Phase 1: Web Desktop NLE & Transitions Engine
+* **Frame-Accurate Video & Audio Transitions**:
+  * 9 studio-grade transitions: Hard Cut (`none`), Cross Dissolve (`fade`), Linear Wipes (`wipeleft`, `wiperight`), Directional Slides (`slideleft`, `slideright`), Lighting Dips (`fadeblack`, `fadewhite`), and Stylized Zoom (`zoomin`).
+  * Dynamic `xfade` (video) and `acrossfade` (audio) FFmpeg filtergraph compiler with cumulative sub-frame offset calculation and duration safety clamping.
+* **Pro NLE Keyboard Shortcut Matrix**:
+  * `Space`: Play / Pause transport.
+  * `J` / `K` / `L`: Shuttle transport (Rewind 2x, Stop, Fast-Forward 2x).
+  * `S` / `B`: Razor blade split at Current Time Indicator (CTI).
+  * `I` / `[` and `O` / `]`: Dynamic In-point / Out-point trimming.
+  * `Delete` / `Backspace`: Ripple delete selected segment.
+  * `Ctrl+Z` / `Cmd+Z`: Multi-level undo history stack.
+  * `+` / `-`: Timeline zoom in/out with auto-centering.
+  * `F`: Instant fit timeline to viewport width.
+  * `N`: Toggle magnetic grid snapping.
+* **Interactive Canvas Seam Badges**:
+  * Visual seam badges (`[ ⧗ 0.5s ]`) rendered on Track V1 between sequential clips; clicking any seam node immediately focuses the Transitions Inspector.
+* **Live Viewport Simulation Layer**:
+  * Real-time CSS blend and exposure flash simulation across cut points during timeline playback and scrubbing.
+
+---
+
+### 📱 2. Video Editor Phase 2: Native Mobile Workstation for All Android Form Factors
+* **Hardware-Aware Posture Engine (`useDevicePosture`)**:
+  * **Slab Phones (Portrait & Landscape)**: Single-thumb reach zone, sticky bottom action dock, swipeable clip ribbon, and frame-stepping jog wheel.
+  * **Flip Phones (Flex Mode / 90° Tabletop)**: Automatically detects folded posture via CSS media queries (`device-posture: folded`) and window geometry. Splits the screen into an upper Cinema Preview Monitor and a lower "Cockpit" with jog wheel, razor blade, and trimmer.
+  * **Foldables & Dual-Pane (Samsung Galaxy Z Fold, Pixel Fold, OnePlus Open)**: Unfolded book mode detects inner screen aspect ratios (~4:3 / ~1:1) and renders a side-by-side workstation: left pane preview monitor with format scopes; right pane timeline ribbon and inspectors.
+  * **Tablets**: Touch-scaled NLE layout with wide-screen multi-track canvas lanes.
+  * **Interactive Posture Switcher**: Instant top-bar mode toggle allows testing Auto, Flex 90°, Fold Dual, Mobile Deck, and Workstation modes on any browser or device.
+* **Tactile Mobile Jog Wheel**:
+  * Graduated millimeter tick marks with micro-haptic clicks (`haptics.selectionChanged()`) on 30fps frame increments.
+  * Quick jump buttons: `-1s`, `-1f`, Play/Pause, `+1f`, `+1s`.
+  * Central cyan CTI playhead needle with dynamic timecode readouts.
+* **Visual Razor Blade Slash Animation**:
+  * High-impact neon blade slash animation cutting diagonally across the video monitor when `Split` is triggered, synchronized with a heavy physical tactile impulse (`haptics.heavy()`).
+* **Ergonomic Single-Thumb Deck**:
+  * Floating bottom action bay positioned within the natural bottom 120px mobile thumb zone: Undo (with disabled state & history count), In/Out trim markers, center gradient Split Blade, Transitions FX trigger, clip delete, and master export.
+* **Mobile Transitions Bottom Sheet**:
+  * Fluid drag-to-dismiss bottom sheet showcasing transition presets, haptic duration slider (0.2s–1.5s), and live transition simulation preview button.
+
+---
+
+### ⚡ 3. Background Processing & Screen Wake Lock Controller
+* **Android Manifest Integration**: Added `<uses-permission android:name="android.permission.WAKE_LOCK" />`.
+* **Screen Wake Lock Controller (`wake-lock.ts`)**:
+  * Automatically acquires `navigator.wakeLock.request("screen")` when any conversion, export, or processing job begins in `useMediaJob`.
+  * Prevents the mobile screen from sleeping, the CPU from throttling, and the OS from pausing WebAssembly execution during long video exports.
+  * Listens to `visibilitychange` to automatically re-acquire the lock if the user leaves and returns to the app while a render is active.
+  * Safely releases the lock in `finally` blocks when the job concludes or errors out.
+
+---
+
+### 🔔 4. Unified Notification Engine (APK & Web App)
+* **Android APK (Native Notifications)**:
+  * Initializes the high-priority Android channel `zenodeck_jobs` with heads-up display, custom sound, vibration, and cyan notification lights via `@capacitor/local-notifications`.
+  * Automatically schedules rich local notifications (`✓ Media Processing Complete - Generated [file.mp4] (48.2 MB). Tap to view and save.`).
+* **Web App (Browser Notifications)**:
+  * Integrates HTML5 native `Notification` API with ZenoDeck app icon, badge, and vibration. Alerts the user even if they have switched browser tabs or minimized the window.
+* **Automatic Integration**:
+  * Hooked directly into `useMediaJob`, bringing background wake lock and rich completion alerts to every tool in ZenoDeck.
+
+---
+
+### 🛡️ 5. Fix for Android 13+ Scoped Media Permissions
+* Resolved repeated permission dialog loops caused by legacy `publicStorage` checks on Android 13+ (API 33+).
+* In `native-save.ts`, safely handles scoped storage writes to `Directory.Documents` without re-prompting.
+* In `permission-gate.tsx`, verifies system status on mount and durably persists `"granted"` status in `localStorage` under `zenodeck_permissions_v3`, preventing repeated popups across sessions.
+
+---
+
+## 🧰 Core Suite & Modules
 
 ### 🎥 Video Engineering & Media Management
 * **Offline Hardware-Accelerated Video Engine (WebCodecs + WebGL 2.0)**: 100% client-side, zero-server video processing pipeline. Demuxing, decoding, hardware shader filtering, encoding, and muxing execute entirely inside a dedicated Web Worker off the main UI thread.
@@ -58,7 +129,7 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 * **Pre-flight Silent Video Guard**: Dual-layer ISO BMFF audio atom detection (`probeHasAudio`) prevents FFmpeg exit code 1 failures when extracting audio from silent videos.
 * **Reactive Inline Renaming**: Direct real-time renaming in DropZone and output cards without cloning blobs or corrupting native streams.
 * **Video Compressor**: Smart multi-tier CRF and preset compression with zero quality loss.
-* **Universal Media Converter**: Transcode MP4, MKV, WebM, AVI, MOV, and extract audio tracks client-side. **New: Original lossless audio extraction** via stream copy (`-c:a copy`).
+* **Universal Media Converter**: Transcode MP4, MKV, WebM, AVI, MOV, and extract audio tracks client-side with original lossless audio extraction via stream copy (`-c:a copy`).
 * **20 GB Zero-Copy WORKERFS Streaming Engine**: Direct kernel-level chunked streaming of files up to 20 GB into WebAssembly with 0 MB input RAM overhead, preventing V8 `ArrayBuffer` allocation limits and WASM heap exhaustion. Backed by `android:largeHeap="true"` in the native Android APK.
 * **GIF Studio**: Convert video segments into optimized animated GIFs with custom framerate and palette control.
 
@@ -89,17 +160,7 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 * **Local Vault**: Persistent client-side file archive using IndexedDB and native sandbox storage.
 * **Studio Recorder**: Screen recording, microphone audio capture, and live device streaming.
 
-### ⚡ 120Hz Buttery Smooth Motion & Native Experience
-* **120Hz Fluid Motion & Zero Touch Latency**: Root-level CSS `touch-action: manipulation`, `-webkit-tap-highlight-color: transparent`, and `overscroll-behavior-y: none` eliminate 300ms mobile touch tap latency and eliminate rubber-banding interference.
-* **GPU Compositing & Layer Isolation**: GPU-accelerated backdrop transforms (`translate3d(0, 0, 0)`, `contain: layout style paint`, `backface-visibility: hidden`) prevent browser reflows and layout thrashing during continuous aurora animations.
-* **Hardware-Accelerated Panel HUD & Springs**: Custom cubic-bezier (`cubic-bezier(0.16, 1, 0.3, 1)`) and Framer Motion spring dynamics (`stiffness: 380, damping: 28, mass: 0.7`) on ToolCards, navigation bars, and category filter pills.
-* **Animated Lottie Search Button**: Custom interactive search trigger animation with instant reactive feedback and WCAG 2.1 AA compliant 44x44px touch targets on both web and mobile APK.
-* **5-Tier Universal Back Navigation Guard**: Mobile hardware back button, floating toolbar back, header back arrow, backdrop touch dismissal, and route stack management ensure seamless exit protection without accidental app termination.
-* **Dual-Tier Native Haptics**: `@capacitor/haptics` integration with light ticks on navigation and medium feedback on button taps.
-* **Expanding Floating Toolbar**: Sleek vertical glassmorphic pill menu with staggered pop-in animation, Android safe area conformance, and minimum 44x44px touch bounding boxes.
-* **Ask Zeno AI Assistant**: On-device streaming assistant seamlessly integrated into the floating toolbar.
-
-### 🎧 Tactile UI Audio Architecture & 0ms APK Sound Feedback
+### 🎧 Tactile UI Audio Architecture & 0ms Sound Feedback
 * **In-Memory Web Audio Synthesis (0ms Latency)**: Pure mathematical PCM synthesis evaluated directly in-memory via `AudioBuffer` objects, eliminating asynchronous network XHR fetching, decoding errors, and frame truncation in mobile WebViews.
 * **Synchronous Touchdown Actuation**: `Button` micro-interactions fire audio feedback synchronously on `pointerdown` aligned with native haptic vibration, delivering physical mechanical click responsiveness on both Android touchscreens and desktop mouse clicks.
 * **4 Precision Synthesized Sounds (Speaker-Tuned Volume 0.65)**:
@@ -108,56 +169,49 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
   - **Harmonic Chime** (380ms uplifting C-Major harmonic shimmer: C5 → E5 → G5 → C6)
   - **Alert Tone** (260ms subtle dual low-mid warning: 340Hz → 240Hz)
 * **Global Mute Persistence**: Zustand-driven `isAudioMuted` state synchronized with `localStorage` (`omni_ui_audio_muted`).
-* **1-Tap Mute Controls**: Accessible Radix `Switch` in DesktopSidebar and sleek `AudioToggle` button pills in `TopBar` and `WorkstationRibbon` for mobile and desktop.
-* **Android WebView Audio Context Auto-Unlock**: Captured window-level gesture listeners on `pointerdown`/`touchstart` synchronously resume the `AudioContext` before audio triggers, backed by `setMediaPlaybackRequiresUserGesture(false)` in `MainActivity.java`.
-
-### 🔐 Android Permissions & Security
-* **Granular Media Access (Android 13+)**: `READ_MEDIA_AUDIO`, `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO` for scoped storage compliance.
-* **Legacy Storage Compatibility**: `READ_EXTERNAL_STORAGE` / `WRITE_EXTERNAL_STORAGE` with `maxSdkVersion=32` for Android 12 and below.
-* **Large Heap Allocation**: `android:largeHeap="true"` configured in `AndroidManifest.xml` enabling up to 20 GB media processing headroom.
-* **First-Launch Permission Gate**: Styled dialog explaining each permission category with batch request and visual grant/deny feedback.
 
 ---
 
-## 🏛️ Architecture & Principles
+## 🏛️ System Architecture
 
 ```text
-  ┌─────────────────────────────────────────────────────────┐
-  │                 ZENODECK RUNTIME                        │
-  │                                                         │
-  │   Next.js 16 (App Router) + Tailwind CSS + Radix UI     │
-  │   Framer Motion (120Hz Critical-Damping Physics)        │
-  │   Capacitor Haptics Engine (Dual-Tier Native Feedback)  │
-  │   use-sound Audio Engine (Tactile UI Audio Feedback)    │
-  └───────────────────────────┬─────────────────────────────┘
-                              │
-               ┌──────────────┴──────────────┐
-               ▼                             ▼
-   ┌───────────────────────┐     ┌───────────────────────┐
-   │  WebAssembly Engine   │     │  Capacitor Shell      │
-   │  @ffmpeg/core (WASM)  │     │  Native Android APK   │
-   │  Virtual FS Auto-GC   │     │  Thumb-Zone Layout    │
-   │  Zero Cloud Uploads   │     │  Edge-to-Edge Insets  │
-   └───────────────────────┘     └───────────────────────┘
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │                           ZENODECK v3.1.0 RUNTIME                           │
+  │                                                                             │
+  │   Next.js 16 (App Router) + Tailwind CSS 4 + Radix UI Primitives            │
+  │   Framer Motion (120Hz Critical-Damping Physics & Neon Blade Slash)         │
+  │   useDevicePosture (Slab, Flip Flex 90°, Fold Dual-Pane, Tablet Engine)    │
+  │   Screen Wake Lock Controller (Automatic Background Render Protection)      │
+  │   Unified Notification Engine (Capacitor LocalNotifications + Web Push)     │
+  │   Tactile UI Audio Synthesis (In-Memory PCM Web Audio Engine)              │
+  └──────────────────────────────────────┬──────────────────────────────────────┘
+                                         │
+                 ┌───────────────────────┴───────────────────────┐
+                 ▼                                               ▼
+   ┌───────────────────────────┐                   ┌───────────────────────────┐
+   │    WebAssembly Engine     │                   │      Capacitor Shell      │
+   │  @ffmpeg/core-mt / core   │                   │    Native Android APK     │
+   │  WebCodecs & WebGL 2.0    │                   │   Thumb-Zone Deck Layout  │
+   │  ISO-BMFF Fast-Start      │                   │   Edge-to-Edge Insets     │
+   │  Zero-Copy WORKERFS       │                   │   Scoped Media Storage    │
+   │  100% On-Device Execution │                   │   Hardware Haptics        │
+   └───────────────────────────┘                   └───────────────────────────┘
 ```
-
-1. **Zero-Upload Guarantee**: We operate no cloud ingestion servers. All CPU/GPU operations are executed locally.
-2. **Tactile Craftsmanship**: Custom mathematically off-grid OKLCH color palettes, fluid typography (clamp()), physical spring physics (stiffness: 380, damping: 28), and audio micro-feedback.
-3. **Ergonomic Native Design**: Optimized thumb-zone navigation, safe-area-inset adaptation, and native responsiveness for slabs, flips, folds, and tablets.
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
-* **Video Engine**: [WebCodecs API](https://w3c.github.io/webcodecs/) (Hardware VideoDecoder/VideoEncoder), [WebGL 2.0](https://www.khronos.org/webgl/) (`OffscreenCanvas`), & ISO-BMFF Fast-Start Muxer
+* **Core Framework**: [Next.js 16 (App Router)](https://nextjs.org/)
+* **Video Engine**: [WebCodecs API](https://w3c.github.io/webcodecs/), [WebGL 2.0](https://www.khronos.org/webgl/) (`OffscreenCanvas`), & ISO-BMFF Fast-Start Muxer
 * **Media & Audio Engine**: [FFmpeg.wasm 0.12](https://github.com/ffmpegwasm/ffmpeg.wasm), [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API), & [pdf-lib](https://pdf-lib.js.org/)
 * **Mobile Runtime**: [Capacitor 8](https://capacitorjs.com/)
 * **Native Haptics**: [@capacitor/haptics](https://capacitorjs.com/docs/apis/haptics)
-* **UI Audio Engine**: [use-sound](https://github.com/joshwcomeau/use-sound) & [Howler.js](https://howlerjs.com/)
+* **Native Notifications**: [@capacitor/local-notifications](https://capacitorjs.com/docs/apis/local-notifications)
+* **Tactile Audio**: Custom in-memory Web Audio PCM synthesizer
 * **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
 * **Motion Physics**: [Framer Motion](https://www.framer.com/motion/)
-* **State & DB**: [Zustand](https://github.com/pmndrs/zustand) + IndexedDB
+* **State Management**: [Zustand](https://github.com/pmndrs/zustand)
 * **Icons**: [Lucide React](https://lucide.dev/)
 
 ---
@@ -166,16 +220,16 @@ Unlike traditional cloud converters that upload your sensitive documents and vid
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/lagtastic-legends/ZenoDeck.git
-cd ZenoDeck
+git clone https://github.com/lagtastic-legends/zenodeck.git
+cd zenodeck
 npm install
 ```
 
-### 2. Run Local Development
+### 2. Run Local Development Server
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) to view the workspace.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### 3. Build Web Static Export
 - **Windows (PowerShell):**
@@ -188,7 +242,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the workspace.
   ```
 
 ### 4. Build Android APK
-Sync web assets to Capacitor and compile the APK:
+Sync web assets to Capacitor and compile the signed APK:
 ```bash
 npx cap sync android
 cd android
@@ -210,25 +264,31 @@ cd android
 
 ---
 
-## 🛡️ Security & Privacy
+## 🛡️ Security & Privacy Guarantee
 
-For full security disclosure and privacy guarantees, please refer to [SECURITY.md](SECURITY.md).
+ZenoDeck strictly enforces our **Zero-Upload Guarantee**:
+1. **Zero Cloud Ingestion**: We do not maintain any cloud processing servers.
+2. **Local Cryptography**: File encryption, hashing, and password operations execute directly in your browser's WebCrypto subsystem.
+3. **No Secret Leakage**: No telemetry, analytics trackers, or user data payloads are transmitted.
+
+For full disclosure and vulnerability reporting, see [SECURITY.md](SECURITY.md).
 
 ---
 
 ## 🤝 Contributing
 
-Contributions, bug reports, and feature suggestions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
+We welcome community contributions, bug reports, and feature proposals! Please review [CONTRIBUTING.md](CONTRIBUTING.md) before submitting pull requests.
 
 ---
 
 ## 📬 Support & Contact
 
-* **Official Support Email**: [support.zenodeck@gmail.com](mailto:support.zenodeck@gmail.com)
-* **Website**: [https://zenodeck.vercel.app](https://zenodeck.vercel.app)
+* **Official Support**: [support.zenodeck@gmail.com](mailto:support.zenodeck@gmail.com)
+* **Web Portal**: [https://zenodeck.vercel.app](https://zenodeck.vercel.app)
+* **GitHub Repository**: [https://github.com/lagtastic-legends/zenodeck](https://github.com/lagtastic-legends/zenodeck)
 
 ---
 
 ## 📄 License
 
-This project is open source and available under the [MIT License](LICENSE).
+This project is open-source software licensed under the [MIT License](LICENSE).
