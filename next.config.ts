@@ -40,7 +40,22 @@ const nextConfig: NextConfig = {
   images: { unoptimized: true },
   trailingSlash: true,
   async headers() {
-    return [];
+    if (isMobileExport) return [];
+    return [
+      {
+        source: "/zenodeck.mobileconfig",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/x-apple-aspen-config; charset=utf-8",
+          },
+          {
+            key: "Content-Disposition",
+            value: 'attachment; filename="zenodeck.mobileconfig"',
+          },
+        ],
+      },
+    ];
   },
   webpack: (config, { isServer }) => {
     if (!isServer) {
