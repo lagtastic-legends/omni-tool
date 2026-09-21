@@ -15,6 +15,8 @@ import {
   Play,
   Square,
   Trash2,
+  Smartphone,
+  ArrowRight,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
@@ -87,6 +89,12 @@ export function StudioRecorder() {
   const [screenQuality, setScreenQuality] = useState<"720p" | "1080p" | "4k">("1080p");
   const [screenFps, setScreenFps] = useState<30 | 60>(30);
   const [cameraFacing, setCameraFacing] = useState<"user" | "environment">("user");
+  const [isIOS, setIsIOS] = useState(false);
+
+  useEffect(() => {
+    const checkIOS = typeof navigator !== "undefined" && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
+    setIsIOS(checkIOS);
+  }, []);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -536,14 +544,20 @@ export function StudioRecorder() {
             </p>
             <span
               className={`rounded-full px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] ${
-                mediaState === "live"
-                  ? "bg-pulse/10 text-pulse"
-                  : mediaState === "denied"
-                    ? "bg-red-500/10 text-red-300"
-                    : "bg-muted text-muted-foreground"
+                mode === "screen" && isIOS && !Capacitor.isNativePlatform()
+                  ? "bg-amber-500/15 text-amber-300 border border-amber-500/30"
+                  : mediaState === "live"
+                    ? "bg-pulse/10 text-pulse"
+                    : mediaState === "denied"
+                      ? "bg-red-500/10 text-red-300"
+                      : "bg-muted text-muted-foreground"
               }`}
             >
-              {mediaState === "live" ? (recording ? (paused ? "paused" : "recording") : "armed") : mediaState}
+              {mode === "screen" && isIOS && !Capacitor.isNativePlatform()
+                ? "iOS Guide"
+                : mediaState === "live"
+                  ? (recording ? (paused ? "paused" : "recording") : "armed")
+                  : mediaState}
             </span>
           </div>
 
@@ -556,9 +570,42 @@ export function StudioRecorder() {
               aria-label="Capture preview"
             />
 
-            {(mode === "mic" || mediaState !== "live" || (mode === "screen" && Capacitor.isNativePlatform())) && (
+            {(mode === "mic" || mediaState !== "live" || (mode === "screen" && (Capacitor.isNativePlatform() || isIOS))) && (
               <div className="grid aspect-video w-full place-items-center px-6 text-center">
-                {mediaState === "denied" ? (
+                {mode === "screen" && isIOS && !Capacitor.isNativePlatform() ? (
+                  <div className="space-y-2.5 max-w-sm px-2 py-3">
+                    <div className="flex items-center justify-center gap-1.5 text-amber-400">
+                      <Smartphone className="size-4" />
+                      <span className="font-mono text-[11px] font-semibold uppercase tracking-wider">
+                        Apple iOS Sandbox Restriction
+                      </span>
+                    </div>
+                    <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
+                      Apple blocks web browsers from capturing your screen for privacy and security. Use your iPhone&apos;s native screen recorder:
+                    </p>
+                    <div className="rounded-lg border border-border/70 bg-card/60 p-2.5 text-left font-mono text-[10px] space-y-1.5 text-slate-300">
+                      <div className="flex items-start gap-2">
+                        <span className="rounded bg-primary/20 px-1.5 py-0.5 font-bold text-primary text-[9px]">1</span>
+                        <span>Swipe down from <strong>top-right corner</strong> to open Control Center.</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="rounded bg-primary/20 px-1.5 py-0.5 font-bold text-primary text-[9px]">2</span>
+                        <span>Tap the <strong>Screen Recording (●)</strong> button to start.</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="rounded bg-primary/20 px-1.5 py-0.5 font-bold text-primary text-[9px]">3</span>
+                        <span>Tap red status bar to stop. Video saves to <strong>Photos</strong>.</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => useNavStore.getState().navigateTo("editor")}
+                      className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-mono underline pt-0.5"
+                    >
+                      Import recording into Video Editor <ArrowRight className="size-3" />
+                    </button>
+                  </div>
+                ) : mediaState === "denied" ? (
                   <div className="space-y-2">
                     <p className="font-mono text-[11px] text-red-300">
                       capture blocked
@@ -676,20 +723,33 @@ export function StudioRecorder() {
           </div>
 
           <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
-            {meta.hint} · {Capacitor.isNativePlatform() ? "native hardware acceleration" : "encodes locally in browser"}.
+            {mode === "screen" && isIOS && !Capacitor.isNativePlatform()
+              ? "Apple iOS restricts browser screen capture. Use iOS Control Center to record, then import into ZenoDeck."
+              : `${meta.hint} · ${Capacitor.isNativePlatform() ? "native hardware acceleration" : "encodes locally in browser"}.`}
           </p>
         </div>
 
         {/* transport */}
         <div className="grid grid-cols-3 gap-2">
           {!busyOrLive ? (
-            <button
-              onClick={() => void arm(mode)}
-              className="col-span-3 flex min-h-12 items-center justify-center gap-2.5 rounded-xl border border-primary/50 bg-gradient-to-r from-primary/90 to-plasma/80 font-display text-xs font-bold tracking-[0.2em] text-white transition-transform hover:scale-[1.01] active:scale-95 glow-box-violet"
-            >
-              <Play className="size-4" />
-              {mode === "screen" && !Capacitor.isNativePlatform() ? "SHARE & RECORD" : "ARM " + meta.label.toUpperCase()}
-            </button>
+            mode === "screen" && isIOS && !Capacitor.isNativePlatform() ? (
+              <button
+                type="button"
+                onClick={() => useNavStore.getState().navigateTo("editor")}
+                className="col-span-3 flex min-h-12 items-center justify-center gap-2.5 rounded-xl border border-primary/50 bg-gradient-to-r from-primary/90 to-plasma/80 font-display text-xs font-bold tracking-[0.2em] text-white transition-transform hover:scale-[1.01] active:scale-95 glow-box-violet"
+              >
+                <ArrowRight className="size-4" />
+                OPEN VIDEO EDITOR TO IMPORT RECORDING
+              </button>
+            ) : (
+              <button
+                onClick={() => void arm(mode)}
+                className="col-span-3 flex min-h-12 items-center justify-center gap-2.5 rounded-xl border border-primary/50 bg-gradient-to-r from-primary/90 to-plasma/80 font-display text-xs font-bold tracking-[0.2em] text-white transition-transform hover:scale-[1.01] active:scale-95 glow-box-violet"
+              >
+                <Play className="size-4" />
+                {mode === "screen" && !Capacitor.isNativePlatform() ? "SHARE & RECORD" : "ARM " + meta.label.toUpperCase()}
+              </button>
+            )
           ) : (
             <>
               {!recording ? (
