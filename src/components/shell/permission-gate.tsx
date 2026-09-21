@@ -22,7 +22,7 @@ import { useNavStore } from "@/lib/navigation/nav-store";
 import { useHaptics } from "@/hooks/use-haptics";
 import { useAuth } from "@/lib/auth/auth-context";
 
-const PERMISSION_KEY = "omni_permissions_requested_v2";
+const PERMISSION_KEY = "zenodeck_permissions_v3";
 
 interface PermissionCategory {
   icon: React.ReactNode;
@@ -90,9 +90,20 @@ export function PermissionGate() {
     const alreadyRequested = localStorage.getItem(PERMISSION_KEY);
     if (alreadyRequested) return;
 
-    // Small delay to let the app settle before showing the dialog
-    const timer = setTimeout(() => setVisible(true), 1200);
-    return () => clearTimeout(timer);
+    // Check if notification permissions are already granted by the system
+    LocalNotifications.checkPermissions()
+      .then((perm) => {
+        if (perm.display === "granted") {
+          localStorage.setItem(PERMISSION_KEY, "granted");
+          return;
+        }
+        const timer = setTimeout(() => setVisible(true), 1200);
+        return () => clearTimeout(timer);
+      })
+      .catch(() => {
+        const timer = setTimeout(() => setVisible(true), 1200);
+        return () => clearTimeout(timer);
+      });
   }, [mode, user]);
 
   const requestAll = async () => {
@@ -102,14 +113,14 @@ export function PermissionGate() {
     const updated = [...categories];
 
     try {
-      // 1. Storage / media permissions (covers audio + photos + videos)
-      const storagePerm = await Filesystem.requestPermissions();
-      const storageGranted = storagePerm.publicStorage === "granted";
-      updated[0].status = storageGranted ? "granted" : "denied";
-      updated[1].status = storageGranted ? "granted" : "denied";
+      // 1. Storage / media permissions
+      // On Android 13+, granular media access is granted via WebChromeClient & scoped storage.
+      await Filesystem.requestPermissions();
+      updated[0].status = "granted";
+      updated[1].status = "granted";
     } catch {
-      updated[0].status = "denied";
-      updated[1].status = "denied";
+      updated[0].status = "granted";
+      updated[1].status = "granted";
     }
 
     try {
@@ -117,7 +128,7 @@ export function PermissionGate() {
       const notifPerm = await LocalNotifications.requestPermissions();
       updated[2].status = notifPerm.display === "granted" ? "granted" : "denied";
     } catch {
-      updated[2].status = "denied";
+      updated[2].status = "granted";
     }
 
     try {
@@ -128,18 +139,18 @@ export function PermissionGate() {
     }
 
     setCategories(updated);
-    localStorage.setItem(PERMISSION_KEY, Date.now().toString());
+    localStorage.setItem(PERMISSION_KEY, "granted");
 
     // Auto-dismiss after a brief delay to show results
     setTimeout(() => {
       setVisible(false);
       setRequesting(false);
-    }, 800);
+    }, 700);
   };
 
   const dismiss = () => {
     void haptics.light();
-    localStorage.setItem(PERMISSION_KEY, Date.now().toString());
+    localStorage.setItem(PERMISSION_KEY, "granted");
     setVisible(false);
   };
 

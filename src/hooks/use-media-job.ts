@@ -16,6 +16,8 @@ import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { useNavStore } from "@/lib/navigation/nav-store";
 import { useUIAudio } from "@/hooks/useUIAudio";
 import { clamp } from "@/lib/format";
+import { acquireWakeLock, releaseWakeLock } from "@/lib/wake-lock";
+import { notifyJobSuccess, notifyJobError } from "@/lib/notifications";
 
 export type JobPhase = "idle" | "writing" | "processing" | "reading" | "done" | "error";
 
@@ -158,6 +160,7 @@ export function useMediaJob() {
       if (busyRef.current) return;
 
       busyRef.current = true;
+      await acquireWakeLock();
       releaseOutputs();
       setError(null);
       setProgress(0);
@@ -292,12 +295,21 @@ export function useMediaJob() {
         setOutputs(collected);
         setPhase("done");
         playSuccessRef.current();
+
+        const firstName = collected[0]?.name || "Media File";
+        const totalSizeStr = collected.reduce((acc, c) => acc + c.size, 0);
+        void notifyJobSuccess(
+          "Media Processing Complete",
+          `Generated "${firstName}" (${(totalSizeStr / (1024 * 1024)).toFixed(1)} MB). Tap to view and save.`,
+          { filename: firstName }
+        );
       } catch (err) {
         const message =
           err instanceof Error ? err.message : String(err ?? "unknown job failure");
         setError(message);
         setPhase("error");
         playErrorRef.current();
+        void notifyJobError("Processing Failed", message);
       } finally {
         engine.off("progress", handler);
         engine.off("log", logHandler);
@@ -328,6 +340,7 @@ export function useMediaJob() {
         }
         stopTimer();
         busyRef.current = false;
+        await releaseWakeLock();
       }
     },
     [engine, releaseOutputs, stopTimer],

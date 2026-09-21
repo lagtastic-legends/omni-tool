@@ -27,9 +27,14 @@ export const nativeSave = async (blob: Blob, filename: string) => {
 
   try {
     if (Capacitor.getPlatform() === "android") {
-      const perm = await Filesystem.checkPermissions();
-      if (perm.publicStorage !== "granted") {
-        await Filesystem.requestPermissions();
+      try {
+        const perm = await Filesystem.checkPermissions();
+        // Only request if explicitly in 'prompt' state on Android 12 or below
+        if (perm.publicStorage === "prompt") {
+          await Filesystem.requestPermissions();
+        }
+      } catch {
+        // Scoped storage in Directory.Documents succeeds without legacy publicStorage
       }
     }
 
