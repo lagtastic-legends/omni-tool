@@ -7,6 +7,13 @@
 
 import { baseName, extOf, mimeFor } from "@/lib/media/ffmpeg-jobs";
 import type { JobSpec } from "@/hooks/use-media-job";
+import {
+  type EditorTransition,
+  type VideoTransitionType,
+  buildXFadeFiltergraph,
+} from "./transitions";
+
+export type { EditorTransition, VideoTransitionType };
 
 export interface EditorClip {
   id: string;
@@ -44,6 +51,7 @@ export interface EditorJobOptions {
   volume: number;
   isMuted: boolean;
   textOverlay: EditorTextOverlay;
+  transition?: EditorTransition;
 }
 
 /**
@@ -232,6 +240,7 @@ export async function buildEditorJobSpec(options: EditorJobOptions): Promise<Job
     volume,
     isMuted,
     textOverlay,
+    transition,
   } = options;
 
   const srcExt = extOf(file.name) || "mp4";
@@ -336,44 +345,54 @@ export async function buildEditorJobSpec(options: EditorJobOptions): Promise<Job
   let execArgs: string[] = [];
 
   if (isMultiClip) {
-    // Multi-clip trimming and concatenation pipeline
-    let filterComplex = "";
-    const inLabels: string[] = [];
-
-    validClips.forEach((clip, idx) => {
-      filterComplex += `[0:v]trim=start=${clip.startSec.toFixed(3)}:end=${clip.endSec.toFixed(3)},setpts=PTS-STARTPTS[v${idx}];`;
-      if (hasAudio && !isMuted) {
-        filterComplex += `[0:a]atrim=start=${clip.startSec.toFixed(3)}:end=${clip.endSec.toFixed(3)},asetpts=PTS-STARTPTS[a${idx}];`;
-        inLabels.push(`[v${idx}][a${idx}]`);
-      } else {
-        inLabels.push(`[v${idx}]`);
-      }
-    });
-
+    // Multi-clip trimming and concatenation pipeline (with optional xfade transitions)
     const hasAudioStreams = hasAudio && !isMuted;
-    filterComplex += `${inLabels.join("")}concat=n=${validClips.length}:v=1:a=${hasAudioStreams ? 1 : 0}[vconcat]${hasAudioStreams ? "[aconcat]" : ""};`;
-
+    let filterComplex = "";
     let finalVOut = "[vconcat]";
+    let finalAOut: string | null = hasAudioStreams ? "[aconcat]" : null;
+
+    if (transition && transition.type !== "none") {
+      const xfadeRes = buildXFadeFiltergraph(validClips, transition, hasAudio, isMuted);
+      filterComplex = xfadeRes.filterComplex;
+      finalVOut = xfadeRes.finalVLabel;
+      finalAOut = xfadeRes.finalALabel;
+    } else {
+      const inLabels: string[] = [];
+      validClips.forEach((clip, idx) => {
+        filterComplex += `[0:v]trim=start=${clip.startSec.toFixed(3)}:end=${clip.endSec.toFixed(3)},setpts=PTS-STARTPTS[v${idx}];`;
+        if (hasAudioStreams) {
+          filterComplex += `[0:a]atrim=start=${clip.startSec.toFixed(3)}:end=${clip.endSec.toFixed(3)},asetpts=PTS-STARTPTS[a${idx}];`;
+          inLabels.push(`[v${idx}][a${idx}]`);
+        } else {
+          inLabels.push(`[v${idx}]`);
+        }
+      });
+      filterComplex += `${inLabels.join("")}concat=n=${validClips.length}:v=1:a=${hasAudioStreams ? 1 : 0}[vconcat]${hasAudioStreams ? "[aconcat]" : ""};`;
+      finalVOut = "[vconcat]";
+      finalAOut = hasAudioStreams ? "[aconcat]" : null;
+    }
+
     if (vFilters.length > 0) {
-      filterComplex += `[vconcat]${vFilters.join(",")}[vfiltered];`;
+      filterComplex += `${finalVOut}${vFilters.join(",")}[vfiltered];`;
       finalVOut = "[vfiltered]";
     }
 
     if (hasOverlay) {
-      filterComplex += `${finalVOut}[1:v]overlay=0:0[vfinal]`;
+      filterComplex += `${finalVOut}[1:v]overlay=0:0[vfinal];`;
       finalVOut = "[vfinal]";
     }
 
-    let finalAOut = hasAudioStreams ? "[aconcat]" : null;
-    if (hasAudioStreams && aFilters.length > 0) {
-      filterComplex += `[aconcat]${aFilters.join(",")}[afinal];`;
+    if (hasAudioStreams && aFilters.length > 0 && finalAOut) {
+      filterComplex += `${finalAOut}${aFilters.join(",")}[afinal];`;
       finalAOut = "[afinal]";
     }
+
+    const cleanFilterComplex = filterComplex.replace(/;+$/, "");
 
     execArgs = [
       "-i", virtualInputPath,
       ...(hasOverlay ? ["-i", "overlay.png"] : []),
-      "-filter_complex", filterComplex,
+      "-filter_complex", cleanFilterComplex,
       "-map", finalVOut,
       ...(finalAOut ? ["-map", finalAOut] : ["-an"]),
       "-c:v", "libx264",

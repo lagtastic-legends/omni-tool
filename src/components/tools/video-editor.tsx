@@ -58,6 +58,7 @@ import {
   Unlock,
   Magnet,
   Expand,
+  Undo2,
 } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ToolShell } from "@/components/tools/tool-shell";
@@ -76,8 +77,13 @@ import {
   type EditorColorFilter,
   type EditorTextOverlay,
 } from "@/lib/video-engine/editor-job-builder";
+import {
+  type EditorTransition,
+  type VideoTransitionType,
+  TRANSITION_PRESETS,
+} from "@/lib/video-engine/transitions";
 
-type EditorToolMode = "trim" | "color" | "text" | "aspect" | "audio";
+type EditorToolMode = "trim" | "transitions" | "color" | "text" | "aspect" | "audio";
 
 function formatTimecode(seconds: number, fps = 30): string {
   if (isNaN(seconds) || seconds < 0) seconds = 0;
@@ -186,9 +192,16 @@ export function VideoEditor() {
   // REAL EDITING STATE
   // ---------------------------------------------------------------------------
 
-  // Real Multi-Clip Timeline Segments
+  // Real Multi-Clip Timeline Segments & Undo History
   const [clips, setClips] = useState<EditorClip[]>([]);
+  const [clipHistory, setClipHistory] = useState<EditorClip[][]>([]);
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
+
+  // Cinematic Transitions Engine
+  const [transition, setTransition] = useState<EditorTransition>({
+    type: "fade",
+    duration: 0.5,
+  });
 
   // Color Grading & Filters
   const [colorFilter, setColorFilter] = useState<EditorColorFilter>({
@@ -396,6 +409,33 @@ export function VideoEditor() {
   // REAL EDITING ACTIONS (Trim, Split, Delete)
   // ---------------------------------------------------------------------------
 
+  // Push current clip layout to history stack for Ctrl+Z undo
+  const pushClipHistory = useCallback((currentClips: EditorClip[]) => {
+    setClipHistory((prev) => [...prev.slice(-15), currentClips]);
+  }, []);
+
+  // Undo Last Clip Edit
+  const handleUndo = useCallback(() => {
+    if (clipHistory.length === 0) {
+      toast({
+        title: "Nothing to Undo",
+        description: "No previous clip edit in history.",
+      });
+      return;
+    }
+    const previousClips = clipHistory[clipHistory.length - 1];
+    setClipHistory((prev) => prev.slice(0, -1));
+    setClips(previousClips);
+    if (previousClips[0]) {
+      setSelectedClipId(previousClips[0].id);
+    }
+    void haptics.light();
+    toast({
+      title: "Undo Action",
+      description: "Restored previous clip layout.",
+    });
+  }, [clipHistory, haptics, toast]);
+
   // Set In-Point (Trim Start)
   const handleSetInPoint = () => {
     if (!selectedClipId) return;
@@ -408,6 +448,7 @@ export function VideoEditor() {
       return;
     }
     void haptics.medium();
+    pushClipHistory(clips);
     setClips((prev) =>
       prev.map((c) => {
         if (c.id === selectedClipId && currentTime < c.endSec) {
@@ -439,6 +480,7 @@ export function VideoEditor() {
       return;
     }
     void haptics.medium();
+    pushClipHistory(clips);
     setClips((prev) =>
       prev.map((c) => {
         if (c.id === selectedClipId && currentTime > c.startSec) {
@@ -481,6 +523,7 @@ export function VideoEditor() {
     }
 
     void haptics.medium();
+    pushClipHistory(clips);
 
     const clip1: EditorClip = {
       id: `${target.id}-a-${Date.now()}`,
@@ -534,6 +577,7 @@ export function VideoEditor() {
     }
 
     void haptics.medium();
+    pushClipHistory(clips);
     const remaining = clips.filter((c) => c.id !== id);
     setClips(remaining);
     setSelectedClipId(remaining[0]?.id || null);
@@ -547,6 +591,7 @@ export function VideoEditor() {
   // Reset Timeline to Full Original Video
   const handleResetTimeline = () => {
     void haptics.light();
+    pushClipHistory(clips);
     const resetClip: EditorClip = {
       id: `clip-full-${Date.now()}`,
       name: file ? file.name : "Original Video",
@@ -577,7 +622,7 @@ export function VideoEditor() {
     });
   }, [duration, haptics, toast]);
 
-  // Desktop NLE Keyboard Shortcuts (Space, S, I, O, Delete, Left/Right, F, N)
+  // Desktop NLE Keyboard Shortcuts (Space, J-K-L, S/B, I/[, O/], Delete, Ctrl+Z, +/-, Left/Right, F, N)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -591,15 +636,34 @@ export function VideoEditor() {
       if (e.code === "Space") {
         e.preventDefault();
         togglePlay();
-      } else if (e.key === "s" || e.key === "S") {
+      } else if (e.key === "s" || e.key === "S" || e.key === "b" || e.key === "B") {
         e.preventDefault();
         handleSplitAtPlayhead();
-      } else if (e.key === "i" || e.key === "I") {
+      } else if (e.key === "i" || e.key === "I" || e.key === "[") {
         e.preventDefault();
         handleSetInPoint();
-      } else if (e.key === "o" || e.key === "O") {
+      } else if (e.key === "o" || e.key === "O" || e.key === "]") {
         e.preventDefault();
         handleSetOutPoint();
+      } else if (e.key === "j" || e.key === "J") {
+        e.preventDefault();
+        const newT = Math.max(0, currentTime - 1);
+        setCurrentTime(newT);
+        if (videoRef.current) videoRef.current.currentTime = newT;
+        void haptics.light();
+      } else if (e.key === "k" || e.key === "K") {
+        e.preventDefault();
+        if (isPlaying) togglePlay();
+        void haptics.light();
+      } else if (e.key === "l" || e.key === "L") {
+        e.preventDefault();
+        const newT = Math.min(duration, currentTime + 1);
+        setCurrentTime(newT);
+        if (videoRef.current) videoRef.current.currentTime = newT;
+        void haptics.light();
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "Z")) {
+        e.preventDefault();
+        handleUndo();
       } else if (e.key === "Delete" || e.key === "Backspace") {
         e.preventDefault();
         handleDeleteSelectedClip();
@@ -609,6 +673,12 @@ export function VideoEditor() {
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
         stepFrame(true);
+      } else if (e.key === "=" || e.key === "+") {
+        e.preventDefault();
+        setZoom((z) => Math.min(150, z + 5));
+      } else if (e.key === "-" || e.key === "_") {
+        e.preventDefault();
+        setZoom((z) => Math.max(5, z - 5));
       } else if (e.key === "f" || e.key === "F") {
         e.preventDefault();
         handleFitTimeline();
@@ -626,8 +696,13 @@ export function VideoEditor() {
     handleSetInPoint,
     handleSetOutPoint,
     handleDeleteSelectedClip,
+    handleUndo,
     stepFrame,
     handleFitTimeline,
+    currentTime,
+    duration,
+    isPlaying,
+    haptics,
   ]);
 
   // Smooth Wheel Zoom (Ctrl + Wheel / Alt + Wheel)
@@ -837,6 +912,64 @@ export function VideoEditor() {
         ctx.fillRect(clipX + clipW - 3, clipY + clipH - 3, 4, 4);
       }
     });
+
+    // 5b. Render Transition Seam Badges between sequential clips (Track V1)
+    if (clips.length > 1) {
+      for (let i = 0; i < clips.length - 1; i++) {
+        const seamX = clips[i].endSec * zoom;
+        const trackY = 32;
+        const trackH = 48;
+        const centerY = trackY + trackH / 2;
+
+        // Seam vertical dashed guide line
+        ctx.strokeStyle = transition.type !== "none" ? "rgba(56, 189, 248, 0.7)" : "rgba(255, 255, 255, 0.2)";
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 2]);
+        ctx.beginPath();
+        ctx.moveTo(seamX, trackY);
+        ctx.lineTo(seamX, trackY + trackH);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Interactive Transition Badge Capsule
+        const hasTrans = transition.type !== "none";
+        const badgeW = hasTrans ? 48 : 22;
+        const badgeH = 18;
+        const badgeX = seamX - badgeW / 2;
+        const badgeY = centerY - badgeH / 2;
+
+        // Badge Pill Background
+        const badgeGrad = ctx.createLinearGradient(0, badgeY, 0, badgeY + badgeH);
+        if (hasTrans) {
+          badgeGrad.addColorStop(0, "#0369A1");
+          badgeGrad.addColorStop(1, "#082F49");
+        } else {
+          badgeGrad.addColorStop(0, "#334155");
+          badgeGrad.addColorStop(1, "#1E293B");
+        }
+        ctx.fillStyle = badgeGrad;
+        ctx.beginPath();
+        if (typeof (ctx as any).roundRect === "function") {
+          (ctx as any).roundRect(badgeX, badgeY, badgeW, badgeH, 4);
+        } else {
+          ctx.rect(badgeX, badgeY, badgeW, badgeH);
+        }
+        ctx.fill();
+
+        // Badge Outline
+        ctx.strokeStyle = hasTrans ? "#38BDF8" : "rgba(255, 255, 255, 0.3)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // Badge Text
+        ctx.fillStyle = hasTrans ? "#E0F2FE" : "#94A3B8";
+        ctx.font = "bold 8px monospace";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const badgeLabel = hasTrans ? `⧗ ${transition.duration.toFixed(1)}s` : "⧗";
+        ctx.fillText(badgeLabel, seamX, centerY + 1);
+      }
+    }
 
     // 6. Render A1 Audio Track Clips & Waveform
     clips.forEach((clip) => {
@@ -1094,6 +1227,7 @@ export function VideoEditor() {
     zoom,
     clips,
     selectedClipId,
+    transition,
     textOverlay,
     colorFilter,
     isMuted,
@@ -1239,6 +1373,22 @@ export function VideoEditor() {
       }
     }
 
+    // Check if clicked directly on a cut seam badge (track V1: y between 32 and 80)
+    if (mouseY >= 32 && mouseY <= 80 && clips.length > 1) {
+      for (let i = 0; i < clips.length - 1; i++) {
+        const seamX = clips[i].endSec * zoom;
+        if (Math.abs(mouseX - seamX) <= 24) {
+          setActiveTab("transitions");
+          void haptics.light();
+          toast({
+            title: "Transition Node Selected",
+            description: `Editing transition between Clip #${i + 1} and Clip #${i + 2}.`,
+          });
+          return;
+        }
+      }
+    }
+
     // Direct Edge Trimming vs Scrubbing
     if (hoverEdgeRef.current && !trackLockedV1) {
       dragModeRef.current = hoverEdgeRef.current.edge === "start" ? "trim-start" : "trim-end";
@@ -1322,6 +1472,7 @@ export function VideoEditor() {
         volume,
         isMuted,
         textOverlay,
+        transition,
       });
 
       await run(spec);
@@ -1336,42 +1487,58 @@ export function VideoEditor() {
   };
 
   // ---------------------------------------------------------------------------
-  // Keyboard Shortcuts (Space, Arrow keys, I, O, S)
+  // Real-Time Visual Transition Simulation for Video Viewport
   // ---------------------------------------------------------------------------
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        !videoUrl
-      ) {
-        return;
-      }
+  const transitionActiveEffect = React.useMemo(() => {
+    if (transition.type === "none" || clips.length < 2) return null;
+    const halfDur = transition.duration / 2;
 
-      if (e.code === "Space") {
-        e.preventDefault();
-        togglePlay();
-      } else if (e.code === "ArrowLeft") {
-        e.preventDefault();
-        stepFrame(false);
-      } else if (e.code === "ArrowRight") {
-        e.preventDefault();
-        stepFrame(true);
-      } else if (e.key.toLowerCase() === "i") {
-        e.preventDefault();
-        handleSetInPoint();
-      } else if (e.key.toLowerCase() === "o") {
-        e.preventDefault();
-        handleSetOutPoint();
-      } else if (e.key.toLowerCase() === "s" || (e.ctrlKey && e.key.toLowerCase() === "k")) {
-        e.preventDefault();
-        handleSplitAtPlayhead();
-      }
-    };
+    for (let i = 0; i < clips.length - 1; i++) {
+      const seamSec = clips[i].endSec;
+      const diff = currentTime - seamSec;
+      if (Math.abs(diff) <= halfDur) {
+        // Normalized progress: 0 at start of transition, 0.5 at cut seam, 1 at end
+        const progress = (diff + halfDur) / transition.duration;
+        const peakIntensity = Math.sin(progress * Math.PI);
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [togglePlay, stepFrame, handleSetInPoint, handleSetOutPoint, handleSplitAtPlayhead, videoUrl]);
+        if (transition.type === "fadeblack") {
+          return {
+            backgroundColor: `rgba(0, 0, 0, ${(peakIntensity * 0.95).toFixed(3)})`,
+          };
+        }
+        if (transition.type === "fadewhite") {
+          return {
+            backgroundColor: `rgba(255, 255, 255, ${(peakIntensity * 0.95).toFixed(3)})`,
+          };
+        }
+        if (transition.type === "fade") {
+          return {
+            backdropFilter: `blur(${(peakIntensity * 5).toFixed(1)}px)`,
+            backgroundColor: `rgba(0, 0, 0, ${(peakIntensity * 0.35).toFixed(3)})`,
+          };
+        }
+        if (transition.type === "wipeleft" || transition.type === "slideleft") {
+          const pct = Math.round(progress * 100);
+          return {
+            background: `linear-gradient(to left, rgba(0,0,0,0.65) ${pct}%, transparent ${pct + 12}%)`,
+          };
+        }
+        if (transition.type === "wiperight" || transition.type === "slideright") {
+          const pct = Math.round(progress * 100);
+          return {
+            background: `linear-gradient(to right, rgba(0,0,0,0.65) ${pct}%, transparent ${pct + 12}%)`,
+          };
+        }
+        if (transition.type === "zoomin") {
+          return {
+            transform: `scale(${(1 + peakIntensity * 0.08).toFixed(3)})`,
+            backgroundColor: `rgba(0, 0, 0, ${(peakIntensity * 0.25).toFixed(3)})`,
+          };
+        }
+      }
+    }
+    return null;
+  }, [transition, clips, currentTime]);
 
   // Compute live CSS filter string for preview
   const liveCssFilter = React.useMemo(() => {
@@ -1468,6 +1635,24 @@ export function VideoEditor() {
 
             <button
               onClick={() => {
+                setActiveTab("transitions");
+                void haptics.light();
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all cursor-pointer ${
+                activeTab === "transitions"
+                  ? "bg-[#3B82F6] text-white shadow-sm font-bold"
+                  : "text-[#94A3B8] hover:text-[#E2E8F0]"
+              }`}
+            >
+              <LayersIcon className="size-3.5" />
+              <span>Transitions</span>
+              {clips.length > 1 && transition.type !== "none" && (
+                <span className="size-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              )}
+            </button>
+
+            <button
+              onClick={() => {
                 setActiveTab("color");
                 void haptics.light();
               }}
@@ -1532,6 +1717,15 @@ export function VideoEditor() {
             {videoUrl && (
               <>
                 <button
+                  onClick={handleUndo}
+                  disabled={clipHistory.length === 0 || busy}
+                  className="px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-xs text-[#94A3B8] hover:text-white hover:bg-white/10 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1"
+                  title="Undo Clip Edit (Ctrl+Z)"
+                >
+                  <Undo2 className="size-3.5" />
+                  <span className="hidden md:inline">Undo</span>
+                </button>
+                <button
                   onClick={handleClear}
                   disabled={busy}
                   className="px-2.5 py-1.5 rounded-md bg-white/5 border border-white/10 text-xs text-[#94A3B8] hover:text-red-400 hover:bg-red-500/10 transition-all cursor-pointer disabled:opacity-50"
@@ -1592,6 +1786,14 @@ export function VideoEditor() {
                   }`}
                   style={{ filter: liveCssFilter }}
                 />
+
+                {/* Real-time Visual Transition Simulation Layer */}
+                {transitionActiveEffect && (
+                  <div
+                    className="absolute inset-0 pointer-events-none transition-all duration-75 z-10"
+                    style={transitionActiveEffect}
+                  />
+                )}
 
                 {/* Live Text Overlay on Player Preview */}
                 {textOverlay.enabled && textOverlay.text.trim() && (
@@ -1810,6 +2012,119 @@ export function VideoEditor() {
                             </button>
                           )}
                         </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB: CINEMATIC TRANSITIONS */}
+              {activeTab === "transitions" && (
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/5 pb-2.5">
+                    <div>
+                      <h4 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5 font-mono">
+                        <LayersIcon className="size-3.5 text-blue-400" />
+                        Cinematic Video Transitions
+                      </h4>
+                      <p className="text-[11px] text-[#94A3B8] mt-0.5">
+                        Blend cut points between sequential clips with hardware shaders and FFmpeg WASM xfade.
+                      </p>
+                    </div>
+
+                    {clips.length > 1 ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-emerald-400 font-mono bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 flex items-center gap-1">
+                          <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                          {clips.length - 1} Seam Node{clips.length > 2 ? "s" : ""} Active
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-amber-300 font-mono bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                          1 Single Clip (Split Required)
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {clips.length < 2 && (
+                    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-blue-300 flex items-start gap-2.5">
+                      <Split className="size-4 shrink-0 mt-0.5 text-blue-400" />
+                      <div>
+                        <p className="font-semibold">How to apply transitions:</p>
+                        <p className="text-[11px] text-[#94A3B8] mt-0.5 leading-relaxed">
+                          Transitions blend between two or more clips. Press <strong className="text-white">S</strong> or <strong className="text-white">B</strong> (or click <strong>Split at CTI</strong> in the Trim tab) to divide your video into segments, then select an effect below.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Transition Duration Slider */}
+                  <div className="space-y-1.5 bg-[#121212] p-3 rounded-xl border border-white/5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-medium text-[#E2E8F0] flex items-center gap-1.5 font-mono">
+                        <Sparkles className="size-3 text-cyan-400" />
+                        Transition Duration
+                      </span>
+                      <span className="font-mono text-cyan-400 font-bold bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20 text-[11px]">
+                        {transition.duration.toFixed(2)}s
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min="0.2"
+                      max="1.5"
+                      step="0.05"
+                      value={transition.duration}
+                      onChange={(e) => {
+                        const d = parseFloat(e.target.value);
+                        setTransition((prev) => ({ ...prev, duration: d }));
+                      }}
+                      className="w-full accent-cyan-400 cursor-pointer h-1.5 bg-[#27272A] rounded-lg"
+                    />
+                    <div className="flex justify-between text-[10px] text-[#94A3B8] font-mono px-0.5">
+                      <span>0.2s (Fast)</span>
+                      <span>0.5s (Cinematic)</span>
+                      <span>1.0s (Dreamy)</span>
+                      <span>1.5s (Slow)</span>
+                    </div>
+                  </div>
+
+                  {/* Transitions Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {TRANSITION_PRESETS.map((preset) => {
+                      const isSelected = transition.type === preset.type;
+                      return (
+                        <button
+                          key={preset.type}
+                          onClick={() => {
+                            setTransition((prev) => ({ ...prev, type: preset.type }));
+                            void haptics.light();
+                          }}
+                          className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between min-h-[92px] relative overflow-hidden group ${
+                            isSelected
+                              ? "bg-gradient-to-br from-blue-900/40 via-cyan-950/30 to-slate-900 border-cyan-400/80 shadow-[0_0_15px_rgba(56,189,248,0.15)]"
+                              : "bg-[#121212] border-white/5 hover:border-white/20 hover:bg-white/[0.03]"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <div className="text-xs font-bold text-white group-hover:text-cyan-300 transition-colors font-mono">
+                              {preset.label}
+                            </div>
+                            {isSelected && (
+                              <div className="size-4 rounded-full bg-cyan-400 text-black flex items-center justify-center text-[10px] font-bold">
+                                ✓
+                              </div>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-[#94A3B8] line-clamp-2 leading-relaxed mt-1">
+                            {preset.description}
+                          </div>
+                          <div className="mt-2 text-[9px] font-mono uppercase tracking-wider text-cyan-400/80">
+                            {preset.category}
+                          </div>
+                        </button>
                       );
                     })}
                   </div>
