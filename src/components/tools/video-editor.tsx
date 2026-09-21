@@ -59,8 +59,16 @@ import {
   Magnet,
   Expand,
   Undo2,
+  Smartphone,
+  Tablet,
+  Laptop,
 } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useDevicePosture } from "@/hooks/use-device-posture";
+import { BladeCutEffect } from "@/components/tools/editor/blade-cut-effect";
+import { MobileJogWheel } from "@/components/tools/editor/mobile-jog-wheel";
+import { MobileThumbDeck } from "@/components/tools/editor/mobile-thumb-deck";
+import { MobileTransitionsDrawer } from "@/components/tools/editor/mobile-transitions-drawer";
 import { ToolShell } from "@/components/tools/tool-shell";
 import { DropZone } from "@/components/media/drop-zone";
 import { OutputCard } from "@/components/media/output-card";
@@ -196,6 +204,27 @@ export function VideoEditor() {
   const [clips, setClips] = useState<EditorClip[]>([]);
   const [clipHistory, setClipHistory] = useState<EditorClip[][]>([]);
   const [selectedClipId, setSelectedClipId] = useState<string | null>(null);
+
+  // Device Posture & Adaptive Mobile State
+  const detectedPosture = useDevicePosture();
+  const [layoutOverride, setLayoutOverride] = useState<"auto" | "flex" | "fold" | "mobile" | "desktop">("auto");
+  const [isBladeCutting, setIsBladeCutting] = useState(false);
+  const [showMobileTransitions, setShowMobileTransitions] = useState(false);
+
+  const effectiveFormFactor = React.useMemo(() => {
+    if (layoutOverride === "flex") return "flip-flex";
+    if (layoutOverride === "fold") return "fold-dual";
+    if (layoutOverride === "mobile") return "slab-portrait";
+    if (layoutOverride === "desktop") return "desktop";
+    return detectedPosture.formFactor;
+  }, [layoutOverride, detectedPosture.formFactor]);
+
+  const isFlexLayout = effectiveFormFactor === "flip-flex";
+  const isFoldLayout = effectiveFormFactor === "fold-dual";
+  const isMobileLayout =
+    effectiveFormFactor === "slab-portrait" ||
+    effectiveFormFactor === "slab-landscape" ||
+    isFlexLayout;
 
   // Cinematic Transitions Engine
   const [transition, setTransition] = useState<EditorTransition>({
@@ -522,7 +551,9 @@ export function VideoEditor() {
       return;
     }
 
-    void haptics.medium();
+    void haptics.heavy();
+    setIsBladeCutting(true);
+    setTimeout(() => setIsBladeCutting(false), 420);
     pushClipHistory(clips);
 
     const clip1: EditorClip = {
@@ -608,6 +639,40 @@ export function VideoEditor() {
       description: "Restored full source video clip.",
     });
   };
+
+  // Precise Seek to Time (for Jog Wheel & Mobile Touch Ribbon)
+  const handleSeekToTime = useCallback(
+    (timeSec: number) => {
+      const clamped = Math.max(0, Math.min(duration, timeSec));
+      setCurrentTime(clamped);
+      if (videoRef.current) {
+        videoRef.current.currentTime = clamped;
+      }
+      const matching = clips.find((c) => clamped >= c.startSec && clamped <= c.endSec);
+      if (matching && matching.id !== selectedClipId) {
+        setSelectedClipId(matching.id);
+      }
+    },
+    [duration, clips, selectedClipId]
+  );
+
+  // Test Transition Simulation Preview
+  const handleTestTransitionPreview = useCallback(() => {
+    if (clips.length < 2) return;
+    const seamTime = clips[0].duration;
+    const startTime = Math.max(0, seamTime - 0.6);
+    handleSeekToTime(startTime);
+    if (videoRef.current) {
+      videoRef.current.play().catch(() => {});
+      setIsPlaying(true);
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.pause();
+          setIsPlaying(false);
+        }
+      }, 1500);
+    }
+  }, [clips, handleSeekToTime]);
 
   // Fit Entire Timeline to Viewport Width
   const handleFitTimeline = useCallback(() => {
@@ -1611,9 +1676,52 @@ export function VideoEditor() {
               <Film className="size-3.5" />
               <span>THE EDIT BAY</span>
             </div>
-            <span className="text-xs text-[#94A3B8] font-mono hidden sm:inline truncate max-w-[240px]">
-              {file ? file.name : "Project: Untitled Timeline"}
+            <span className="text-xs text-[#94A3B8] font-mono hidden sm:inline truncate max-w-[200px]">
+              {file ? file.name : "Project: Untitled"}
             </span>
+
+            {/* Form Factor Adaptive Switcher */}
+            <div className="flex items-center gap-1 bg-[#121212] px-2 py-1 rounded-lg border border-white/5 text-[10px] font-mono">
+              <button
+                onClick={() => {
+                  setLayoutOverride((prev) => {
+                    if (prev === "auto") return "flex";
+                    if (prev === "flex") return "fold";
+                    if (prev === "fold") return "mobile";
+                    if (prev === "mobile") return "desktop";
+                    return "auto";
+                  });
+                  void haptics.light();
+                }}
+                className="flex items-center gap-1 text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
+                title="Click to cycle form factor preview (Auto -> Flex 90° -> Dual Fold -> Mobile -> Desktop)"
+              >
+                {effectiveFormFactor === "flip-flex" ? (
+                  <span className="text-cyan-400 font-bold flex items-center gap-1">
+                    <Smartphone className="size-3" />
+                    <span>FLEX 90°</span>
+                  </span>
+                ) : effectiveFormFactor === "fold-dual" ? (
+                  <span className="text-purple-400 font-bold flex items-center gap-1">
+                    <Tablet className="size-3" />
+                    <span>FOLD DUAL</span>
+                  </span>
+                ) : effectiveFormFactor === "slab-portrait" || effectiveFormFactor === "slab-landscape" ? (
+                  <span className="text-emerald-400 font-bold flex items-center gap-1">
+                    <Smartphone className="size-3" />
+                    <span>MOBILE DECK</span>
+                  </span>
+                ) : (
+                  <span className="text-[#94A3B8] flex items-center gap-1">
+                    <Laptop className="size-3" />
+                    <span>WORKSTATION</span>
+                  </span>
+                )}
+                {layoutOverride !== "auto" && (
+                  <span className="text-[9px] text-amber-400 uppercase tracking-tighter">[MANUAL]</span>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Center Tabs: Tool Modes */}
@@ -1771,6 +1879,9 @@ export function VideoEditor() {
               className="editor-viewport relative w-full min-h-[280px] max-h-[460px] bg-[#000000] flex items-center justify-center overflow-hidden p-2"
               style={{ backgroundColor: EditorCanvasTheme.viewport.background }}
             >
+              {/* Visual Blade Cut Slash Animation */}
+              <BladeCutEffect active={isBladeCutting} />
+
               {/* Aspect Ratio Container Framing */}
               <div className={`relative flex items-center justify-center overflow-hidden ${aspectClass}`}>
                 {/* HTML5 Video preview player with live Color Shaders */}
@@ -1856,100 +1967,175 @@ export function VideoEditor() {
               </button>
             </div>
 
-            {/* Transport Control Dock */}
-            <div className="editor-panel flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 border-y border-white/10 bg-[#1E1E1E]">
-              {/* Transport Buttons */}
-              <div className="flex items-center gap-1 sm:gap-2">
-                <button
-                  onClick={() => stepFrame(false)}
-                  className="p-1.5 rounded hover:bg-white/10 text-[#94A3B8] hover:text-white transition-all cursor-pointer"
-                  title="Step Back 1 Frame (Left Arrow)"
-                >
-                  <SkipBack className="size-4" />
-                </button>
-                <button
-                  onClick={togglePlay}
-                  className="p-2 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-all cursor-pointer"
-                  title="Play / Pause (Space)"
-                >
-                  {isPlaying ? <Pause className="size-4" /> : <Play className="size-4 ml-0.5" />}
-                </button>
-                <button
-                  onClick={() => stepFrame(true)}
-                  className="p-1.5 rounded hover:bg-white/10 text-[#94A3B8] hover:text-white transition-all cursor-pointer"
-                  title="Step Forward 1 Frame (Right Arrow)"
-                >
-                  <SkipForward className="size-4" />
-                </button>
-              </div>
-
-              {/* Timecode Readouts */}
-              <div className="flex items-center gap-2 font-mono text-xs">
-                <span className="text-white font-bold">{formatTimecode(currentTime)}</span>
-                <span className="text-[#94A3B8]">/</span>
-                <span className="text-[#94A3B8]">{formatTimecode(duration)}</span>
-                <span className="text-xs text-blue-400 font-bold ml-2">
-                  [{clips.length} clip{clips.length > 1 ? "s" : ""} · {totalActiveDuration.toFixed(1)}s]
+            {/* Flex Mode 90° Cockpit Header Banner */}
+            {isFlexLayout && (
+              <div className="px-4 py-2 bg-gradient-to-r from-cyan-950/60 via-blue-950/40 to-slate-900 border-y border-cyan-500/20 flex items-center justify-between text-xs font-mono">
+                <span className="text-cyan-400 font-bold flex items-center gap-1.5">
+                  <Smartphone className="size-3.5 animate-pulse" />
+                  <span>FLEX MODE COCKPIT (90° TABLETOP)</span>
+                </span>
+                <span className="text-cyan-300/80 text-[11px]">
+                  {formatTimecode(currentTime)} / {formatTimecode(duration)}
                 </span>
               </div>
+            )}
 
-              {/* Fast Quick Edit Actions */}
-              <div className="flex items-center gap-2">
-                {/* Razor Split Button */}
-                <button
-                  onClick={handleSplitAtPlayhead}
-                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/5 border border-white/10 text-xs text-[#E2E8F0] hover:bg-blue-500/20 hover:border-blue-500/40 transition-all cursor-pointer"
-                  title="Split Clip at Current Playhead (S)"
-                >
-                  <Scissors className="size-3.5 text-blue-400" />
-                  <span className="hidden sm:inline">Split (S)</span>
-                </button>
+            {/* Mobile & Foldable Interactive Clip Ribbon with Live Seam Badges */}
+            {(isMobileLayout || isFoldLayout) && (
+              <div className="w-full bg-[#161616] border-y border-white/5 py-2.5 px-3 overflow-x-auto select-none scrollbar-none">
+                <div className="flex items-center gap-2 min-w-max">
+                  {clips.map((c, i) => {
+                    const isSelected = c.id === selectedClipId;
+                    return (
+                      <React.Fragment key={c.id}>
+                        <div
+                          onClick={() => {
+                            setSelectedClipId(c.id);
+                            handleSeekToTime(c.startSec);
+                            void haptics.light();
+                          }}
+                          className={`flex flex-col justify-between px-3 py-1.5 rounded-xl border text-xs font-mono cursor-pointer transition-all min-w-[95px] max-w-[130px] ${
+                            isSelected
+                              ? "bg-blue-600/30 border-blue-400 text-white font-bold shadow-[0_0_12px_rgba(59,130,246,0.3)]"
+                              : "bg-[#1F1F1F] border-white/10 text-[#94A3B8] hover:border-white/20 hover:text-white"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between text-[10px]">
+                            <span className="text-blue-400 font-bold">#{i + 1}</span>
+                            <span className="text-white/60">{c.duration.toFixed(1)}s</span>
+                          </div>
+                          <span className="truncate text-[11px] mt-0.5 text-white/90">{c.name}</span>
+                        </div>
 
-                {/* In/Out Trim Buttons */}
-                <button
-                  onClick={handleSetInPoint}
-                  className="px-2 py-1 rounded bg-white/5 border border-white/10 text-xs font-mono text-[#E2E8F0] hover:bg-white/10 transition-all cursor-pointer"
-                  title="Trim Start to Playhead (I)"
-                >
-                  Set [In]
-                </button>
-                <button
-                  onClick={handleSetOutPoint}
-                  className="px-2 py-1 rounded bg-white/5 border border-white/10 text-xs font-mono text-[#E2E8F0] hover:bg-white/10 transition-all cursor-pointer"
-                  title="Trim End to Playhead (O)"
-                >
-                  Set [Out]
-                </button>
+                        {/* Interactive Seam Transition Badge */}
+                        {i < clips.length - 1 && (
+                          <button
+                            onClick={() => {
+                              setShowMobileTransitions(true);
+                              void haptics.light();
+                            }}
+                            className="shrink-0 px-2 py-1 rounded-full bg-cyan-500/15 border border-cyan-400/40 text-cyan-300 text-[10px] font-mono flex items-center gap-1 active:scale-95 transition-all cursor-pointer shadow-[0_0_8px_rgba(34,211,238,0.15)] hover:bg-cyan-500/25"
+                            title="Tap to change transition"
+                          >
+                            <Layers className="size-3 text-cyan-400" />
+                            <span>{transition.type !== "none" ? transition.type : "cut"}</span>
+                            <span className="text-cyan-400/70 text-[9px]">{transition.duration}s</span>
+                          </button>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
-                {/* Timeline Zoom */}
-                <div className="flex items-center gap-1 bg-[#121212] px-2 py-1 rounded border border-white/5">
+            {/* Tactile Mobile Jog Wheel for Frame-by-Frame Touch Scrubbing */}
+            {(isMobileLayout || isFoldLayout) && (
+              <MobileJogWheel
+                currentTime={currentTime}
+                duration={duration}
+                isPlaying={isPlaying}
+                onTogglePlay={togglePlay}
+                onSeek={handleSeekToTime}
+              />
+            )}
+
+            {/* Desktop Workstation Transport Control Dock */}
+            {!isMobileLayout && (
+              <div className="editor-panel flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 border-y border-white/10 bg-[#1E1E1E]">
+                {/* Transport Buttons */}
+                <div className="flex items-center gap-1 sm:gap-2">
                   <button
-                    onClick={() => setZoom((z) => Math.max(20, z - 15))}
-                    className="p-1 text-[#94A3B8] hover:text-white cursor-pointer"
-                    title="Zoom Out Timeline"
+                    onClick={() => stepFrame(false)}
+                    className="p-1.5 rounded hover:bg-white/10 text-[#94A3B8] hover:text-white transition-all cursor-pointer"
+                    title="Step Back 1 Frame (Left Arrow)"
                   >
-                    <ZoomOut className="size-3.5" />
+                    <SkipBack className="size-4" />
                   </button>
-                  <span className="text-[10px] font-mono text-[#94A3B8] w-7 text-center">{zoom}px</span>
                   <button
-                    onClick={() => setZoom((z) => Math.min(180, z + 15))}
-                    className="p-1 text-[#94A3B8] hover:text-white cursor-pointer"
-                    title="Zoom In Timeline"
+                    onClick={togglePlay}
+                    className="p-2 rounded-full bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-all cursor-pointer"
+                    title="Play / Pause (Space)"
                   >
-                    <ZoomIn className="size-3.5" />
+                    {isPlaying ? <Pause className="size-4" /> : <Play className="size-4 ml-0.5" />}
+                  </button>
+                  <button
+                    onClick={() => stepFrame(true)}
+                    className="p-1.5 rounded hover:bg-white/10 text-[#94A3B8] hover:text-white transition-all cursor-pointer"
+                    title="Step Forward 1 Frame (Right Arrow)"
+                  >
+                    <SkipForward className="size-4" />
                   </button>
                 </div>
 
-                {/* Fullscreen */}
-                <button
-                  onClick={toggleFullscreen}
-                  className="p-1.5 rounded hover:bg-white/10 text-[#94A3B8] hover:text-white transition-all cursor-pointer"
-                  title="Toggle Fullscreen"
-                >
-                  <Maximize2 className="size-4" />
-                </button>
+                {/* Timecode Readouts */}
+                <div className="flex items-center gap-2 font-mono text-xs">
+                  <span className="text-white font-bold">{formatTimecode(currentTime)}</span>
+                  <span className="text-[#94A3B8]">/</span>
+                  <span className="text-[#94A3B8]">{formatTimecode(duration)}</span>
+                  <span className="text-xs text-blue-400 font-bold ml-2">
+                    [{clips.length} clip{clips.length > 1 ? "s" : ""} · {totalActiveDuration.toFixed(1)}s]
+                  </span>
+                </div>
+
+                {/* Fast Quick Edit Actions */}
+                <div className="flex items-center gap-2">
+                  {/* Razor Split Button */}
+                  <button
+                    onClick={handleSplitAtPlayhead}
+                    className="flex items-center gap-1 px-2.5 py-1 rounded bg-white/5 border border-white/10 text-xs text-[#E2E8F0] hover:bg-blue-500/20 hover:border-blue-500/40 transition-all cursor-pointer"
+                    title="Split Clip at Current Playhead (S)"
+                  >
+                    <Scissors className="size-3.5 text-blue-400" />
+                    <span className="hidden sm:inline">Split (S)</span>
+                  </button>
+
+                  {/* In/Out Trim Buttons */}
+                  <button
+                    onClick={handleSetInPoint}
+                    className="px-2 py-1 rounded bg-white/5 border border-white/10 text-xs font-mono text-[#E2E8F0] hover:bg-white/10 transition-all cursor-pointer"
+                    title="Trim Start to Playhead (I)"
+                  >
+                    Set [In]
+                  </button>
+                  <button
+                    onClick={handleSetOutPoint}
+                    className="px-2 py-1 rounded bg-white/5 border border-white/10 text-xs font-mono text-[#E2E8F0] hover:bg-white/10 transition-all cursor-pointer"
+                    title="Trim End to Playhead (O)"
+                  >
+                    Set [Out]
+                  </button>
+
+                  {/* Timeline Zoom */}
+                  <div className="flex items-center gap-1 bg-[#121212] px-2 py-1 rounded border border-white/5">
+                    <button
+                      onClick={() => setZoom((z) => Math.max(20, z - 15))}
+                      className="p-1 text-[#94A3B8] hover:text-white cursor-pointer"
+                      title="Zoom Out Timeline"
+                    >
+                      <ZoomOut className="size-3.5" />
+                    </button>
+                    <span className="text-[10px] font-mono text-[#94A3B8] w-7 text-center">{zoom}px</span>
+                    <button
+                      onClick={() => setZoom((z) => Math.min(180, z + 15))}
+                      className="p-1 text-[#94A3B8] hover:text-white cursor-pointer"
+                      title="Zoom In Timeline"
+                    >
+                      <ZoomIn className="size-3.5" />
+                    </button>
+                  </div>
+
+                  {/* Fullscreen */}
+                  <button
+                    onClick={toggleFullscreen}
+                    className="p-1.5 rounded hover:bg-white/10 text-[#94A3B8] hover:text-white transition-all cursor-pointer"
+                    title="Toggle Fullscreen"
+                  >
+                    <Maximize2 className="size-4" />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Contextual Inspector Drawer */}
             <div className="editor-panel px-4 py-3 border-b border-white/10 bg-[#181818]">
@@ -2779,6 +2965,26 @@ export function VideoEditor() {
             <span>STATUS: {busy ? "PROCESSING" : "READY"}</span>
           </div>
         </div>
+
+        {/* Sticky Mobile Ergonomic Action Bay */}
+        {videoUrl && isMobileLayout && (
+          <div className="sticky bottom-0 z-30 w-full">
+            <MobileThumbDeck
+              onSplit={handleSplitAtPlayhead}
+              onSetInPoint={handleSetInPoint}
+              onSetOutPoint={handleSetOutPoint}
+              onUndo={handleUndo}
+              canUndo={clipHistory.length > 0}
+              onOpenTransitions={() => setShowMobileTransitions(true)}
+              onDeleteClip={() => handleDeleteSelectedClip()}
+              onExport={() => setShowExportModal(true)}
+              clipsCount={clips.length}
+              hasActiveTransition={transition.type !== "none"}
+              canDelete={clips.length > 1}
+              isBusy={busy}
+            />
+          </div>
+        )}
       </div>
 
       {/* Real Export Options Modal */}
@@ -2883,6 +3089,16 @@ export function VideoEditor() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Mobile Transitions Bottom Sheet Drawer */}
+      <MobileTransitionsDrawer
+        isOpen={showMobileTransitions}
+        onClose={() => setShowMobileTransitions(false)}
+        transition={transition}
+        onChangeTransition={setTransition}
+        clipsCount={clips.length}
+        onTestPreview={handleTestTransitionPreview}
+      />
     </ToolShell>
   );
 }
