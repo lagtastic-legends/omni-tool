@@ -18,7 +18,7 @@
   <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.1.0/ZenoDeck-v3.1.0-release.apk">
     <img src="https://img.shields.io/badge/Android%20APK-v3.1.0%20Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
   </a>
-  <a href="https://github.com/lagtastic-legends/zenodeck/raw/main/public/zenodeck.mobileconfig">
+  <a href="https://zenodeck.vercel.app/zenodeck.mobileconfig">
     <img src="https://img.shields.io/badge/iOS%20Profile-Install%20on%20iPhone-000000?style=for-the-badge&logo=apple&logoColor=white" alt="iOS Profile Download" />
   </a>
   <a href="LICENSE">
@@ -43,7 +43,7 @@ Unlike traditional cloud converters and SaaS editing tools that upload your sens
 | :--- | :--- | :--- |
 | **🌐 Web Application** | [**zenodeck.vercel.app**](https://zenodeck.vercel.app) | Live PWA with zero installation required. Instant launch in any modern browser. |
 | **📱 Android APK (Signed Production v3.1.0)** | [**Download ZenoDeck-v3.1.0-release.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.1.0/ZenoDeck-v3.1.0-release.apk) | Production signed APK optimized for all phones (slabs, flips, foldables) and tablets. |
-| **🍏 Apple iOS Profile (iPhone & iPad)** | [**Download zenodeck.mobileconfig**](https://github.com/lagtastic-legends/zenodeck/raw/main/public/zenodeck.mobileconfig) | Apple Web Clip Configuration Profile. Installs ZenoDeck to Home Screen in full-screen standalone mode. |
+| **🍏 Apple iOS Profile (iPhone & iPad)** | [**Download zenodeck.mobileconfig**](https://zenodeck.vercel.app/zenodeck.mobileconfig) | Apple Web Clip Configuration Profile. Installs ZenoDeck to Home Screen in full-screen standalone mode. |
 | **📦 GitHub Releases & Source** | [**GitHub Releases Hub**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.1.0) | Complete release packages, checksums, changelogs, and release assets. |
 
 ---
