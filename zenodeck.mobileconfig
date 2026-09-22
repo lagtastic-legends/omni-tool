@@ -30,7 +30,7 @@ iVBORw0KGgoAAAANSUhEUgAAAMAAAADACAIAAADdvvtQAAAACXBIWXMAAC4jAAAuIwF4pT92AAAgAElE
             <key>Precomposed</key>
             <true/>
             <key>URL</key>
-            <string>https://zenodeck.vercel.app</string>
+            <string>https://omni-tool-two.vercel.app</string>
         </dict>
     </array>
     <key>PayloadDescription</key>

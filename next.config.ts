@@ -57,6 +57,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    if (isMobileExport) return [];
+    return [
+      {
+        source: "/__/auth/:path*",
+        destination: "https://omni-tool-7ba2d.firebaseapp.com/__/auth/:path*",
+      },
+    ];
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {

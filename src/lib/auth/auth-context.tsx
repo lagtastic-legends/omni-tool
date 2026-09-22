@@ -26,6 +26,7 @@ import { Capacitor } from "@capacitor/core";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
 import {
   GoogleAuthProvider,
+  getRedirectResult,
   onAuthStateChanged,
   signInWithPopup,
   signInWithRedirect,
@@ -194,6 +195,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setMode("unconfigured");
         return;
       }
+
+      // Process pending redirect result (mobile Safari uses redirect flow)
+      try {
+        const redirectResult = await getRedirectResult(auth);
+        if (redirectResult?.user) {
+          if (typeof window !== "undefined") {
+            sessionStorage.removeItem("omni_guest_session");
+          }
+          setUser(toAuthUser(redirectResult.user));
+        }
+      } catch (e: any) {
+        console.warn("Redirect sign-in result:", e);
+        if (e && typeof e === "object" && e.code && e.code !== "auth/null-user") {
+          setError(e.message || String(e));
+        }
+      }
       
       unsubscribeWeb = onAuthStateChanged(auth, (u) => {
         if (u) {
@@ -276,6 +293,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       provider.setCustomParameters({
         prompt: 'select_account'
       });
+      const isMobileBrowser =
+        typeof navigator !== "undefined" &&
+        (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
+          (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
+
+      if (isMobileBrowser) {
+        // Mobile browsers (Safari on iOS, Chrome on Android) cannot do multi-window popups.
+        // Opening a new tab severs window.opener and drops the third-party auth state.
+        // Full in-tab redirect is the official, reliable flow on mobile.
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+
       try {
         const res = await signInWithPopup(auth, provider);
         if (typeof window !== "undefined") {
@@ -283,11 +313,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         setUser(toAuthUser(res.user));
       } catch (err: any) {
-        if (err.code === "auth/popup-blocked") {
+        if (
+          err.code === "auth/popup-blocked" ||
+          err.code === "auth/popup-closed-by-user" ||
+          err.code === "auth/cancelled-popup-request"
+        ) {
+          // If popup is blocked or closed prematurely, fallback to in-tab redirect
           const auth = getFirebaseAuth();
           if (auth) {
             const provider = new GoogleAuthProvider();
-            provider.setCustomParameters({ prompt: 'select_account' });
+            provider.setCustomParameters({ prompt: "select_account" });
             await signInWithRedirect(auth, provider);
             return;
           }

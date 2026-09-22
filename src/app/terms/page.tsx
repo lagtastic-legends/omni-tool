@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Terms of Service | ZENODECK",
     description: "Terms and conditions for ZenoDeck WebAssembly suite.",
-    url: "https://zenodeck.vercel.app/terms",
+    url: "https://omni-tool-two.vercel.app/terms",
   },
 };
 

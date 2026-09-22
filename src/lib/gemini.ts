@@ -11,7 +11,7 @@ const getAiEndpoint = (params = ""): string => {
   if (typeof window !== "undefined" && window.location?.origin) {
     return `/api/ai/${params}`;
   }
-  const fallback = process.env.NEXT_PUBLIC_APP_URL || "https://zenodeck.vercel.app";
+  const fallback = process.env.NEXT_PUBLIC_APP_URL || "https://omni-tool-two.vercel.app";
   return `${fallback}/api/ai/${params}`;
 };
 

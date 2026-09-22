@@ -34,7 +34,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://zenodeck.vercel.app"),
+  metadataBase: new URL("https://omni-tool-two.vercel.app"),
   title: {
     default: "ZENODECK — Client-Side Media Suite",
     template: "%s | ZENODECK",
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     "offline video compressor",
     "private audio editor",
   ],
-  authors: [{ name: "ZenoDeck Team", url: "https://zenodeck.vercel.app" }],
+  authors: [{ name: "ZenoDeck Team", url: "https://omni-tool-two.vercel.app" }],
   creator: "ZenoDeck",
   publisher: "ZenoDeck",
   formatDetection: {
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     title: "ZENODECK — Client-Side Media Suite",
     description:
       "Convert video, edit audio, forge documents, capture your screen and vault the results — 100% locally with WebAssembly. Zero uploads.",
-    url: "https://zenodeck.vercel.app",
+    url: "https://omni-tool-two.vercel.app",
     siteName: "ZENODECK",
     locale: "en_US",
     type: "website",

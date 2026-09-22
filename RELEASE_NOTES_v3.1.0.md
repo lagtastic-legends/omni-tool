@@ -3,7 +3,7 @@
 > **Release Date:** September 21, 2026  
 > **Tag:** `v3.1.0`  
 > **Repository:** [lagtastic-legends/zenodeck](https://github.com/lagtastic-legends/zenodeck)  
-> **Live Web Application:** [zenodeck.vercel.app](https://zenodeck.vercel.app)
+> **Live Web Application:** [omni-tool-two.vercel.app](https://omni-tool-two.vercel.app)
 
 ---
 

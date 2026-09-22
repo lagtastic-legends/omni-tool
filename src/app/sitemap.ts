@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://zenodeck.vercel.app";
+  const baseUrl = "https://omni-tool-two.vercel.app";
   const now = new Date();
 
   return [

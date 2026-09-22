@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Privacy Policy | ZENODECK",
     description: "Zero uploads. Zero servers. Total data privacy.",
-    url: "https://zenodeck.vercel.app/privacy",
+    url: "https://omni-tool-two.vercel.app/privacy",
   },
 };
 
