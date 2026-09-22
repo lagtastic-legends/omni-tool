@@ -313,12 +313,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         setUser(toAuthUser(res.user));
       } catch (err: any) {
-        if (
-          err.code === "auth/popup-blocked" ||
-          err.code === "auth/popup-closed-by-user" ||
-          err.code === "auth/cancelled-popup-request"
-        ) {
-          // If popup is blocked or closed prematurely, fallback to in-tab redirect
+        if (err.code === "auth/popup-blocked") {
+          // Popup was blocked by browser settings — fallback to redirect in same tab
           const auth = getFirebaseAuth();
           if (auth) {
             const provider = new GoogleAuthProvider();
@@ -326,6 +322,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             await signInWithRedirect(auth, provider);
             return;
           }
+        }
+        if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") {
+          // User closed or dismissed the popup window — no error notice needed
+          return;
         }
         const message =
           err instanceof Error ? err.message : String(err ?? "sign-in failed");

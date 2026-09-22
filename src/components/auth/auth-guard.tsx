@@ -13,7 +13,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Lock, Loader2, ShieldCheck } from "lucide-react";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 
 function GoogleMark({ className }: { className?: string }) {
@@ -29,6 +29,8 @@ function GoogleMark({ className }: { className?: string }) {
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const { mode, user, busy, error, isNative, signInWithGoogle, signInWithIdToken, continueAsGuest } = useAuth();
+  const googleBtnRef = useRef<HTMLDivElement>(null);
+  const [gsiReady, setGsiReady] = useState(false);
 
   useEffect(() => {
     const isGuest = typeof window !== "undefined" && sessionStorage.getItem("omni_guest_session") === "true";
@@ -37,41 +39,75 @@ export function AuthGuard({ children }: { children: ReactNode }) {
       if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
         return;
       }
-      const script = document.createElement("script");
-      script.src = "https://accounts.google.com/gsi/client";
-      script.async = true;
-      script.onload = () => {
+
+      const initGsi = () => {
         if ((window as any).google?.accounts?.id) {
-          (window as any).google.accounts.id.initialize({
-            client_id: "1006411301114-q48l1fmvbiba3rq6u1s59qgl13c57sd1.apps.googleusercontent.com",
-            auto_select: false,
-            itp_support: true,
-            callback: (response: any) => {
-              void signInWithIdToken(response.credential);
-            },
-          });
-          (window as any).google.accounts.id.prompt((notification: any) => {
-            // Silently handle dismissed or unsupported FedCM moments
-          });
+          try {
+            (window as any).google.accounts.id.initialize({
+              client_id: "1006411301114-q48l1fmvbiba3rq6u1s59qgl13c57sd1.apps.googleusercontent.com",
+              auto_select: false,
+              itp_support: true,
+              callback: (response: any) => {
+                if (response?.credential) {
+                  void signInWithIdToken(response.credential);
+                }
+              },
+            });
+
+            if (googleBtnRef.current) {
+              (window as any).google.accounts.id.renderButton(googleBtnRef.current, {
+                type: "standard",
+                theme: "outline",
+                size: "large",
+                text: "signin_with",
+                shape: "rectangular",
+                logo_alignment: "left",
+                width: 320,
+              });
+              setGsiReady(true);
+            }
+
+            // Also pop up in-tab Google Account Chooser automatically
+            (window as any).google.accounts.id.prompt();
+          } catch (e) {
+            console.warn("Google Identity Services setup:", e);
+          }
         }
       };
-      document.body.appendChild(script);
-      return () => {
-        try {
-          if ((window as any).google?.accounts?.id) {
-            (window as any).google.accounts.id.cancel();
+
+      if ((window as any).google?.accounts?.id) {
+        initGsi();
+      } else {
+        const script = document.createElement("script");
+        script.src = "https://accounts.google.com/gsi/client";
+        script.async = true;
+        script.onload = initGsi;
+        document.body.appendChild(script);
+        return () => {
+          try {
+            if ((window as any).google?.accounts?.id) {
+              (window as any).google.accounts.id.cancel();
+            }
+            if (script.parentNode) {
+              script.parentNode.removeChild(script);
+            }
+          } catch {
+            // ignore
           }
-          if (script.parentNode) {
-            script.parentNode.removeChild(script);
-          }
-        } catch {
-          // ignore
-        }
-      };
+        };
+      }
     }
   }, [mode, user, isNative, signInWithIdToken]);
 
   const handleSignInClick = () => {
+    if ((window as any).google?.accounts?.id) {
+      (window as any).google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          void signInWithGoogle();
+        }
+      });
+      return;
+    }
     void signInWithGoogle();
   };
 
@@ -140,16 +176,21 @@ export function AuthGuard({ children }: { children: ReactNode }) {
             </p>
           </div>
 
-          <div className="flex flex-col gap-2.5 w-full">
-            <motion.button
-              onClick={handleSignInClick}
-              disabled={busy}
-              whileTap={busy ? undefined : { scale: 0.97 }}
-              className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-transparent bg-white px-4 font-headline text-sm font-semibold tracking-wider text-zinc-900 shadow-sm transition-transform hover:scale-[1.02] disabled:opacity-60 cursor-pointer"
-            >
-              <GoogleMark className="size-5" />
-              {busy ? "CONNECTING..." : "SIGN IN WITH GOOGLE"}
-            </motion.button>
+          <div className="flex flex-col items-center gap-2.5 w-full">
+            {/* Google Identity Services official in-tab account picker */}
+            <div ref={googleBtnRef} className="w-full flex justify-center min-h-[44px]" />
+
+            {!gsiReady && (
+              <motion.button
+                onClick={handleSignInClick}
+                disabled={busy}
+                whileTap={busy ? undefined : { scale: 0.97 }}
+                className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-transparent bg-white px-4 font-headline text-sm font-semibold tracking-wider text-zinc-900 shadow-sm transition-transform hover:scale-[1.02] disabled:opacity-60 cursor-pointer"
+              >
+                <GoogleMark className="size-5" />
+                {busy ? "CONNECTING..." : "SIGN IN WITH GOOGLE"}
+              </motion.button>
+            )}
 
             <button
               onClick={() => continueAsGuest()}

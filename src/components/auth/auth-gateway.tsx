@@ -50,6 +50,18 @@ export function AuthGateway() {
 
   const configured = mode === "configured";
 
+  const handleGatewaySignIn = () => {
+    if (typeof window !== "undefined" && (window as any).google?.accounts?.id) {
+      (window as any).google.accounts.id.prompt((notification: any) => {
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          void signInWithGoogle();
+        }
+      });
+      return;
+    }
+    void signInWithGoogle();
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
       {/* ------------------------------------------------------ session side */}
@@ -115,7 +127,7 @@ export function AuthGateway() {
                     the device either way.
                   </p>
                   <motion.button
-                    onClick={() => void signInWithGoogle()}
+                    onClick={handleGatewaySignIn}
                     disabled={busy}
                     whileTap={busy ? undefined : { scale: 0.97 }}
                     className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-border/60 bg-white px-4 font-display text-xs font-bold tracking-[0.14em] text-zinc-900 transition-transform hover:scale-[1.01] disabled:opacity-60"
