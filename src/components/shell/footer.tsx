@@ -1,10 +1,12 @@
 "use client";
 
-import { Cpu, ShieldCheck, Mail, MapPin } from "lucide-react";
+import { Cpu, ShieldCheck, Mail, MapPin, Download, Smartphone } from "lucide-react";
 import Link from "next/link";
+import { usePwaStore } from "@/lib/pwa/pwa-store";
 
 export function AppFooter() {
   const currentYear = new Date().getFullYear();
+  const setDownloadModalOpen = usePwaStore((s) => s.setDownloadModalOpen);
 
   return (
     <footer className="mt-auto border-t border-border/60 bg-background/80 backdrop-blur-lg">
@@ -51,7 +53,25 @@ export function AppFooter() {
             © {currentYear} ZenoDeck Labs, Inc. All rights reserved. Powered by WebAssembly.
           </p>
 
-          <nav aria-label="Legal and Help" className="flex items-center gap-4 font-mono text-[11px]">
+          <nav aria-label="Legal and Help" className="flex flex-wrap items-center gap-3 sm:gap-4 font-mono text-[11px]">
+            <button
+              type="button"
+              onClick={() => setDownloadModalOpen(true)}
+              className="flex items-center gap-1 text-primary hover:underline transition-colors cursor-pointer"
+            >
+              <Smartphone className="size-3" />
+              <span>Get App (APK/PWA)</span>
+            </button>
+            <span className="text-border">·</span>
+            <a
+              href="/zenodeck.apk"
+              download="zenodeck.apk"
+              className="flex items-center gap-1 text-emerald-400 hover:underline transition-colors"
+            >
+              <Download className="size-3" />
+              <span>APK (24.5MB)</span>
+            </a>
+            <span className="text-border">·</span>
             <Link
               href="/privacy"
               className="text-muted-foreground hover:text-foreground transition-colors"

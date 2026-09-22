@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { LogOut, ShieldAlert } from "lucide-react";
+import { Download, LogOut, ShieldAlert } from "lucide-react";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { useAuth } from "@/lib/auth/auth-context";
 import { SearchPalette } from "@/components/shell/search-palette";
@@ -9,6 +9,7 @@ import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { AudioToggle } from "@/components/shell/audio-toggle";
 import { UserAvatar } from "@/components/auth/user-avatar";
 import { useNavStore } from "@/lib/navigation/nav-store";
+import { usePwaStore } from "@/lib/pwa/pwa-store";
 import type { EngineState } from "@/types/omni";
 
 const STATE_META: Record<
@@ -41,6 +42,7 @@ export function TopBar() {
   const { state } = useFFmpegEngine();
   const { mode, user, signOut, isNative } = useAuth();
   const navigate = useNavStore((s) => s.navigate);
+  const setDownloadModalOpen = usePwaStore((s) => s.setDownloadModalOpen);
   const meta = STATE_META[state];
 
   return (
@@ -117,6 +119,18 @@ export function TopBar() {
           <ThemeToggle />
           <AudioToggle />
           <SearchPalette />
+
+          {!isNative && (
+            <button
+              type="button"
+              onClick={() => setDownloadModalOpen(true)}
+              className="flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-primary hover:bg-primary/20 hover:border-primary/60 transition-all font-mono text-[10px] uppercase tracking-wider cursor-pointer"
+              title="Download Android APK or Install Web App"
+            >
+              <Download className="size-3 shrink-0" />
+              <span className="hidden xs:inline sm:inline">Get App</span>
+            </button>
+          )}
 
           {user ? (
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">

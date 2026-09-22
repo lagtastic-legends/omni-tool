@@ -6,9 +6,10 @@
  */
 
 import { motion } from "framer-motion";
-import { Activity, ArrowDown, Boxes, Database, FileAudio, FileImage, FileText, FileVideo, Files, Sparkles, Timer } from "lucide-react";
+import { Activity, ArrowDown, Boxes, Database, FileAudio, FileImage, FileText, FileVideo, Files, Smartphone, Sparkles, Timer } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
 import { Capacitor } from "@capacitor/core";
+import { usePwaStore } from "@/lib/pwa/pwa-store";
 import { EngineBootPanel } from "@/components/engine/engine-boot-panel";
 import { ToolGrid } from "@/components/dashboard/tool-grid";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
@@ -94,6 +95,7 @@ export function DashboardView() {
   const { state, bootMs } = useFFmpegEngine();
   const { items, totalBytes } = useVault();
   const navigate = useNavStore((s) => s.navigate);
+  const setDownloadModalOpen = usePwaStore((s) => s.setDownloadModalOpen);
 
   const [isNative, setIsNative] = useState(() => {
     if (process.env.NEXT_PUBLIC_MOBILE_EXPORT === "1") return true;
@@ -189,6 +191,18 @@ export function DashboardView() {
             <Database className="size-4 text-neon" />
             <span>Open Vault</span>
           </Button>
+
+          {!isNative && (
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => setDownloadModalOpen(true)}
+              className="font-mono text-xs font-semibold px-5 sm:px-6 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:border-primary/60 cursor-pointer"
+            >
+              <Smartphone className="size-4" />
+              <span>Get App</span>
+            </Button>
+          )}
         </motion.div>
       </section>
 

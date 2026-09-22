@@ -37,6 +37,8 @@ android {
             storePassword 'OmniTool2026!'
             keyAlias 'omnitool'
             keyPassword 'OmniTool2026!'
+            v1SigningEnabled true
+            v2SigningEnabled true
         }
     }
     buildTypes {

@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { CookieBanner } from "@/components/shell/cookie-banner";
 import { AnalyticsProvider } from "@/components/shell/analytics-provider";
+import { PwaProvider } from "@/components/pwa/pwa-provider";
 
 const ebGaramond = EB_Garamond({
   variable: "--font-eb-garamond",
@@ -151,6 +152,7 @@ export default function RootLayout({
         <AnalyticsProvider />
         {children}
         <CookieBanner />
+        <PwaProvider />
         <Toaster />
       </body>
     </html>

@@ -15,7 +15,7 @@ const config: CapacitorConfig = {
   android: {
     // WebView must reach getUserMedia for the QR scanner & Studio Recorder.
     allowMixedContent: false,
-    webContentsDebuggingEnabled: true,
+    webContentsDebuggingEnabled: false,
   },
   server: {
     androidScheme: "https",

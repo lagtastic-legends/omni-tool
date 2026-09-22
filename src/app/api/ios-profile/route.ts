@@ -7,6 +7,8 @@ import { join } from "path";
  * iOS requires `application/x-apple-aspen-config` to trigger the
  * profile installer — static file headers alone can be unreliable.
  */
+export const dynamic = "force-static";
+
 export async function GET() {
   const filePath = join(process.cwd(), "public", "zenodeck.mobileconfig");
   const body = readFileSync(filePath);
