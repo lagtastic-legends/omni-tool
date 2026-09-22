@@ -212,7 +212,11 @@ export function AppShell() {
   const { view, navigate, reset } = useNavStore();
   const { isOpen: isAiOpen, toggleOpen: toggleAi } = useAiStore();
   const { mode, user } = useAuth();
-  const isGuest = typeof window !== "undefined" && sessionStorage.getItem("omni_guest_session") === "true";
+  const isGuest =
+    typeof window !== "undefined" &&
+    (localStorage.getItem("omni_guest_session") === "true" ||
+      sessionStorage.getItem("omni_guest_session") === "true" ||
+      user?.isGuest === true);
   const isLoginScreen = (mode === "configured" && !user && !isGuest) || view === "auth-gateway";
 
   useEffect(() => {

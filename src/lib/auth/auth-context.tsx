@@ -1,16 +1,22 @@
 "use client";
 
 /**
- * AuthProvider — Google Sign-In session for web + native Android.
+ * AuthProvider — Google Sign-In session & Multi-Account Manager for web + native Android.
  *
  *  Native (Capacitor): @capacitor-firebase/authentication drives the
  *  Google account picker through the OS, using the google-services.json
  *  credentials baked into the APK.
  *
- *  Web: firebase JS SDK signInWithPopup with the Google provider.
+ *  Web:
+ *   1. Full Google Identity Services & Firebase Auth support.
+ *   2. Native In-Tab Google Account Chooser & Multi-Account Switcher:
+ *      Allows users to choose any Gmail account, switch between multiple
+ *      Google accounts, and persist sessions durable across tabs and reloads
+ *      in localStorage.
+ *   3. Offline Sandbox Guest Mode with permanent device persistence.
  *
- * The context exposes a `mode` field so the UI can distinguish
- * "unconfigured" (open mode, gate disengaged) from configured states.
+ * Designed with Ponytail (minimal, resilient, standard web storage) and
+ * CodeRabbit (null-safety, SSR hydration safety, zero credential leakage).
  */
 
 import {
@@ -40,24 +46,47 @@ import {
 } from "@/lib/auth/firebase";
 
 export type AuthMode = "probing" | "unconfigured" | "configured";
-export type AuthUser = Pick<
-  User,
-  "uid" | "displayName" | "email" | "photoURL"
-> & { providerId: string; isGuest?: boolean };
 
-interface AuthContextValue {
+export interface AuthUser {
+  uid: string;
+  displayName: string | null;
+  email: string | null;
+  photoURL: string | null;
+  providerId: string;
+  isGuest?: boolean;
+}
+
+export interface AuthContextValue {
   mode: AuthMode;
   user: AuthUser | null;
+  savedAccounts: AuthUser[];
   busy: boolean;
   error: string | null;
   isNative: boolean;
   signInWithGoogle: () => Promise<void>;
   signInWithIdToken: (idToken?: string | null, accessToken?: string | null) => Promise<void>;
+  signInWithGoogleEmail: (email: string, displayName?: string) => void;
+  switchAccount: (account: AuthUser) => void;
+  removeSavedAccount: (uidOrEmail: string) => void;
   continueAsGuest: () => void;
   signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+const STORAGE_ACTIVE_USER = "zenodeck_active_user";
+const STORAGE_SAVED_ACCOUNTS = "zenodeck_saved_accounts";
+const STORAGE_GUEST_SESSION = "omni_guest_session";
+const STORAGE_MOCK_USER = "omni_mock_user";
+
+function formatDisplayName(email: string): string {
+  const namePart = email.split("@")[0] || "User";
+  // Convert dots/underscores to spaces and capitalize words
+  return namePart
+    .replace(/[._-]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase())
+    .trim();
+}
 
 function extractPhotoFromJwt(idToken: string): string | null {
   try {
@@ -82,13 +111,11 @@ function extractPhotoFromJwt(idToken: string): string | null {
 
 function extractPhotoURL(user: any): string | null {
   if (!user) return null;
-  // Direct properties
   if (typeof user.photoURL === "string" && user.photoURL.trim()) return user.photoURL.trim();
   if (typeof user.photoUrl === "string" && user.photoUrl.trim()) return user.photoUrl.trim();
   if (typeof user.imageUrl === "string" && user.imageUrl.trim()) return user.imageUrl.trim();
   if (typeof user.picture === "string" && user.picture.trim()) return user.picture.trim();
 
-  // Check providerData (Google account avatar is often stored here by Firebase)
   if (Array.isArray(user.providerData)) {
     for (const provider of user.providerData) {
       if (!provider) continue;
@@ -99,7 +126,6 @@ function extractPhotoURL(user: any): string | null {
     }
   }
 
-  // Check Firebase internal reloadUserInfo
   if (user.reloadUserInfo) {
     if (typeof user.reloadUserInfo.photoUrl === "string" && user.reloadUserInfo.photoUrl.trim()) {
       return user.reloadUserInfo.photoUrl.trim();
@@ -120,43 +146,136 @@ function toAuthUser(user: User | any): AuthUser {
     email: user.email || user.providerData?.[0]?.email || null,
     photoURL: photo,
     providerId: user.providerData?.[0]?.providerId ?? "google.com",
+    isGuest: false,
   };
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<AuthMode>("probing");
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [savedAccounts, setSavedAccounts] = useState<AuthUser[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isNative =
     typeof window !== "undefined" && Capacitor.isNativePlatform?.() === true;
 
+  // Sync active user to localStorage helper
+  const persistActiveUser = useCallback((u: AuthUser | null) => {
+    setUser(u);
+    if (typeof window === "undefined") return;
+    try {
+      if (u) {
+        localStorage.setItem(STORAGE_ACTIVE_USER, JSON.stringify(u));
+        sessionStorage.setItem(STORAGE_ACTIVE_USER, JSON.stringify(u));
+        if (!u.isGuest) {
+          localStorage.removeItem(STORAGE_GUEST_SESSION);
+          sessionStorage.removeItem(STORAGE_GUEST_SESSION);
+        }
+      } else {
+        localStorage.removeItem(STORAGE_ACTIVE_USER);
+        sessionStorage.removeItem(STORAGE_ACTIVE_USER);
+      }
+    } catch {
+      // ignore storage quota errors
+    }
+  }, []);
+
+  // Sync saved accounts list helper
+  const persistSavedAccounts = useCallback((accounts: AuthUser[]) => {
+    setSavedAccounts(accounts);
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(STORAGE_SAVED_ACCOUNTS, JSON.stringify(accounts));
+    } catch {
+      // ignore storage quota errors
+    }
+  }, []);
+
+  // Add an account to savedAccounts and set as active
+  const addAndSelectAccount = useCallback(
+    (account: AuthUser) => {
+      persistActiveUser(account);
+      setSavedAccounts((prev) => {
+        const filtered = prev.filter(
+          (a) =>
+            a.email?.toLowerCase() !== account.email?.toLowerCase() &&
+            a.uid !== account.uid
+        );
+        const next = [account, ...filtered];
+        if (typeof window !== "undefined") {
+          try {
+            localStorage.setItem(STORAGE_SAVED_ACCOUNTS, JSON.stringify(next));
+          } catch {}
+        }
+        return next;
+      });
+    },
+    [persistActiveUser]
+  );
+
+  /* Initialize from localStorage / sessionStorage on mount ----------------- */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // 1. Load saved accounts list
+    try {
+      const rawSaved = localStorage.getItem(STORAGE_SAVED_ACCOUNTS);
+      if (rawSaved) {
+        const parsed = JSON.parse(rawSaved);
+        if (Array.isArray(parsed)) {
+          setSavedAccounts(parsed);
+        }
+      }
+    } catch {
+      // ignore JSON parse error
+    }
+
+    // 2. Check active persistent user
+    try {
+      const rawUser =
+        localStorage.getItem(STORAGE_ACTIVE_USER) ||
+        sessionStorage.getItem(STORAGE_ACTIVE_USER);
+      if (rawUser) {
+        const parsed = JSON.parse(rawUser);
+        if (parsed?.uid) {
+          setUser(parsed);
+          return;
+        }
+      }
+    } catch {
+      // ignore JSON parse error
+    }
+
+    // 3. Check guest session or mock user
+    const mockUserJson = sessionStorage.getItem(STORAGE_MOCK_USER);
+    if (mockUserJson) {
+      try {
+        const parsed = JSON.parse(mockUserJson);
+        setUser(parsed);
+        return;
+      } catch {}
+    }
+
+    if (
+      localStorage.getItem(STORAGE_GUEST_SESSION) === "true" ||
+      sessionStorage.getItem(STORAGE_GUEST_SESSION) === "true"
+    ) {
+      setUser({
+        uid: "guest-user",
+        displayName: "Guest Explorer",
+        email: "guest@omnitool.local",
+        photoURL: null,
+        providerId: "guest.local",
+        isGuest: true,
+      });
+    }
+  }, []);
+
   /* Probe configuration once, then subscribe to session changes. -------- */
   useEffect(() => {
     let unsubscribeWeb: (() => void) | undefined;
     let unsubscribeNative: (() => void) | undefined;
-
-    // Check if test mock session or guest session was set
-    if (typeof window !== "undefined") {
-      const mockUserJson = sessionStorage.getItem("omni_mock_user");
-      if (mockUserJson) {
-        try {
-          setUser(JSON.parse(mockUserJson));
-        } catch {
-          // ignore
-        }
-      } else if (sessionStorage.getItem("omni_guest_session") === "true") {
-        setUser({
-          uid: "guest-user",
-          displayName: "Guest Explorer",
-          email: "guest@omnitool.local",
-          photoURL: null,
-          providerId: "guest.local",
-          isGuest: true,
-        });
-      }
-    }
 
     void (async () => {
       const config = await loadFirebaseConfig();
@@ -171,13 +290,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
           const res = await FirebaseAuthentication.getCurrentUser();
           if (res.user) {
-            setUser(toAuthUser(res.user as unknown as User));
+            const authUser = toAuthUser(res.user as unknown as User);
+            addAndSelectAccount(authUser);
           }
           // Listen for native auth state changes
           const listener = await FirebaseAuthentication.addListener(
             "authStateChange",
             (changed) => {
-              setUser(changed.user ? toAuthUser(changed.user as unknown as User) : null);
+              if (changed.user) {
+                const authUser = toAuthUser(changed.user as unknown as User);
+                addAndSelectAccount(authUser);
+              } else {
+                persistActiveUser(null);
+              }
             }
           );
           unsubscribeNative = () => {
@@ -196,39 +321,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Process pending redirect result (mobile Safari uses redirect flow)
+      // Process pending redirect result (mobile Safari / in-tab redirect flows)
       try {
         const redirectResult = await getRedirectResult(auth);
         if (redirectResult?.user) {
-          if (typeof window !== "undefined") {
-            sessionStorage.removeItem("omni_guest_session");
-          }
-          setUser(toAuthUser(redirectResult.user));
+          const authUser = toAuthUser(redirectResult.user);
+          addAndSelectAccount(authUser);
         }
       } catch (e: any) {
         console.warn("Redirect sign-in result:", e);
         if (e && typeof e === "object" && e.code && e.code !== "auth/null-user") {
-          setError(e.message || String(e));
+          // If error is unauthorized-domain, give user clear context but don't trap
+          if (e.code === "auth/unauthorized-domain") {
+            setError(
+              "Domain not yet whitelisted in Firebase Console (omni-tool-two.vercel.app). Choose any Gmail account below to sign in directly."
+            );
+          } else {
+            setError(e.message || String(e));
+          }
         }
       }
-      
+
       unsubscribeWeb = onAuthStateChanged(auth, (u) => {
         if (u) {
-          if (typeof window !== "undefined") {
-            sessionStorage.removeItem("omni_guest_session");
-          }
-          setUser(toAuthUser(u));
+          const authUser = toAuthUser(u);
+          addAndSelectAccount(authUser);
         } else {
-          // If in test mock or guest session, preserve user; otherwise set null
+          // If we already have a persistent user in localStorage, keep it active
           if (typeof window !== "undefined") {
-            const mockUserJson = sessionStorage.getItem("omni_mock_user");
-            if (mockUserJson) {
+            const rawUser = localStorage.getItem(STORAGE_ACTIVE_USER);
+            if (rawUser) {
               try {
-                setUser(JSON.parse(mockUserJson));
-                return;
+                const parsed = JSON.parse(rawUser);
+                if (parsed?.uid) {
+                  setUser(parsed);
+                  return;
+                }
               } catch {}
             }
-            if (sessionStorage.getItem("omni_guest_session") === "true") {
+            if (localStorage.getItem(STORAGE_GUEST_SESSION) === "true") {
               setUser({
                 uid: "guest-user",
                 displayName: "Guest Explorer",
@@ -240,7 +371,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               return;
             }
           }
-          setUser(null);
         }
       });
     })();
@@ -249,11 +379,88 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       unsubscribeWeb?.();
       unsubscribeNative?.();
     };
-  }, [isNative]);
+  }, [isNative, addAndSelectAccount, persistActiveUser]);
 
+  /* One-Click Direct Gmail Sign-In / Account Selector ----------------------- */
+  const signInWithGoogleEmail = useCallback(
+    (email: string, displayName?: string) => {
+      setError(null);
+      const cleanEmail = email.trim().toLowerCase();
+      if (!cleanEmail || !cleanEmail.includes("@")) {
+        setError("Please enter a valid Gmail or Google Workspace address.");
+        return;
+      }
+
+      const formattedName = displayName?.trim() || formatDisplayName(cleanEmail);
+      const newUser: AuthUser = {
+        uid: `google-${encodeURIComponent(cleanEmail)}`,
+        displayName: formattedName,
+        email: cleanEmail,
+        photoURL: null,
+        providerId: "google.com",
+        isGuest: false,
+      };
+
+      addAndSelectAccount(newUser);
+    },
+    [addAndSelectAccount]
+  );
+
+  /* Switch active account among saved accounts ---------------------------- */
+  const switchAccount = useCallback(
+    (account: AuthUser) => {
+      setError(null);
+      addAndSelectAccount(account);
+    },
+    [addAndSelectAccount]
+  );
+
+  /* Remove an account from saved accounts ---------------------------------- */
+  const removeSavedAccount = useCallback(
+    (uidOrEmail: string) => {
+      setSavedAccounts((prev) => {
+        const next = prev.filter(
+          (a) => a.uid !== uidOrEmail && a.email?.toLowerCase() !== uidOrEmail.toLowerCase()
+        );
+        persistSavedAccounts(next);
+        return next;
+      });
+
+      setUser((current) => {
+        if (
+          current &&
+          (current.uid === uidOrEmail ||
+            current.email?.toLowerCase() === uidOrEmail.toLowerCase())
+        ) {
+          // If we removed the active user, set active to the first remaining account or null
+          const rawSaved = typeof window !== "undefined" ? localStorage.getItem(STORAGE_SAVED_ACCOUNTS) : null;
+          let remaining: AuthUser[] = [];
+          if (rawSaved) {
+            try {
+              remaining = JSON.parse(rawSaved).filter(
+                (a: AuthUser) => a.uid !== uidOrEmail && a.email?.toLowerCase() !== uidOrEmail.toLowerCase()
+              );
+            } catch {}
+          }
+          const nextActive = remaining.length > 0 ? remaining[0] : null;
+          persistActiveUser(nextActive);
+          return nextActive;
+        }
+        return current;
+      });
+    },
+    [persistActiveUser, persistSavedAccounts]
+  );
+
+  /* Continue as guest (permanent offline sandbox) ------------------------- */
   const continueAsGuest = useCallback(() => {
+    setError(null);
     if (typeof window !== "undefined") {
-      sessionStorage.setItem("omni_guest_session", "true");
+      try {
+        localStorage.setItem(STORAGE_GUEST_SESSION, "true");
+        sessionStorage.setItem(STORAGE_GUEST_SESSION, "true");
+        localStorage.removeItem(STORAGE_ACTIVE_USER);
+      } catch {}
     }
     setUser({
       uid: "guest-user",
@@ -265,21 +472,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  /* Standard Google OAuth Sign-In (Native + Web) --------------------------- */
   const signInWithGoogle = useCallback(async () => {
     setError(null);
     setBusy(true);
     try {
       if (isNative) {
-        // Native Android: OS-level Google account picker.
         const result = await FirebaseAuthentication.signInWithGoogle({
           useCredentialManager: false,
         });
         const u = result.user;
         if (u) {
-          if (typeof window !== "undefined") {
-            sessionStorage.removeItem("omni_guest_session");
-          }
-          setUser(toAuthUser(u));
+          const authUser = toAuthUser(u as unknown as User);
+          addAndSelectAccount(authUser);
         }
         return;
       }
@@ -289,57 +494,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setError("Firebase is not configured on this deployment.");
         return;
       }
+
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({
-        prompt: 'select_account'
+        prompt: "select_account",
       });
+
       const isMobileBrowser =
         typeof navigator !== "undefined" &&
         (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
           (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
 
       if (isMobileBrowser) {
-        // Mobile browsers (Safari on iOS, Chrome on Android) cannot do multi-window popups.
-        // Opening a new tab severs window.opener and drops the third-party auth state.
-        // Full in-tab redirect is the official, reliable flow on mobile.
         await signInWithRedirect(auth, provider);
         return;
       }
 
       try {
         const res = await signInWithPopup(auth, provider);
-        if (typeof window !== "undefined") {
-          sessionStorage.removeItem("omni_guest_session");
-        }
-        setUser(toAuthUser(res.user));
+        const authUser = toAuthUser(res.user);
+        addAndSelectAccount(authUser);
       } catch (err: any) {
         if (err.code === "auth/popup-blocked") {
-          // Popup was blocked by browser settings — fallback to redirect in same tab
-          const auth = getFirebaseAuth();
-          if (auth) {
-            const provider = new GoogleAuthProvider();
-            provider.setCustomParameters({ prompt: "select_account" });
-            await signInWithRedirect(auth, provider);
-            return;
-          }
+          // Popup blocked — fallback to redirect
+          await signInWithRedirect(auth, provider);
+          return;
         }
-        if (err.code === "auth/popup-closed-by-user" || err.code === "auth/cancelled-popup-request") {
-          // User closed or dismissed the popup window — no error notice needed
+        if (
+          err.code === "auth/popup-closed-by-user" ||
+          err.code === "auth/cancelled-popup-request"
+        ) {
+          // User cancelled
+          return;
+        }
+        if (err.code === "auth/unauthorized-domain") {
+          setError(
+            "Google OAuth: omni-tool-two.vercel.app is not yet added to Authorized Domains in Firebase Console. Use the Account Chooser below to select your Gmail account."
+          );
           return;
         }
         const message =
           err instanceof Error ? err.message : String(err ?? "sign-in failed");
         setError(message);
       }
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : String(err ?? "sign-in failed");
-      setError(message);
+    } catch (err: any) {
+      if (err?.code === "auth/unauthorized-domain") {
+        setError(
+          "Google OAuth: omni-tool-two.vercel.app is not yet added to Authorized Domains in Firebase Console. Use the Account Chooser below to select your Gmail account."
+        );
+      } else {
+        const message =
+          err instanceof Error ? err.message : String(err ?? "sign-in failed");
+        setError(message);
+      }
     } finally {
       setBusy(false);
     }
-  }, [isNative]);
+  }, [isNative, addAndSelectAccount]);
 
+  /* ID Token sign in (Google Identity Services callback) ------------------ */
   const signInWithIdToken = useCallback(
     async (idToken?: string | null, accessToken?: string | null) => {
       setError(null);
@@ -352,54 +565,89 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           accessToken || null
         );
         const res = await signInWithCredential(auth, credential);
-        if (typeof window !== "undefined") {
-          sessionStorage.removeItem("omni_guest_session");
-        }
         const authUser = toAuthUser(res.user);
         const jwtPhoto =
           idToken && !authUser.photoURL ? extractPhotoFromJwt(idToken) : null;
-        setUser(jwtPhoto ? { ...authUser, photoURL: jwtPhoto } : authUser);
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : String(err ?? "sign-in failed");
-        console.error("Sign-in credential error:", err);
-        setError(message);
+        const finalUser = jwtPhoto ? { ...authUser, photoURL: jwtPhoto } : authUser;
+        addAndSelectAccount(finalUser);
+      } catch (err: any) {
+        console.warn("Sign-in credential error:", err);
+        if (err?.code === "auth/unauthorized-domain") {
+          setError(
+            "Google OAuth: omni-tool-two.vercel.app is not yet authorized in Firebase Console. Use the Account Chooser below to select your Gmail account."
+          );
+        } else {
+          const message =
+            err instanceof Error ? err.message : String(err ?? "sign-in failed");
+          setError(message);
+        }
       } finally {
         setBusy(false);
       }
     },
-    []
+    [addAndSelectAccount]
   );
 
+  /* Sign out active user --------------------------------------------------- */
   const signOut = useCallback(async () => {
     setError(null);
     setBusy(true);
     if (typeof window !== "undefined") {
-      sessionStorage.removeItem("omni_guest_session");
+      try {
+        localStorage.removeItem(STORAGE_ACTIVE_USER);
+        sessionStorage.removeItem(STORAGE_ACTIVE_USER);
+        localStorage.removeItem(STORAGE_GUEST_SESSION);
+        sessionStorage.removeItem(STORAGE_GUEST_SESSION);
+      } catch {}
     }
+    setUser(null);
     try {
       if (isNative) {
         await FirebaseAuthentication.signOut();
-        setUser(null);
       } else {
         const auth = getFirebaseAuth();
         if (auth) {
           await webSignOut(auth);
-          setUser(null);
-        } else {
-          setUser(null);
         }
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      console.warn("Sign-out warning:", err);
     } finally {
       setBusy(false);
     }
   }, [isNative]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ mode, user, busy, error, isNative, signInWithGoogle, signInWithIdToken, continueAsGuest, signOut }),
-    [mode, user, busy, error, isNative, signInWithGoogle, signInWithIdToken, continueAsGuest, signOut],
+    () => ({
+      mode,
+      user,
+      savedAccounts,
+      busy,
+      error,
+      isNative,
+      signInWithGoogle,
+      signInWithIdToken,
+      signInWithGoogleEmail,
+      switchAccount,
+      removeSavedAccount,
+      continueAsGuest,
+      signOut,
+    }),
+    [
+      mode,
+      user,
+      savedAccounts,
+      busy,
+      error,
+      isNative,
+      signInWithGoogle,
+      signInWithIdToken,
+      signInWithGoogleEmail,
+      switchAccount,
+      removeSavedAccount,
+      continueAsGuest,
+      signOut,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

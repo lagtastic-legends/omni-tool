@@ -8,6 +8,7 @@ import { SearchPalette } from "@/components/shell/search-palette";
 import { ThemeToggle } from "@/components/shell/theme-toggle";
 import { AudioToggle } from "@/components/shell/audio-toggle";
 import { UserAvatar } from "@/components/auth/user-avatar";
+import { useNavStore } from "@/lib/navigation/nav-store";
 import type { EngineState } from "@/types/omni";
 
 const STATE_META: Record<
@@ -39,6 +40,7 @@ const STATE_META: Record<
 export function TopBar() {
   const { state } = useFFmpegEngine();
   const { mode, user, signOut, isNative } = useAuth();
+  const navigate = useNavStore((s) => s.navigate);
   const meta = STATE_META[state];
 
   return (
@@ -118,25 +120,35 @@ export function TopBar() {
 
           {user ? (
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              <div
-                className="flex items-center gap-2 rounded-full border border-border/70 bg-card/70 pl-1 pr-2.5 py-1 shadow-xs hover:border-primary/40 transition-colors"
-                title={user.email ?? "authenticated"}
+              <button
+                type="button"
+                onClick={() => navigate("auth-gateway")}
+                className="flex items-center gap-2 rounded-full border border-border/70 bg-card/70 pl-1 pr-2.5 py-1 shadow-xs hover:border-primary/50 hover:bg-card transition-all cursor-pointer"
+                title={`Account: ${user.email ?? user.displayName} — click to manage or switch accounts`}
               >
                 <UserAvatar user={user} size="sm" showGoogleBadge={true} />
                 <span className="hidden xs:inline sm:inline max-w-20 sm:max-w-28 truncate font-medium text-xs text-foreground">
                   {(user.displayName ?? user.email ?? "user").split(" ")[0]}
                 </span>
-              </div>
+              </button>
               <button
                 onClick={() => void signOut()}
                 aria-label="Sign out"
                 title="Sign out"
-                className="grid size-7 sm:size-8 place-items-center rounded-lg border border-border/70 text-muted-foreground transition-colors hover:border-red-400/40 hover:text-red-300"
+                className="grid size-7 sm:size-8 place-items-center rounded-lg border border-border/70 text-muted-foreground transition-colors hover:border-red-400/40 hover:text-red-300 cursor-pointer"
               >
                 <LogOut className="size-3.5" />
               </button>
             </div>
-          ) : null}
+          ) : (
+            <button
+              type="button"
+              onClick={() => navigate("auth-gateway")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/40 bg-primary/10 text-primary font-headline text-xs font-semibold hover:bg-primary hover:text-on-primary transition-all cursor-pointer"
+            >
+              <span>Sign In</span>
+            </button>
+          )}
         </div>
       </div>
     </motion.header>
