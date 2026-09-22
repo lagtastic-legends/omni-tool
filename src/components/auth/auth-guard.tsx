@@ -19,9 +19,6 @@ import {
   AlertTriangle,
   ArrowRight,
   Check,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
   Loader2,
   Lock,
   Plus,
@@ -77,7 +74,6 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   const [showAddAccount, setShowAddAccount] = useState(false);
   const [customEmail, setCustomEmail] = useState("");
   const [customName, setCustomName] = useState("");
-  const [showDomainHelp, setShowDomainHelp] = useState(false);
   const [emailInputError, setEmailInputError] = useState<string | null>(null);
 
   // Auto-expand Add Account if no saved accounts exist
@@ -200,13 +196,6 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
   /* configured + signed out → In-Tab Google Account Chooser --------------- */
   if (!user) {
-    const isDomainOrOriginError =
-      error &&
-      (error.includes("unauthorized-domain") ||
-        error.includes("origin_mismatch") ||
-        error.includes("Firebase Console") ||
-        error.includes("Google OAuth"));
-
     return (
       <div className="grid min-h-[75vh] place-items-center py-6">
         <motion.div
@@ -436,61 +425,6 @@ export function AuthGuard({ children }: { children: ReactNode }) {
                 <p className="font-mono text-[11px] text-red-200/90 break-words">
                   {error}
                 </p>
-
-                {isDomainOrOriginError && (
-                  <div className="rounded-xl bg-zinc-950/80 p-3 border border-white/10 text-[11px] text-zinc-300 space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowDomainHelp((prev) => !prev)}
-                      className="flex items-center justify-between w-full font-semibold text-amber-300 hover:underline cursor-pointer"
-                    >
-                      <span>⚙️ How to authorize omni-tool-two.vercel.app in Google Console</span>
-                      {showDomainHelp ? (
-                        <ChevronUp className="size-3.5" />
-                      ) : (
-                        <ChevronDown className="size-3.5" />
-                      )}
-                    </button>
-
-                    {showDomainHelp && (
-                      <ol className="list-decimal list-inside space-y-1.5 text-zinc-300 text-[11px] pt-1">
-                        <li>
-                          Open{" "}
-                          <a
-                            href="https://console.cloud.google.com/apis/credentials"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="underline text-primary inline-flex items-center gap-0.5"
-                          >
-                            Google Cloud Credentials <ExternalLink className="size-2.5" />
-                          </a>{" "}
-                          (Project: <code className="bg-black/50 px-1 py-0.5 rounded text-amber-200">omni-tool-7ba2d</code>)
-                        </li>
-                        <li>
-                          Click Web Client ID (ending in <code className="text-zinc-200">...sd1</code>) &rarr; add to <strong>Authorized JavaScript origins</strong>:
-                          <div className="mt-1 font-mono text-[10.5px] bg-black/60 p-1.5 rounded text-emerald-300 select-all">
-                            https://omni-tool-two.vercel.app
-                          </div>
-                        </li>
-                        <li>
-                          Open{" "}
-                          <a
-                            href="https://console.firebase.google.com"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="underline text-primary inline-flex items-center gap-0.5"
-                          >
-                            Firebase Console <ExternalLink className="size-2.5" />
-                          </a>{" "}
-                          &rarr; <strong>Authentication &rarr; Settings &rarr; Authorized domains</strong> &rarr; Add:
-                          <div className="mt-1 font-mono text-[10.5px] bg-black/60 p-1.5 rounded text-emerald-300 select-all">
-                            omni-tool-two.vercel.app
-                          </div>
-                        </li>
-                      </ol>
-                    )}
-                  </div>
-                )}
               </motion.div>
             )}
           </AnimatePresence>
