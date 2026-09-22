@@ -52,7 +52,7 @@ interface AuthContextValue {
   error: string | null;
   isNative: boolean;
   signInWithGoogle: () => Promise<void>;
-  signInWithIdToken: (idToken: string) => Promise<void>;
+  signInWithIdToken: (idToken?: string | null, accessToken?: string | null) => Promise<void>;
   continueAsGuest: () => void;
   signOut: () => Promise<void>;
 }
@@ -340,26 +340,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [isNative]);
 
-  const signInWithIdToken = useCallback(async (idToken: string) => {
-    setError(null);
-    setBusy(true);
-    try {
-      const auth = getFirebaseAuth();
-      if (!auth) throw new Error("Firebase unconfigured");
-      const credential = GoogleAuthProvider.credential(idToken);
-      const res = await signInWithCredential(auth, credential);
-      if (typeof window !== "undefined") {
-        sessionStorage.removeItem("omni_guest_session");
+  const signInWithIdToken = useCallback(
+    async (idToken?: string | null, accessToken?: string | null) => {
+      setError(null);
+      setBusy(true);
+      try {
+        const auth = getFirebaseAuth();
+        if (!auth) throw new Error("Firebase unconfigured");
+        const credential = GoogleAuthProvider.credential(
+          idToken || null,
+          accessToken || null
+        );
+        const res = await signInWithCredential(auth, credential);
+        if (typeof window !== "undefined") {
+          sessionStorage.removeItem("omni_guest_session");
+        }
+        const authUser = toAuthUser(res.user);
+        const jwtPhoto =
+          idToken && !authUser.photoURL ? extractPhotoFromJwt(idToken) : null;
+        setUser(jwtPhoto ? { ...authUser, photoURL: jwtPhoto } : authUser);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : String(err ?? "sign-in failed");
+        console.error("Sign-in credential error:", err);
+        setError(message);
+      } finally {
+        setBusy(false);
       }
-      const authUser = toAuthUser(res.user);
-      const jwtPhoto = !authUser.photoURL ? extractPhotoFromJwt(idToken) : null;
-      setUser(jwtPhoto ? { ...authUser, photoURL: jwtPhoto } : authUser);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setBusy(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   const signOut = useCallback(async () => {
     setError(null);

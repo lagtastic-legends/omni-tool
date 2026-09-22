@@ -12,7 +12,7 @@
  */
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Lock, Loader2, ShieldCheck } from "lucide-react";
+import { Lock, Loader2, ShieldCheck, Users } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 
@@ -111,6 +111,28 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     void signInWithGoogle();
   };
 
+  const handleChooseAnotherAccount = () => {
+    if (typeof window !== "undefined" && (window as any).google?.accounts?.oauth2) {
+      try {
+        const client = (window as any).google.accounts.oauth2.initTokenClient({
+          client_id: "1006411301114-q48l1fmvbiba3rq6u1s59qgl13c57sd1.apps.googleusercontent.com",
+          scope: "email profile openid",
+          prompt: "select_account",
+          callback: (tokenResponse: any) => {
+            if (tokenResponse?.access_token) {
+              void signInWithIdToken(null, tokenResponse.access_token);
+            }
+          },
+        });
+        client.requestAccessToken();
+        return;
+      } catch (e) {
+        console.warn("OAuth2 select_account error:", e);
+      }
+    }
+    void signInWithGoogle();
+  };
+
   /* probe splash --------------------------------------------------------- */
   if (mode === "probing") {
     return (
@@ -179,6 +201,16 @@ export function AuthGuard({ children }: { children: ReactNode }) {
           <div className="flex flex-col items-center gap-2.5 w-full">
             {/* Google Identity Services official in-tab account picker */}
             <div ref={googleBtnRef} className="w-full flex justify-center min-h-[44px]" />
+
+            <button
+              onClick={handleChooseAnotherAccount}
+              type="button"
+              disabled={busy}
+              className="flex items-center justify-center gap-2 rounded-xl border border-outline-variant/60 bg-surface-container px-4 py-2.5 text-xs font-headline font-medium text-on-surface hover:border-primary/50 hover:bg-surface-container-high transition-all cursor-pointer w-full shadow-sm"
+            >
+              <Users className="size-3.5 text-primary" />
+              <span>Choose Another Google Account</span>
+            </button>
 
             {!gsiReady && (
               <motion.button

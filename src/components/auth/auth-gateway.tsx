@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Smartphone,
   TerminalSquare,
+  Users,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { UserAvatar } from "@/components/auth/user-avatar";
@@ -45,7 +46,7 @@ function GoogleMark({ className }: { className?: string }) {
 }
 
 export function AuthGateway() {
-  const { mode, user, busy, error, isNative, signInWithGoogle, signOut } =
+  const { mode, user, busy, error, isNative, signInWithGoogle, signInWithIdToken, signOut } =
     useAuth();
 
   const configured = mode === "configured";
@@ -58,6 +59,28 @@ export function AuthGateway() {
         }
       });
       return;
+    }
+    void signInWithGoogle();
+  };
+
+  const handleChooseAnotherAccount = () => {
+    if (typeof window !== "undefined" && (window as any).google?.accounts?.oauth2) {
+      try {
+        const client = (window as any).google.accounts.oauth2.initTokenClient({
+          client_id: "1006411301114-q48l1fmvbiba3rq6u1s59qgl13c57sd1.apps.googleusercontent.com",
+          scope: "email profile openid",
+          prompt: "select_account",
+          callback: (tokenResponse: any) => {
+            if (tokenResponse?.access_token) {
+              void signInWithIdToken(null, tokenResponse.access_token);
+            }
+          },
+        });
+        client.requestAccessToken();
+        return;
+      } catch (e) {
+        console.warn("OAuth2 select_account error:", e);
+      }
     }
     void signInWithGoogle();
   };
@@ -130,11 +153,20 @@ export function AuthGateway() {
                     onClick={handleGatewaySignIn}
                     disabled={busy}
                     whileTap={busy ? undefined : { scale: 0.97 }}
-                    className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-border/60 bg-white px-4 font-display text-xs font-bold tracking-[0.14em] text-zinc-900 transition-transform hover:scale-[1.01] disabled:opacity-60"
+                    className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-border/60 bg-white px-4 font-display text-xs font-bold tracking-[0.14em] text-zinc-900 transition-transform hover:scale-[1.01] disabled:opacity-60 cursor-pointer"
                   >
                     <GoogleMark className="size-5" />
                     {busy ? "CONNECTING…" : "SIGN IN WITH GOOGLE"}
                   </motion.button>
+                  <button
+                    onClick={handleChooseAnotherAccount}
+                    type="button"
+                    disabled={busy}
+                    className="flex items-center justify-center gap-2 rounded-xl border border-border/70 bg-card/60 px-4 py-2.5 text-xs font-mono text-foreground hover:bg-secondary hover:border-primary/50 transition-all cursor-pointer w-full"
+                  >
+                    <Users className="size-3.5 text-primary" />
+                    <span>Choose Another Google Account</span>
+                  </button>
                   <p className="mt-4 text-center font-mono text-[10px] text-muted-foreground">
                     By signing in, you agree to our <a href="/privacy" className="underline hover:text-foreground">Privacy Policy</a>
                   </p>
