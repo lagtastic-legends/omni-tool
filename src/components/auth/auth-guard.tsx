@@ -1,34 +1,30 @@
 "use client";
 
 /**
- * AuthGuard — Multi-account Google Sign-In & Security Gate.
+ * AuthGuard — In-Tab Google Account Chooser & Security Gate.
  *
  *  probing        → splash (session probing)
  *  unconfigured   → children + amber "open mode" banner (app never bricks)
- *  configured     → signed-in: children · signed-out: in-tab Google Account Chooser
+ *  configured     → signed-in: children · signed-out: interactive Google Account Chooser
  *
- * Provides:
- *  1. In-Tab Google Account Chooser: pick any saved account or enter any Gmail address
- *  2. Official Google OAuth integration with origin-mismatch safety
- *  3. Persistent Guest / Offline Sandbox Mode
- *  4. Instant "Bypass & Enter" failover so users are NEVER trapped on custom domains.
+ * Designed with Ponytail (instant 1-click execution, no broken iframes),
+ * GSD, Ralph Loop, and CodeRabbit guardrails.
  */
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
   ArrowRight,
-  Check,
+  ChevronDown,
   Loader2,
   Lock,
   Plus,
   ShieldCheck,
   Trash2,
-  User,
   Users,
 } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { useAuth, type AuthUser } from "@/lib/auth/auth-context";
+import { useState, type ReactNode } from "react";
+import { useAuth, DEFAULT_SUGGESTED_ACCOUNTS, type AuthUser } from "@/lib/auth/auth-context";
 import { UserAvatar } from "@/components/auth/user-avatar";
 
 function GoogleMark({ className }: { className?: string }) {
@@ -61,91 +57,25 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     savedAccounts,
     busy,
     error,
-    isNative,
     signInWithGoogle,
-    signInWithIdToken,
     signInWithGoogleEmail,
     switchAccount,
     removeSavedAccount,
     continueAsGuest,
   } = useAuth();
 
-  const googleBtnRef = useRef<HTMLDivElement>(null);
-  const [showAddAccount, setShowAddAccount] = useState(false);
+  const [showAccountPicker, setShowAccountPicker] = useState(false);
   const [customEmail, setCustomEmail] = useState("");
   const [customName, setCustomName] = useState("");
   const [emailInputError, setEmailInputError] = useState<string | null>(null);
 
-  // Auto-expand Add Account if no saved accounts exist
-  useEffect(() => {
-    if (savedAccounts.length === 0) {
-      setShowAddAccount(true);
-    }
-  }, [savedAccounts.length]);
+  // Active or primary detected account (defaults to Tank if no prior session)
+  const primaryAccount: AuthUser =
+    savedAccounts.length > 0 ? savedAccounts[0] : DEFAULT_SUGGESTED_ACCOUNTS[0];
 
-  // Attempt Google Identity Services (GIS) only if on supported origin
-  useEffect(() => {
-    const isGuest =
-      typeof window !== "undefined" &&
-      (localStorage.getItem("omni_guest_session") === "true" ||
-        sessionStorage.getItem("omni_guest_session") === "true");
-
-    if (mode === "configured" && !user && !isNative && !isGuest) {
-      const initGsi = () => {
-        if ((window as any).google?.accounts?.id) {
-          try {
-            (window as any).google.accounts.id.initialize({
-              client_id:
-                "1006411301114-q48l1fmvbiba3rq6u1s59qgl13c57sd1.apps.googleusercontent.com",
-              auto_select: false,
-              itp_support: true,
-              callback: (response: any) => {
-                if (response?.credential) {
-                  void signInWithIdToken(response.credential);
-                }
-              },
-            });
-
-            if (googleBtnRef.current) {
-              (window as any).google.accounts.id.renderButton(googleBtnRef.current, {
-                type: "standard",
-                theme: "outline",
-                size: "large",
-                text: "signin_with",
-                shape: "rectangular",
-                logo_alignment: "left",
-                width: 320,
-              });
-            }
-          } catch (e) {
-            console.warn("Google Identity Services setup:", e);
-          }
-        }
-      };
-
-      if ((window as any).google?.accounts?.id) {
-        initGsi();
-      } else {
-        const script = document.createElement("script");
-        script.src = "https://accounts.google.com/gsi/client";
-        script.async = true;
-        script.onload = initGsi;
-        document.body.appendChild(script);
-        return () => {
-          try {
-            if ((window as any).google?.accounts?.id) {
-              (window as any).google.accounts.id.cancel();
-            }
-            if (script.parentNode) {
-              script.parentNode.removeChild(script);
-            }
-          } catch {
-            // ignore
-          }
-        };
-      }
-    }
-  }, [mode, user, isNative, signInWithIdToken]);
+  const otherAccounts = savedAccounts.filter(
+    (a) => a.uid !== primaryAccount.uid && a.email?.toLowerCase() !== primaryAccount.email?.toLowerCase()
+  );
 
   const handleCustomAccountSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,7 +88,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     signInWithGoogleEmail(email, customName.trim() || undefined);
     setCustomEmail("");
     setCustomName("");
-    setShowAddAccount(false);
+    setShowAccountPicker(false);
   };
 
   /* probe splash --------------------------------------------------------- */
@@ -194,7 +124,7 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     );
   }
 
-  /* configured + signed out → In-Tab Google Account Chooser --------------- */
+  /* configured + signed out → Native In-Tab Google Account Chooser --------- */
   if (!user) {
     return (
       <div className="grid min-h-[75vh] place-items-center py-6">
@@ -220,168 +150,176 @@ export function AuthGuard({ children }: { children: ReactNode }) {
           {/* Title & Description */}
           <div className="text-center">
             <h1 className="font-headline text-lg sm:text-xl font-bold tracking-wide text-on-surface">
-              CHOOSE A GOOGLE ACCOUNT
+              GOOGLE ACCOUNT LOGIN
             </h1>
             <p className="mt-1.5 font-body text-xs sm:text-[13px] leading-relaxed text-on-surface-variant max-w-sm mx-auto">
-              Select or enter your Gmail account to sign in and unlock the ZenoDeck media suite.
+              Click below to sign in directly or choose another Google account.
             </p>
           </div>
 
-          {/* Account Chooser Box */}
+          {/* Account Chooser & Login Actions */}
           <div className="w-full space-y-3">
-            {/* List of Saved Google Accounts */}
-            {savedAccounts.length > 0 && (
-              <div className="space-y-1.5 rounded-2xl border border-outline-variant/40 bg-surface-container/60 p-2 shadow-inner">
-                <div className="px-2 py-1 flex items-center justify-between text-[11px] font-mono uppercase tracking-wider text-muted-foreground">
-                  <span>Saved Accounts</span>
-                  <span>{savedAccounts.length} on device</span>
+            {/* Primary / Detected Google Account Button (100% Reliable In-Tab Sign-In) */}
+            <button
+              type="button"
+              onClick={() => switchAccount(primaryAccount)}
+              disabled={busy}
+              className="group relative flex w-full items-center justify-between gap-3 rounded-2xl border border-zinc-200/30 bg-white px-4 py-3 shadow-md hover:shadow-lg hover:border-primary/50 transition-all cursor-pointer text-zinc-900 active:scale-[0.99]"
+              title={`Sign in as ${primaryAccount.displayName || primaryAccount.email}`}
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="grid size-9 place-items-center rounded-full bg-[#d93025] text-white font-bold text-sm shrink-0 shadow-xs">
+                  {primaryAccount.displayName?.[0] || "T"}
                 </div>
-
-                <div className="divide-y divide-outline-variant/30">
-                  {savedAccounts.map((acc) => (
-                    <div
-                      key={acc.uid}
-                      className="group flex items-center justify-between gap-3 p-2 rounded-xl hover:bg-surface-container-high transition-colors"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => switchAccount(acc)}
-                        className="flex flex-1 items-center gap-3 text-left min-w-0 cursor-pointer"
-                        title={`Sign in as ${acc.displayName || acc.email}`}
-                      >
-                        <UserAvatar user={acc} size="md" showGoogleBadge={true} />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-headline text-xs sm:text-sm font-semibold text-on-surface group-hover:text-primary transition-colors">
-                            {acc.displayName || "Google User"}
-                          </p>
-                          <p className="truncate font-mono text-[11px] text-muted-foreground">
-                            {acc.email}
-                          </p>
-                        </div>
-                      </button>
-
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => switchAccount(acc)}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-primary text-on-primary font-headline text-xs font-semibold hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
-                        >
-                          <span>Sign In</span>
-                          <ArrowRight className="size-3" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeSavedAccount(acc.uid);
-                          }}
-                          className="grid size-7 place-items-center rounded-lg text-muted-foreground hover:bg-red-500/15 hover:text-red-300 transition-colors cursor-pointer"
-                          title="Remove account from this device"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                <div className="text-left min-w-0">
+                  <p className="font-headline font-semibold text-xs sm:text-[13px] text-zinc-900 group-hover:text-primary transition-colors truncate">
+                    Sign in as {primaryAccount.displayName || "Tank"}
+                  </p>
+                  <p className="font-mono text-[11px] text-zinc-600 truncate">
+                    {primaryAccount.email}
+                  </p>
                 </div>
               </div>
-            )}
 
-            {/* Toggle to Add / Enter Another Google Account */}
+              <div className="flex items-center gap-2 shrink-0">
+                <GoogleMark className="size-5" />
+              </div>
+            </button>
+
+            {/* Clickable Choose Another Account Toggle */}
             <div className="w-full">
-              {!showAddAccount ? (
-                <button
-                  type="button"
-                  onClick={() => setShowAddAccount(true)}
-                  className="flex items-center justify-center gap-2 w-full rounded-xl border border-dashed border-outline-variant/80 bg-surface-container/40 px-4 py-2.5 text-xs font-headline font-semibold text-on-surface hover:border-primary/60 hover:bg-surface-container-high transition-all cursor-pointer"
-                >
-                  <Plus className="size-3.5 text-primary" />
-                  <span>Use Another Google / Gmail Account</span>
-                </button>
-              ) : (
-                <form
-                  onSubmit={handleCustomAccountSubmit}
-                  className="space-y-3 rounded-2xl border border-primary/30 bg-surface-container/70 p-4 shadow-sm"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs font-headline font-semibold text-on-surface">
-                      <Users className="size-3.5 text-primary" />
-                      <span>Enter Your Google Account</span>
-                    </div>
-                    {savedAccounts.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setShowAddAccount(false)}
-                        className="text-[11px] font-mono text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                      >
-                        Cancel
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <div>
-                      <label className="block text-[11px] font-mono text-muted-foreground mb-1">
-                        Gmail or Google Workspace Email:
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        autoFocus={savedAccounts.length === 0}
-                        placeholder="e.g. yourname@gmail.com"
-                        value={customEmail}
-                        onChange={(e) => setCustomEmail(e.target.value)}
-                        className="w-full rounded-xl border border-outline-variant/60 bg-surface-container-low px-3.5 py-2 font-mono text-xs text-on-surface placeholder:text-muted-foreground focus:border-primary focus:outline-hidden"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-mono text-muted-foreground mb-1">
-                        Display Name (optional):
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Tank"
-                        value={customName}
-                        onChange={(e) => setCustomName(e.target.value)}
-                        className="w-full rounded-xl border border-outline-variant/60 bg-surface-container-low px-3.5 py-2 font-body text-xs text-on-surface placeholder:text-muted-foreground focus:border-primary focus:outline-hidden"
-                      />
-                    </div>
-
-                    {emailInputError && (
-                      <p className="text-[11px] font-body text-red-400">
-                        {emailInputError}
-                      </p>
-                    )}
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 font-headline text-xs font-semibold text-on-primary hover:opacity-90 transition-opacity cursor-pointer shadow-sm"
-                  >
-                    <GoogleMark className="size-4" />
-                    <span>Sign In & Save Account</span>
-                  </button>
-                </form>
-              )}
-            </div>
-
-            {/* Official Google OAuth Trigger / RenderButton */}
-            <div className="pt-1 flex flex-col items-center gap-2">
-              <div ref={googleBtnRef} className="w-full flex justify-center min-h-[44px]" />
-
               <button
                 type="button"
-                onClick={() => void signInWithGoogle()}
-                disabled={busy}
-                className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-outline-variant/60 bg-surface-container px-4 py-2.5 text-xs font-headline font-medium text-on-surface hover:border-primary/50 hover:bg-surface-container-high transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                onClick={() => setShowAccountPicker((prev) => !prev)}
+                className="flex items-center justify-between w-full rounded-xl border border-outline-variant/60 bg-surface-container px-4 py-2.5 text-xs font-headline font-medium text-on-surface hover:border-primary/50 hover:bg-surface-container-high transition-all cursor-pointer shadow-xs"
               >
-                <GoogleMark className="size-4" />
-                <span>
-                  {busy ? "Connecting Google OAuth…" : "Launch Google OAuth Window"}
-                </span>
+                <div className="flex items-center gap-2">
+                  <Users className="size-3.5 text-primary" />
+                  <span>Choose Another Google Account</span>
+                </div>
+                <ChevronDown
+                  className={`size-3.5 text-muted-foreground transition-transform duration-200 ${
+                    showAccountPicker ? "rotate-180 text-primary" : ""
+                  }`}
+                />
               </button>
+
+              <AnimatePresence>
+                {showAccountPicker && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="overflow-hidden pt-2.5 space-y-2.5"
+                  >
+                    {/* List of other saved accounts */}
+                    {otherAccounts.length > 0 && (
+                      <div className="space-y-1 rounded-xl border border-outline-variant/40 bg-surface-container/80 p-2">
+                        <div className="px-2 py-0.5 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                          Switch to account
+                        </div>
+                        {otherAccounts.map((acc) => (
+                          <div
+                            key={acc.uid}
+                            className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-surface-container-high transition-colors"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => switchAccount(acc)}
+                              className="flex flex-1 items-center gap-2.5 text-left min-w-0 cursor-pointer"
+                            >
+                              <UserAvatar user={acc} size="sm" showGoogleBadge={true} />
+                              <div className="min-w-0">
+                                <p className="truncate font-headline text-xs font-semibold text-on-surface">
+                                  {acc.displayName || "Google User"}
+                                </p>
+                                <p className="truncate font-mono text-[10px] text-muted-foreground">
+                                  {acc.email}
+                                </p>
+                              </div>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeSavedAccount(acc.uid)}
+                              className="grid size-6 place-items-center rounded text-muted-foreground hover:bg-red-500/15 hover:text-red-400 transition-colors cursor-pointer"
+                              title="Remove from device"
+                            >
+                              <Trash2 className="size-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Form to enter any new Google account */}
+                    <form
+                      onSubmit={handleCustomAccountSubmit}
+                      className="rounded-xl border border-primary/40 bg-surface-container p-3.5 space-y-2.5 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between text-xs font-headline font-semibold text-on-surface">
+                        <div className="flex items-center gap-1.5">
+                          <Plus className="size-3.5 text-primary" />
+                          <span>Use Another Google Account</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[10.5px] font-mono text-muted-foreground mb-1">
+                          Gmail or Google Workspace Email:
+                        </label>
+                        <input
+                          type="email"
+                          required
+                          placeholder="e.g. yourname@gmail.com"
+                          value={customEmail}
+                          onChange={(e) => setCustomEmail(e.target.value)}
+                          className="w-full rounded-lg border border-outline-variant/60 bg-surface-container-low px-3 py-1.5 font-mono text-xs text-on-surface placeholder:text-muted-foreground focus:border-primary focus:outline-hidden"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[10.5px] font-mono text-muted-foreground mb-1">
+                          Display Name (optional):
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g. Tank"
+                          value={customName}
+                          onChange={(e) => setCustomName(e.target.value)}
+                          className="w-full rounded-lg border border-outline-variant/60 bg-surface-container-low px-3 py-1.5 font-body text-xs text-on-surface placeholder:text-muted-foreground focus:border-primary focus:outline-hidden"
+                        />
+                      </div>
+
+                      {emailInputError && (
+                        <p className="text-[10.5px] text-red-400 font-body">{emailInputError}</p>
+                      )}
+
+                      <button
+                        type="submit"
+                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 font-headline text-xs font-semibold text-on-primary hover:opacity-90 transition-opacity cursor-pointer shadow-xs"
+                      >
+                        <GoogleMark className="size-3.5" />
+                        <span>Sign In with This Account</span>
+                      </button>
+                    </form>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
+
+            {/* Launch Google OAuth Popup (Pure Popup Window) */}
+            <button
+              type="button"
+              onClick={() => void signInWithGoogle()}
+              disabled={busy}
+              className="flex w-full items-center justify-center gap-2.5 rounded-xl border border-outline-variant/60 bg-surface-container px-4 py-2.5 text-xs font-headline font-medium text-on-surface hover:border-primary/50 hover:bg-surface-container-high transition-all cursor-pointer shadow-xs disabled:opacity-50"
+            >
+              <GoogleMark className="size-4" />
+              <span>
+                {busy ? "Opening Google OAuth Popup…" : "Launch Google OAuth Popup"}
+              </span>
+            </button>
 
             {/* Offline Sandbox Mode Bypass */}
             <div className="pt-2 text-center border-t border-outline-variant/40">

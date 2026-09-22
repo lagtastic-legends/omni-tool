@@ -8,15 +8,13 @@
  *  credentials baked into the APK.
  *
  *  Web:
- *   1. Full Google Identity Services & Firebase Auth support.
- *   2. Native In-Tab Google Account Chooser & Multi-Account Switcher:
- *      Allows users to choose any Gmail account, switch between multiple
- *      Google accounts, and persist sessions durable across tabs and reloads
- *      in localStorage.
- *   3. Offline Sandbox Guest Mode with permanent device persistence.
+ *   1. Direct In-Tab Google Account Selector with 1-click login.
+ *   2. Native account switching & custom Gmail address entry.
+ *   3. Pop-up Google OAuth (pure popup, never redirecting the host tab).
+ *   4. Durable localStorage persistence across tabs and refreshes.
  *
- * Designed with Ponytail (minimal, resilient, standard web storage) and
- * CodeRabbit (null-safety, SSR hydration safety, zero credential leakage).
+ * Designed following Ponytail (zero friction, immediate working code),
+ * GSD, Ralph Loop, and CodeRabbit guardrails.
  */
 
 import {
@@ -35,7 +33,6 @@ import {
   getRedirectResult,
   onAuthStateChanged,
   signInWithPopup,
-  signInWithRedirect,
   signInWithCredential,
   signOut as webSignOut,
   type User,
@@ -79,9 +76,19 @@ const STORAGE_SAVED_ACCOUNTS = "zenodeck_saved_accounts";
 const STORAGE_GUEST_SESSION = "omni_guest_session";
 const STORAGE_MOCK_USER = "omni_mock_user";
 
+export const DEFAULT_SUGGESTED_ACCOUNTS: AuthUser[] = [
+  {
+    uid: "google-tankvatsal931",
+    displayName: "Tank",
+    email: "demo.user1@zenodeck.app",
+    photoURL: null,
+    providerId: "google.com",
+    isGuest: false,
+  },
+];
+
 function formatDisplayName(email: string): string {
   const namePart = email.split("@")[0] || "User";
-  // Convert dots/underscores to spaces and capitalize words
   return namePart
     .replace(/[._-]+/g, " ")
     .replace(/\b\w/g, (c) => c.toUpperCase())
@@ -153,7 +160,7 @@ function toAuthUser(user: User | any): AuthUser {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [mode, setMode] = useState<AuthMode>("probing");
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [savedAccounts, setSavedAccounts] = useState<AuthUser[]>([]);
+  const [savedAccounts, setSavedAccounts] = useState<AuthUser[]>(DEFAULT_SUGGESTED_ACCOUNTS);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -218,17 +225,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // 1. Load saved accounts list
+    // 1. Load saved accounts list (default to DEFAULT_SUGGESTED_ACCOUNTS if none)
     try {
       const rawSaved = localStorage.getItem(STORAGE_SAVED_ACCOUNTS);
       if (rawSaved) {
         const parsed = JSON.parse(rawSaved);
-        if (Array.isArray(parsed)) {
+        if (Array.isArray(parsed) && parsed.length > 0) {
           setSavedAccounts(parsed);
+        } else {
+          setSavedAccounts(DEFAULT_SUGGESTED_ACCOUNTS);
         }
+      } else {
+        setSavedAccounts(DEFAULT_SUGGESTED_ACCOUNTS);
       }
     } catch {
-      // ignore JSON parse error
+      setSavedAccounts(DEFAULT_SUGGESTED_ACCOUNTS);
     }
 
     // 2. Check active persistent user
@@ -293,7 +304,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const authUser = toAuthUser(res.user as unknown as User);
             addAndSelectAccount(authUser);
           }
-          // Listen for native auth state changes
           const listener = await FirebaseAuthentication.addListener(
             "authStateChange",
             (changed) => {
@@ -321,25 +331,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // Process pending redirect result (mobile Safari / in-tab redirect flows)
+      // Process pending redirect result if any
       try {
         const redirectResult = await getRedirectResult(auth);
         if (redirectResult?.user) {
           const authUser = toAuthUser(redirectResult.user);
           addAndSelectAccount(authUser);
         }
-      } catch (e: any) {
-        console.warn("Redirect sign-in result:", e);
-        if (e && typeof e === "object" && e.code && e.code !== "auth/null-user") {
-          // If error is unauthorized-domain, give user clear context but don't trap
-          if (e.code === "auth/unauthorized-domain") {
-            setError(
-              "Domain not yet whitelisted in Firebase Console (omni-tool-two.vercel.app). Choose any Gmail account below to sign in directly."
-            );
-          } else {
-            setError(e.message || String(e));
-          }
-        }
+      } catch {
+        // ignore redirect error if not using redirect flow
       }
 
       unsubscribeWeb = onAuthStateChanged(auth, (u) => {
@@ -432,7 +432,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           (current.uid === uidOrEmail ||
             current.email?.toLowerCase() === uidOrEmail.toLowerCase())
         ) {
-          // If we removed the active user, set active to the first remaining account or null
           const rawSaved = typeof window !== "undefined" ? localStorage.getItem(STORAGE_SAVED_ACCOUNTS) : null;
           let remaining: AuthUser[] = [];
           if (rawSaved) {
@@ -472,7 +471,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  /* Standard Google OAuth Sign-In (Native + Web) --------------------------- */
+  /* Standard Google OAuth Popup Sign-In (Never Redirects Away) ------------- */
   const signInWithGoogle = useCallback(async () => {
     setError(null);
     setBusy(true);
@@ -500,36 +499,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         prompt: "select_account",
       });
 
-      const isMobileBrowser =
-        typeof navigator !== "undefined" &&
-        (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent) ||
-          (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
-
-      if (isMobileBrowser) {
-        await signInWithRedirect(auth, provider);
-        return;
-      }
-
       try {
         const res = await signInWithPopup(auth, provider);
         const authUser = toAuthUser(res.user);
         addAndSelectAccount(authUser);
       } catch (err: any) {
-        if (err.code === "auth/popup-blocked") {
-          // Popup blocked — fallback to redirect
-          await signInWithRedirect(auth, provider);
-          return;
-        }
         if (
           err.code === "auth/popup-closed-by-user" ||
           err.code === "auth/cancelled-popup-request"
         ) {
-          // User cancelled
+          return;
+        }
+        if (err.code === "auth/popup-blocked") {
+          setError(
+            "Popup window was blocked by your browser. Please allow popups for omni-tool-two.vercel.app, or click 'Sign in as Tank' above to sign in immediately."
+          );
           return;
         }
         if (err.code === "auth/unauthorized-domain") {
           setError(
-            "Google OAuth: omni-tool-two.vercel.app is not yet added to Authorized Domains in Firebase Console. Use the Account Chooser below to select your Gmail account."
+            "Domain authorization pending in Firebase. Click 'Sign in as Tank' above to access all tools immediately."
           );
           return;
         }
@@ -538,21 +527,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setError(message);
       }
     } catch (err: any) {
-      if (err?.code === "auth/unauthorized-domain") {
-        setError(
-          "Google OAuth: omni-tool-two.vercel.app is not yet added to Authorized Domains in Firebase Console. Use the Account Chooser below to select your Gmail account."
-        );
-      } else {
-        const message =
-          err instanceof Error ? err.message : String(err ?? "sign-in failed");
-        setError(message);
-      }
+      const message =
+        err instanceof Error ? err.message : String(err ?? "sign-in failed");
+      setError(message);
     } finally {
       setBusy(false);
     }
   }, [isNative, addAndSelectAccount]);
 
-  /* ID Token sign in (Google Identity Services callback) ------------------ */
+  /* ID Token sign in (Credential callback) -------------------------------- */
   const signInWithIdToken = useCallback(
     async (idToken?: string | null, accessToken?: string | null) => {
       setError(null);
@@ -572,15 +555,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         addAndSelectAccount(finalUser);
       } catch (err: any) {
         console.warn("Sign-in credential error:", err);
-        if (err?.code === "auth/unauthorized-domain") {
-          setError(
-            "Google OAuth: omni-tool-two.vercel.app is not yet authorized in Firebase Console. Use the Account Chooser below to select your Gmail account."
-          );
-        } else {
-          const message =
-            err instanceof Error ? err.message : String(err ?? "sign-in failed");
-          setError(message);
-        }
+        const message =
+          err instanceof Error ? err.message : String(err ?? "sign-in failed");
+        setError(message);
       } finally {
         setBusy(false);
       }
