@@ -3,7 +3,7 @@
  * Ensures offline app shell availability & PWA installability.
  */
 
-const CACHE_NAME = "zenodeck-v3.1.0";
+const CACHE_NAME = "zenodeck-v3.1.1";
 const PRECACHE_ASSETS = [
   "/",
   "/manifest.webmanifest",

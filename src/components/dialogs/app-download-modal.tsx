@@ -75,7 +75,7 @@ export function AppDownloadModal() {
                   Get ZenoDeck
                 </h3>
                 <p className="font-mono text-xs text-muted-foreground">
-                  v3.1.0 · Web, Android APK & PWA
+                  v3.1.1 · Web, Android APK & PWA
                 </p>
               </div>
             </div>

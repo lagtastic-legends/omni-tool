@@ -44,10 +44,10 @@ jobs:
       - name: Make Gradlew Executable
         run: chmod +x android/gradlew
 
-      - name: Build Signed Android Release APK
+      - name: Build Signed Android Release APK and Bundle
         run: |
           cd android
-          ./gradlew assembleRelease --no-daemon
+          ./gradlew assembleRelease bundleRelease --no-daemon
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
 
@@ -55,8 +55,11 @@ jobs:
         run: |
           mkdir -p dist
           cp android/app/build/outputs/apk/release/app-release.apk dist/ZenoDeck-${{ github.ref_name }}-release.apk
+          cp android/app/build/outputs/bundle/release/app-release.aab dist/ZenoDeck-${{ github.ref_name }}-release.aab
           if [ -f "RELEASE_NOTES_${{ github.ref_name }}.md" ]; then
             cp "RELEASE_NOTES_${{ github.ref_name }}.md" dist/RELEASE_NOTES.md
+          elif [ -f "RELEASE_NOTES_v3.1.1.md" ]; then
+            cp "RELEASE_NOTES_v3.1.1.md" dist/RELEASE_NOTES.md
           elif [ -f "RELEASE_NOTES_v3.1.0.md" ]; then
             cp "RELEASE_NOTES_v3.1.0.md" dist/RELEASE_NOTES.md
           else
@@ -72,5 +75,6 @@ jobs:
           prerelease: false
           files: |
             dist/ZenoDeck-${{ github.ref_name }}-release.apk
+            dist/ZenoDeck-${{ github.ref_name }}-release.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
