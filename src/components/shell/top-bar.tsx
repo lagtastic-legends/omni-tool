@@ -158,7 +158,7 @@ export function TopBar() {
             <button
               type="button"
               onClick={() => navigate("auth-gateway")}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/40 bg-primary/10 text-primary font-headline text-xs font-semibold hover:bg-primary hover:text-on-primary transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-primary/40 bg-primary/10 text-primary font-display text-xs font-semibold hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer"
             >
               <span>Sign In</span>
             </button>

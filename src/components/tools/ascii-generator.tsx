@@ -185,7 +185,7 @@ export function AsciiGenerator() {
           onClick={() => setActiveTab("generator")}
           className={cn(
             "flex items-center gap-2 rounded-xl px-4 py-2 font-headline text-sm font-semibold tracking-wide transition-colors",
-            activeTab === "generator" ? "bg-primary text-on-primary" : "text-on-surface hover:bg-surface-container"
+            activeTab === "generator" ? "bg-primary text-primary-foreground" : "text-on-surface hover:bg-surface-container"
           )}
         >
           <ImageIcon className="size-4" /> GENERATOR
@@ -197,7 +197,7 @@ export function AsciiGenerator() {
           }}
           className={cn(
             "flex items-center gap-2 rounded-xl px-4 py-2 font-headline text-sm font-semibold tracking-wide transition-colors",
-            activeTab === "archive" ? "bg-primary text-on-primary" : "text-on-surface hover:bg-surface-container"
+            activeTab === "archive" ? "bg-primary text-primary-foreground" : "text-on-surface hover:bg-surface-container"
           )}
         >
           <Library className="size-4" /> ARCHIVE
@@ -225,7 +225,7 @@ export function AsciiGenerator() {
                 />
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 font-headline text-sm font-semibold tracking-wide text-on-primary transition-transform hover:scale-[1.02]"
+                  className="flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 font-headline text-sm font-semibold tracking-wide text-primary-foreground transition-transform hover:scale-[1.02]"
                 >
                   <Upload className="size-4" /> UPLOAD IMAGE
                 </button>

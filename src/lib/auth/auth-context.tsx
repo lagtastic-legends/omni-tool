@@ -33,6 +33,7 @@ import {
   getRedirectResult,
   onAuthStateChanged,
   signInWithPopup,
+  signInWithRedirect,
   signInWithCredential,
   signOut as webSignOut,
   type User,
@@ -41,6 +42,7 @@ import {
   getFirebaseAuth,
   loadFirebaseConfig,
 } from "@/lib/auth/firebase";
+import { useNavStore } from "@/lib/navigation/nav-store";
 
 export type AuthMode = "probing" | "unconfigured" | "configured";
 
@@ -61,6 +63,7 @@ export interface AuthContextValue {
   error: string | null;
   isNative: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithGoogleRedirect: () => Promise<void>;
   signInWithIdToken: (idToken?: string | null, accessToken?: string | null) => Promise<void>;
   signInWithGoogleEmail: (email: string, displayName?: string) => void;
   switchAccount: (account: AuthUser) => void;
@@ -76,16 +79,7 @@ const STORAGE_SAVED_ACCOUNTS = "zenodeck_saved_accounts";
 const STORAGE_GUEST_SESSION = "omni_guest_session";
 const STORAGE_MOCK_USER = "omni_mock_user";
 
-export const DEFAULT_SUGGESTED_ACCOUNTS: AuthUser[] = [
-  {
-    uid: "google-tankvatsal931",
-    displayName: "Tank",
-    email: "demo.user1@zenodeck.app",
-    photoURL: null,
-    providerId: "google.com",
-    isGuest: false,
-  },
-];
+export const DEFAULT_SUGGESTED_ACCOUNTS: AuthUser[] = [];
 
 function formatDisplayName(email: string): string {
   const namePart = email.split("@")[0] || "User";
@@ -217,6 +211,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         return next;
       });
+
+      // Auto-navigate from auth-gateway to dashboard upon successful login
+      if (typeof window !== "undefined") {
+        try {
+          const navStore = useNavStore.getState();
+          if (navStore.view === "auth-gateway") {
+            navStore.navigate("dashboard");
+          }
+        } catch {}
+      }
     },
     [persistActiveUser]
   );
@@ -225,21 +229,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // 1. Load saved accounts list (default to DEFAULT_SUGGESTED_ACCOUNTS if none)
+    // 1. Load saved accounts list (default to [] if none)
     try {
       const rawSaved = localStorage.getItem(STORAGE_SAVED_ACCOUNTS);
       if (rawSaved) {
         const parsed = JSON.parse(rawSaved);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           setSavedAccounts(parsed);
         } else {
-          setSavedAccounts(DEFAULT_SUGGESTED_ACCOUNTS);
+          setSavedAccounts([]);
         }
       } else {
-        setSavedAccounts(DEFAULT_SUGGESTED_ACCOUNTS);
+        setSavedAccounts([]);
       }
     } catch {
-      setSavedAccounts(DEFAULT_SUGGESTED_ACCOUNTS);
+      setSavedAccounts([]);
     }
 
     // 2. Check active persistent user
@@ -469,6 +473,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       providerId: "guest.local",
       isGuest: true,
     });
+
+    if (typeof window !== "undefined") {
+      try {
+        const navStore = useNavStore.getState();
+        if (navStore.view === "auth-gateway") {
+          navStore.navigate("dashboard");
+        }
+      } catch {}
+    }
   }, []);
 
   /* Standard Google OAuth Popup Sign-In (Never Redirects Away) ------------- */
@@ -477,10 +490,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setBusy(true);
     try {
       if (isNative) {
-        const result = await FirebaseAuthentication.signInWithGoogle({
-          useCredentialManager: false,
-        });
-        const u = result.user;
+        let u: any = null;
+        try {
+          const result = await FirebaseAuthentication.signInWithGoogle({
+            useCredentialManager: true,
+          });
+          u = result.user;
+        } catch (credErr) {
+          console.warn("Credential Manager sign-in failed, trying fallback:", credErr);
+          const fallbackResult = await FirebaseAuthentication.signInWithGoogle({
+            useCredentialManager: false,
+          });
+          u = fallbackResult.user;
+        }
+
         if (u) {
           const authUser = toAuthUser(u as unknown as User);
           addAndSelectAccount(authUser);
@@ -512,13 +535,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         if (err.code === "auth/popup-blocked") {
           setError(
-            "Popup window was blocked by your browser. Please allow popups for omni-tool-two.vercel.app, or click 'Sign in as Tank' above to sign in immediately."
+            "Popup window was blocked by your browser. You can enter your Gmail directly below for instant in-tab sign-in, or use Full-Page Google Sign-In."
           );
           return;
         }
         if (err.code === "auth/unauthorized-domain") {
           setError(
-            "Domain authorization pending in Firebase. Click 'Sign in as Tank' above to access all tools immediately."
+            "Domain authorization pending in Firebase. You can enter your Gmail directly below to sign in immediately."
           );
           return;
         }
@@ -534,6 +557,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setBusy(false);
     }
   }, [isNative, addAndSelectAccount]);
+
+  /* Full-Page Google Redirect Sign-In (Bypasses Popup Blockers) ------------ */
+  const signInWithGoogleRedirect = useCallback(async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      const auth = getFirebaseAuth();
+      if (!auth) {
+        setError("Firebase is not configured on this deployment.");
+        return;
+      }
+
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: "select_account",
+      });
+      await signInWithRedirect(auth, provider);
+    } catch (err: any) {
+      if (err.code === "auth/unauthorized-domain") {
+        setError(
+          "Domain authorization pending in Firebase. You can enter your Gmail directly below to sign in immediately."
+        );
+        return;
+      }
+      const message =
+        err instanceof Error ? err.message : String(err ?? "sign-in failed");
+      setError(message);
+    } finally {
+      setBusy(false);
+    }
+  }, []);
 
   /* ID Token sign in (Credential callback) -------------------------------- */
   const signInWithIdToken = useCallback(
@@ -603,6 +657,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       error,
       isNative,
       signInWithGoogle,
+      signInWithGoogleRedirect,
       signInWithIdToken,
       signInWithGoogleEmail,
       switchAccount,
@@ -618,6 +673,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       error,
       isNative,
       signInWithGoogle,
+      signInWithGoogleRedirect,
       signInWithIdToken,
       signInWithGoogleEmail,
       switchAccount,
