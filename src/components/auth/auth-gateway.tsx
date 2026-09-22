@@ -16,7 +16,6 @@ import {
   ArrowRight,
   ExternalLink,
   Fingerprint,
-  KeyRound,
   LogOut,
   Plus,
   ShieldCheck,
@@ -423,25 +422,6 @@ export function AuthGateway() {
               <span className="text-muted-foreground">Data Privacy</span>
               <span className="text-emerald-400 font-semibold">Zero-Egress WASM Sandbox</span>
             </div>
-          </div>
-
-          {/* Maintainer Whitelisting Guide */}
-          <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 p-4 space-y-2 text-xs font-mono text-muted-foreground leading-relaxed">
-            <p className="font-semibold text-amber-200 flex items-center gap-1.5">
-              <KeyRound className="size-3.5 text-amber-300" />
-              Maintainer: Authorize Custom Domains
-            </p>
-            <p className="text-[11px] text-amber-200/80">
-              To allow hardware-level Google OAuth popup flows on this domain:
-            </p>
-            <ol className="list-decimal list-inside space-y-1 text-[10.5px] text-zinc-300">
-              <li>
-                Add <code className="bg-black/40 px-1 py-0.5 rounded text-white">https://omni-tool-two.vercel.app</code> to Google Cloud Console &rarr; OAuth 2.0 Client IDs &rarr; Web Client &rarr; <strong>Authorized JavaScript origins</strong>.
-              </li>
-              <li>
-                Add <code className="bg-black/40 px-1 py-0.5 rounded text-white">omni-tool-two.vercel.app</code> to Firebase Console &rarr; Authentication &rarr; Settings &rarr; <strong>Authorized domains</strong>.
-              </li>
-            </ol>
           </div>
         </div>
       </div>
