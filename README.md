@@ -10,13 +10,13 @@
 
 <p align="center">
   <a href="https://github.com/lagtastic-legends/zenodeck/releases">
-    <img src="https://img.shields.io/badge/Release-v3.1.0-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.1.0" />
+    <img src="https://img.shields.io/badge/Release-v3.2.0-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.2.0" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.1.0/ZenoDeck-v3.1.0-release.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-v3.1.0%20Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
+  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.2.0/ZenoDeck-v3.2.0-release.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-v3.2.0%20Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
   </a>
   <a href="https://omni-tool-two.vercel.app/api/ios-profile">
     <img src="https://img.shields.io/badge/iOS%20Profile-Install%20on%20iPhone-000000?style=for-the-badge&logo=apple&logoColor=white" alt="iOS Profile Download" />
@@ -42,9 +42,35 @@ Unlike traditional cloud converters and SaaS editing tools that upload your sens
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web Application** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero installation required. Instant launch in any modern browser. |
-| **📱 Android APK (Signed Production v3.1.0)** | [**Download ZenoDeck-v3.1.0-release.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.1.0/ZenoDeck-v3.1.0-release.apk) | Production signed APK optimized for all phones (slabs, flips, foldables) and tablets. |
+| **📱 Android APK (Signed Production v3.2.0)** | [**Download ZenoDeck-v3.2.0-release.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.2.0/ZenoDeck-v3.2.0-release.apk) | Production signed APK optimized for all phones (slabs, flips, foldables) and tablets. |
 | **🍏 Apple iOS Profile (iPhone & iPad)** | [**Download zenodeck.mobileconfig**](https://omni-tool-two.vercel.app/api/ios-profile) | Apple Web Clip Configuration Profile. Installs ZenoDeck to Home Screen in full-screen standalone mode. |
-| **📦 GitHub Releases & Source** | [**GitHub Releases Hub**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.1.0) | Complete release packages, checksums, changelogs, and release assets. |
+| **📦 GitHub Releases & Source** | [**GitHub Releases Hub**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.2.0) | Complete release packages, checksums, changelogs, and release assets. |
+
+---
+
+## 🌟 What's New in v3.2.0 — Enterprise Login & Universal Phone Auth
+
+### 🔐 1. Enterprise-Grade Multi-Tier Google Authentication
+* **UnifiedLoginCard**: New shared authentication component used across both `AuthGuard` (security gate) and `AuthGateway` (identity center), eliminating ~400 lines of duplicated login code.
+* **Multi-Tier Auth Resilience**:
+  * **Tier 1**: Google OAuth Popup with `prompt: "select_account"` (instant account chooser)
+  * **Tier 2**: Full-Page `signInWithRedirect` fallback (bypasses popup blockers and 3rd-party cookie policies)
+  * **Tier 3**: Direct in-tab Gmail entry form (immune to all browser restrictions)
+  * **Tier 4**: Android Credential Manager with automatic fallback to legacy Google Sign-In
+  * **Tier 5**: Guest Sandbox bypass (100% offline, zero registration)
+* **Zero Hardcoded Accounts**: Removed all mock/demo users. Only real accounts from actual device usage are persisted in `localStorage`.
+* **Auto-Navigate on Login**: `addAndSelectAccount`, `switchAccount`, and `continueAsGuest` now automatically navigate from `auth-gateway` to `dashboard` — no more stuck login page.
+
+### 📱 2. Universal Phone Ergonomics (All Form Factors)
+* **44px+ Touch Targets**: Every button, input, and interactive element meets Apple HIG / Material 3 minimum touch target guidelines.
+* **iOS Safari Zoom Prevention**: All mobile inputs use `text-base` (16px) font size, preventing the unsolicited viewport zoom that plagues most mobile web apps.
+* **Flip Phone Flex Mode**: `max-h-[calc(100dvh-4rem)]` with `overflow-y-auto overscroll-contain` ensures the login card scrolls gracefully in 90° flex mode instead of clipping.
+* **Proper Mobile Keyboards**: `inputMode="email"` + `autoComplete="email"` on email fields surfaces the correct keyboard on Android/iOS.
+* **Dismissible Error Banners**: Error alerts now include an `X` close button so they don't permanently block the UI.
+* **Always-Visible Redirect Link**: "Having popup issues? Use Full-Page Sign-In" link is always visible below the Google button.
+
+### 🧹 3. Tailwind Token Cleanup
+* Replaced all legacy `text-on-primary` → `text-primary-foreground` and `font-headline` → `font-display` across `top-bar.tsx` and `ascii-generator.tsx`.
 
 ---
 
@@ -180,7 +206,7 @@ Unlike traditional cloud converters and SaaS editing tools that upload your sens
 
 ```text
   ┌─────────────────────────────────────────────────────────────────────────────┐
-  │                           ZENODECK v3.1.0 RUNTIME                           │
+  │                           ZENODECK v3.2.0 RUNTIME                           │
   │                                                                             │
   │   Next.js 16 (App Router) + Tailwind CSS 4 + Radix UI Primitives            │
   │   Framer Motion (120Hz Critical-Damping Physics & Neon Blade Slash)         │
