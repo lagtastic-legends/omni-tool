@@ -48,12 +48,12 @@ const VIDEO_FORMAT_NOTES: Record<VideoFormat, string> = {
 };
 
 const AUDIO_FORMAT_NOTES: Record<AudioFormat, string> = {
-  mp3: "Lossy · universal",
-  wav: "Lossless PCM · large",
-  m4a: "AAC lossy · Apple-friendly",
-  flac: "Lossless compressed",
-  ogg: "Vorbis lossy · open",
-  original: "Lossless stream copy · fastest",
+  mp3: "Broadcast quality MP3 · stereo vocal sync · 44.1kHz · universal",
+  wav: "Studio lossless PCM 16-bit · 44.1kHz · uncompressed",
+  m4a: "High-efficiency AAC · Apple & mobile native",
+  flac: "Lossless compressed audio · bit-perfect fidelity",
+  ogg: "Vorbis open-source lossy audio",
+  original: "Direct stream copy without re-encoding",
 };
 
 function buildVideoArgs(
@@ -116,20 +116,88 @@ function buildAudioArgs(
   output: string,
   format: AudioFormat,
   audioKbps: number,
+  trim?: { start: number; end: number } | null,
 ): string[] {
+  const trimArgs: string[] = [];
+  if (trim && trim.end > trim.start && (trim.start > 0 || trim.end > 0)) {
+    if (trim.start > 0) trimArgs.push("-ss", trim.start.toFixed(2));
+    if (trim.end > 0) trimArgs.push("-to", trim.end.toFixed(2));
+  }
+
+  // Audio filter for pristine voice clarity and zero glitching:
+  // 1. aresample=async=1000: Synchronizes audio PTS timestamps to eliminate audio packet jitter, clicks, and robotic voice stutter.
+  // 2. aformat=channel_layouts=stereo: Downmixes multi-channel (5.1/7.1) cleanly to stereo, preserving center vocal clarity.
+  // 3. alimiter=limit=0.98: Prevents digital inter-sample peak clipping on loud vocal passages.
+  const syncFilter = "aresample=async=1000,aformat=channel_layouts=stereo,alimiter=limit=0.98";
+
   switch (format) {
     case "mp3":
-      return ["-i", input, "-vn", "-c:a", "libmp3lame", "-b:a", `${audioKbps}k`, output];
+      return [
+        ...trimArgs,
+        "-i", input,
+        "-vn",
+        "-af", syncFilter,
+        "-c:a", "libmp3lame",
+        "-b:a", `${audioKbps}k`,
+        "-ar", "44100",
+        "-ac", "2",
+        output,
+      ];
     case "wav":
-      return ["-i", input, "-vn", "-c:a", "pcm_s16le", output];
+      return [
+        ...trimArgs,
+        "-i", input,
+        "-vn",
+        "-af", "aresample=async=1000,aformat=channel_layouts=stereo",
+        "-c:a", "pcm_s16le",
+        "-ar", "44100",
+        "-ac", "2",
+        output,
+      ];
     case "m4a":
-      return ["-i", input, "-vn", "-c:a", "aac", "-b:a", `${audioKbps}k`, output];
+      return [
+        ...trimArgs,
+        "-i", input,
+        "-vn",
+        "-af", syncFilter,
+        "-c:a", "aac",
+        "-b:a", `${audioKbps}k`,
+        "-ar", "44100",
+        "-ac", "2",
+        output,
+      ];
     case "flac":
-      return ["-i", input, "-vn", "-c:a", "flac", "-compression_level", "5", output];
+      return [
+        ...trimArgs,
+        "-i", input,
+        "-vn",
+        "-af", "aresample=async=1000,aformat=channel_layouts=stereo",
+        "-c:a", "flac",
+        "-compression_level", "5",
+        "-ar", "44100",
+        "-ac", "2",
+        output,
+      ];
     case "ogg":
-      return ["-i", input, "-vn", "-c:a", "libvorbis", "-q:a", "5", output];
+      return [
+        ...trimArgs,
+        "-i", input,
+        "-vn",
+        "-af", syncFilter,
+        "-c:a", "libvorbis",
+        "-q:a", "6",
+        "-ar", "44100",
+        "-ac", "2",
+        output,
+      ];
     case "original":
-      return ["-i", input, "-vn", "-c:a", "copy", output];
+      return [
+        ...trimArgs,
+        "-i", input,
+        "-vn",
+        "-c:a", "copy",
+        output,
+      ];
   }
 }
 
@@ -142,7 +210,7 @@ export function MediaConverter() {
   const [videoFormat, setVideoFormat] = useState<VideoFormat>("mp4");
   const [audioFormat, setAudioFormat] = useState<AudioFormat>("mp3");
   const [quality, setQuality] = useState<Quality>("balanced");
-  const [audioKbps, setAudioKbps] = useState("192");
+  const [audioKbps, setAudioKbps] = useState("256");
   const [customName, setCustomName] = useState<string>("");
   const [videoDuration, setVideoDuration] = useState<number>(0);
   const [currentTime, setCurrentTime] = useState<number>(0);
@@ -190,7 +258,7 @@ export function MediaConverter() {
     const args =
       mode === "video"
         ? buildVideoArgs(virtualInputPath, outputPath, videoFormat, quality, kbps, trimRange)
-        : buildAudioArgs(virtualInputPath, outputPath, audioFormat, kbps);
+        : buildAudioArgs(virtualInputPath, outputPath, audioFormat, kbps, trimRange);
 
     await run({
       inputFiles: [{ file, name: `input.${srcExt}`, mountPoint: "/mnt_0" }],
@@ -255,7 +323,7 @@ export function MediaConverter() {
           disabled={busy}
         />
 
-        {file && mode === "video" && videoDuration > 0 && (
+        {file && videoDuration > 0 && (
           <VideoTimelineTrimmer
             duration={videoDuration}
             currentTime={currentTime}
@@ -353,9 +421,9 @@ export function MediaConverter() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {["96", "128", "192", "256"].map((k) => (
+                  {["128", "192", "256", "320"].map((k) => (
                     <SelectItem key={k} value={k} className="font-mono">
-                      {k} kbps
+                      {k} kbps {k === "320" ? "· Studio" : k === "256" ? "· High" : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>

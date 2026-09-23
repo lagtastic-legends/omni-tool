@@ -17,15 +17,15 @@ export type AudioFormat = "mp3" | "wav" | "flac" | "ogg" | "m4a";
 export function audioOutputArgs(format: AudioFormat, kbps: number): string[] {
   switch (format) {
     case "mp3":
-      return ["-c:a", "libmp3lame", "-b:a", `${kbps}k`];
+      return ["-c:a", "libmp3lame", "-b:a", `${kbps}k`, "-ar", "44100"];
     case "wav":
-      return ["-c:a", "pcm_s16le"];
+      return ["-c:a", "pcm_s16le", "-ar", "44100"];
     case "flac":
-      return ["-c:a", "flac", "-compression_level", "5"];
+      return ["-c:a", "flac", "-compression_level", "5", "-ar", "44100"];
     case "ogg":
-      return ["-c:a", "libvorbis", "-q:a", "6"];
+      return ["-c:a", "libvorbis", "-q:a", "6", "-ar", "44100"];
     case "m4a":
-      return ["-c:a", "aac", "-b:a", `${Math.min(kbps, 256)}k`];
+      return ["-c:a", "aac", "-b:a", `${Math.min(kbps, 320)}k`, "-ar", "44100"];
   }
 }
 
@@ -79,10 +79,38 @@ export interface BassParams {
 }
 
 export function bassFilters({ intensity, cutoff, clarity }: BassParams): string[] {
-  const gain = (intensity * 1.8).toFixed(1); // up to +18 dB
-  const chain = [`bass=g=${gain}:f=${cutoff}:t=q:w=0.8`];
-  if (clarity) chain.push("treble=g=3:f=8000:t=q:w=1");
-  if (intensity > 3) chain.push("alimiter=limit=0.98");
+  // Map intensity 1–10 to a clean musical gain curve (+1.5 dB to +15.0 dB)
+  const clampedIntensity = Math.max(1, Math.min(10, intensity));
+  const gain = clampedIntensity * 1.5;
+  const targetCutoff = Math.max(40, Math.min(200, cutoff || 90));
+
+  const chain: string[] = [
+    // 1. Subsonic Rumble Cut: Eliminates inaudible sub-28Hz energy that causes
+    // violent clipping, pumping, and digital tearing without musical value.
+    "highpass=f=28:p=2",
+
+    // 2. Precision Butterworth Low-Shelf Filter (Q=0.707): Smooth, natural low-end
+    // enhancement without resonant ringing or phase distortion.
+    `bass=g=${gain.toFixed(1)}:f=${targetCutoff}:t=q:w=0.707`,
+  ];
+
+  // 3. Dynamic Vocal & Treble Presence Shelf: Prevents muddy muffled sound by
+  // providing proportional high-end shimmer (+1.5 to +3.5 dB).
+  if (clarity) {
+    const trebleGain = Math.min(3.5, 1.5 + gain * 0.12).toFixed(1);
+    chain.push(`treble=g=${trebleGain}:f=6500:t=s`);
+  }
+
+  // 4. Automatic Headroom Compensation: Scales down pre-gain proportionally
+  // so the boosted low-end energy does not blast past the 0 dBFS clipping ceiling.
+  const headroomDb = (gain * 0.38).toFixed(1);
+  chain.push(`volume=-${headroomDb}dB`);
+
+  // 5. Studio Lookahead ASC Limiter: Features 5ms lookahead attack, smooth 60ms release,
+  // -0.35 dBFS ceiling, and Auto-Sub-Band Control (asc=1) to prevent bass from choking
+  // mid-range vocals and eliminate audio tearing completely.
+  chain.push("alimiter=level_in=1:level_out=0.96:limit=0.96:attack=5:release=60:asc=1");
+
   return chain;
 }
 

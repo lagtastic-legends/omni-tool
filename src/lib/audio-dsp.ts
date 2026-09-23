@@ -28,15 +28,15 @@ export type AudioFormat = "mp3" | "wav" | "flac" | "ogg" | "m4a";
 export function audioOutputArgs(format: AudioFormat, kbps: number): string[] {
   switch (format) {
     case "mp3":
-      return ["-c:a", "libmp3lame", "-b:a", `${kbps}k`];
+      return ["-c:a", "libmp3lame", "-b:a", `${kbps}k`, "-ar", "44100"];
     case "wav":
-      return ["-c:a", "pcm_s16le"];
+      return ["-c:a", "pcm_s16le", "-ar", "44100"];
     case "flac":
-      return ["-c:a", "flac", "-compression_level", "5"];
+      return ["-c:a", "flac", "-compression_level", "5", "-ar", "44100"];
     case "ogg":
-      return ["-c:a", "libvorbis", "-q:a", "6"];
+      return ["-c:a", "libvorbis", "-q:a", "6", "-ar", "44100"];
     case "m4a":
-      return ["-c:a", "aac", "-b:a", `${Math.min(kbps, 256)}k`];
+      return ["-c:a", "aac", "-b:a", `${Math.min(kbps, 320)}k`, "-ar", "44100"];
   }
 }
 
@@ -150,24 +150,29 @@ export const BASS_BOOST_TIERS: Record<
   BassTier,
   { name: string; gain: number; defaultCutoff: number; desc: string }
 > = {
-  1: { name: "Subtle Warmth", gain: 3, defaultCutoff: 110, desc: "+3 dB progressive warmth" },
-  2: { name: "Punchy Drive", gain: 6, defaultCutoff: 100, desc: "+6 dB defined punch & kick" },
-  3: { name: "Deep Club", gain: 10, defaultCutoff: 90, desc: "+10 dB heavy sub-bass drive" },
-  4: { name: "Extreme Sub", gain: 14, defaultCutoff: 80, desc: "+14 dB high-energy acoustic boom" },
-  5: { name: "Earthquake", gain: 18, defaultCutoff: 70, desc: "+18 dB maximum low-frequency saturation" },
+  1: { name: "Audiophile Warmth", gain: 3.5, defaultCutoff: 110, desc: "+3.5 dB subtle analog warmth · zero distortion" },
+  2: { name: "Punchy Kick", gain: 6.0, defaultCutoff: 95, desc: "+6.0 dB defined punch & kick transient attack" },
+  3: { name: "Deep Club", gain: 9.0, defaultCutoff: 80, desc: "+9.0 dB room-filling sub-bass & chest drive" },
+  4: { name: "Heavy Sub (808)", gain: 12.0, defaultCutoff: 65, desc: "+12.0 dB high-energy acoustic boom & 808 pressure" },
+  5: { name: "Earthquake Max", gain: 15.0, defaultCutoff: 55, desc: "+15.0 dB maximum sub saturation with anti-tear ASC limiting" },
 };
 
 export function buildBassFilter(p: BassBoosterParams): string[] {
   const tierConfig = BASS_BOOST_TIERS[p.tier] || BASS_BOOST_TIERS[3];
   const gain = typeof p.customGainDb === "number" ? p.customGainDb : tierConfig.gain;
   const cutoff = p.cutoff || tierConfig.defaultCutoff;
-  const chain = [`bass=g=${gain.toFixed(1)}:f=${cutoff}:t=q:w=0.8`];
+
+  const chain = [
+    "highpass=f=28:p=2",
+    `bass=g=${gain.toFixed(1)}:f=${cutoff}:t=q:w=0.707`,
+  ];
   if (p.clarity) {
-    chain.push("treble=g=3:f=8000:t=q:w=1");
+    const trebleGain = Math.min(3.5, 1.5 + gain * 0.12).toFixed(1);
+    chain.push(`treble=g=${trebleGain}:f=6500:t=s`);
   }
-  if (gain > 6) {
-    chain.push("alimiter=limit=0.98");
-  }
+  const headroomDb = (gain * 0.38).toFixed(1);
+  chain.push(`volume=-${headroomDb}dB`);
+  chain.push("alimiter=level_in=1:level_out=0.96:limit=0.96:attack=5:release=60:asc=1");
   return chain;
 }
 

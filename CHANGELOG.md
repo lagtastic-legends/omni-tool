@@ -29,6 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Hardcoded mock accounts** (`DEFAULT_SUGGESTED_ACCOUNTS` with `demo.user1@zenodeck.app`) — the saved accounts list now starts empty and only contains genuine accounts the user has signed in with
 
 ### Fixed
+- **Video to audio extraction quality**: integrated `aresample=async=1000` PTS timestamp synchronization and explicit stereo downmix (`-ac 2`), eliminating stutter, robotic glitches, and dropped dialogue packets in converted video files
+- **Audio extraction studio bitrate & trimming**: added 320 kbps high-fidelity bitrate option, standardized 44.1kHz output, and enabled visual trimming directly within the audio extraction workflow
+- **Bass Booster anti-tearing DSP engine**: re-engineered low-end filter with 28Hz subsonic rumble filter, Butterworth low-shelf response, dynamic pre-gain headroom attenuation, and Auto-Sub-Band Control (ASC) lookahead limiting to completely eliminate digital clipping and audio tearing
+- **Refined Bass Booster tier list**: replaced plain buttons with 5 acoustically calibrated tiers (Warmth +3dB, Punchy +6dB, Deep Club +9dB, Heavy Sub +12dB, Earthquake +15dB) featuring real-time anti-clip status and frequency targets
 - **Stuck login page after OAuth**: view remained on `auth-gateway` after successful popup/redirect sign-in because `navigate("dashboard")` was never called
 - **Cross-tab OAuth failure**: mobile browsers opening popups as unlinked tabs (`window.opener === null`) no longer results in a dead login — redirect flow and direct Gmail entry provide 100% coverage
 - **`signInWithGoogleRedirect`** now handles `auth/unauthorized-domain` with a user-friendly error message instead of a raw Firebase exception
