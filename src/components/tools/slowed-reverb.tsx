@@ -48,6 +48,7 @@ export function SlowedReverb() {
         // Deep cathedral wash: multi-tap spatial bloom with progressive decay
         filters.push("aecho=0.80:0.8:20|28|36|48:0.34|0.26|0.20|0.14,highpass=f=50,treble=g=-3:f=5000");
       }
+      filters.push("alimiter=limit=0.98");
     }
 
     await run({

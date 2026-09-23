@@ -599,7 +599,7 @@ export function StudioRecorder() {
                     </div>
                     <button
                       type="button"
-                      onClick={() => useNavStore.getState().navigateTo("editor")}
+                      onClick={() => useNavStore.getState().navigate("editor")}
                       className="inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-mono underline pt-0.5"
                     >
                       Import recording into Video Editor <ArrowRight className="size-3" />
@@ -632,7 +632,7 @@ export function StudioRecorder() {
                         <select 
                           value={screenQuality}
                           onChange={(e) => setScreenQuality(e.target.value as "720p" | "1080p" | "4k")}
-                          className="bg-surface-container-low border border-outline-variant rounded-md text-[11px] font-mono p-1 text-on-surface focus:outline-none"
+                          className="bg-secondary/70 border border-border rounded-md text-[11px] font-mono p-1 text-foreground focus:outline-none"
                         >
                           <option value="720p">720p (HD)</option>
                           <option value="1080p">1080p (FHD)</option>
@@ -641,7 +641,7 @@ export function StudioRecorder() {
                         <select 
                           value={screenFps}
                           onChange={(e) => setScreenFps(Number(e.target.value) as 30 | 60)}
-                          className="bg-surface-container-low border border-outline-variant rounded-md text-[11px] font-mono p-1 text-on-surface focus:outline-none"
+                          className="bg-secondary/70 border border-border rounded-md text-[11px] font-mono p-1 text-foreground focus:outline-none"
                         >
                           <option value={30}>30 FPS</option>
                           <option value={60}>60 FPS</option>
@@ -674,7 +674,7 @@ export function StudioRecorder() {
                         <select 
                           value={screenQuality}
                           onChange={(e) => setScreenQuality(e.target.value as "720p" | "1080p" | "4k")}
-                          className="bg-surface-container-low border border-outline-variant rounded-md text-[11px] font-mono p-1 text-on-surface focus:outline-none"
+                          className="bg-secondary/70 border border-border rounded-md text-[11px] font-mono p-1 text-foreground focus:outline-none"
                         >
                           <option value="720p">720p (HD)</option>
                           <option value="1080p">1080p (FHD)</option>
@@ -683,7 +683,7 @@ export function StudioRecorder() {
                         <select 
                           value={screenFps}
                           onChange={(e) => setScreenFps(Number(e.target.value) as 30 | 60)}
-                          className="bg-surface-container-low border border-outline-variant rounded-md text-[11px] font-mono p-1 text-on-surface focus:outline-none"
+                          className="bg-secondary/70 border border-border rounded-md text-[11px] font-mono p-1 text-foreground focus:outline-none"
                         >
                           <option value={30}>30 FPS</option>
                           <option value={60}>60 FPS</option>
@@ -735,7 +735,7 @@ export function StudioRecorder() {
             mode === "screen" && isIOS && !Capacitor.isNativePlatform() ? (
               <button
                 type="button"
-                onClick={() => useNavStore.getState().navigateTo("editor")}
+                onClick={() => useNavStore.getState().navigate("editor")}
                 className="col-span-3 flex min-h-12 items-center justify-center gap-2.5 rounded-xl border border-primary/50 bg-gradient-to-r from-primary/90 to-plasma/80 font-display text-xs font-bold tracking-[0.2em] text-white transition-transform hover:scale-[1.01] active:scale-95 glow-box-violet"
               >
                 <ArrowRight className="size-4" />

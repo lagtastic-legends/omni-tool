@@ -348,7 +348,7 @@ export function WatermarkRemover() {
           "flex flex-col gap-3 rounded-2xl border p-4 sm:p-6 shadow-[0_2px_24px_rgba(217,70,239,0.06)] transition-all duration-200",
           isDragOver
             ? "border-fuchsia-500 border-dashed bg-fuchsia-500/10"
-            : "border-outline-variant/60 bg-surface-container-low"
+            : "border-border/60 bg-card/40"
         )}
       >
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -358,14 +358,14 @@ export function WatermarkRemover() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="font-display text-base sm:text-lg font-bold text-on-surface">
+                <h2 className="font-display text-base sm:text-lg font-bold text-foreground">
                   AI Watermark Eraser
                 </h2>
                 <span className="rounded-full border border-fuchsia-500/40 bg-fuchsia-500/20 px-2 py-0.5 font-mono text-[9px] sm:text-[10px] font-bold text-fuchsia-300">
                   Galaxy AI Logic
                 </span>
               </div>
-              <p className="font-body text-[11px] sm:text-xs text-on-surface-variant line-clamp-1">
+              <p className="font-sans text-[11px] sm:text-xs text-muted-foreground line-clamp-1">
                 Auto-detects watermarks & reconstructs matching photo background
               </p>
             </div>
@@ -392,7 +392,7 @@ export function WatermarkRemover() {
 
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex min-h-10 sm:min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 px-4 sm:px-5 font-headline text-xs sm:text-sm font-semibold tracking-wide text-white shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
+            className="flex min-h-10 sm:min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 px-4 sm:px-5 font-display text-xs sm:text-sm font-semibold tracking-wide text-white shadow-md transition-transform hover:scale-[1.02] active:scale-[0.98]"
           >
             <Upload className="size-3.5 sm:size-4" />
             {imageFile ? "UPLOAD ANOTHER" : "SELECT IMAGE"}
@@ -414,7 +414,7 @@ export function WatermarkRemover() {
                   "flex min-h-10 sm:min-h-11 items-center justify-center gap-2 rounded-xl border px-3 sm:px-5 font-display text-[11px] sm:text-xs font-bold tracking-[0.14em] transition-colors",
                   vaultState === "saved"
                     ? "border-pulse/40 bg-pulse/10 text-pulse"
-                    : "border-outline-variant/70 bg-surface-container-low text-on-surface-variant hover:border-fuchsia-400/40 hover:text-fuchsia-300"
+                    : "border-border bg-card/40 text-muted-foreground hover:border-fuchsia-400/40 hover:text-fuchsia-300"
                 )}
               >
                 {vaultState === "saved" ? (
@@ -427,7 +427,7 @@ export function WatermarkRemover() {
 
               <button
                 onClick={resetAll}
-                className="flex min-h-10 sm:min-h-11 items-center justify-center rounded-xl border border-outline-variant/70 bg-surface-container-highest px-3 font-headline text-xs font-bold text-on-surface transition-transform hover:scale-[1.02]"
+                className="flex min-h-10 sm:min-h-11 items-center justify-center rounded-xl border border-border bg-secondary px-3 font-display text-xs font-bold text-foreground transition-transform hover:scale-[1.02]"
                 title="Reset Image"
               >
                 <RefreshCw className="size-3.5" />
@@ -445,17 +445,17 @@ export function WatermarkRemover() {
             "group flex flex-1 flex-col items-center justify-center gap-4 rounded-2xl border-2 border-dashed p-8 sm:p-12 text-center transition-all duration-200 cursor-pointer min-h-[320px]",
             isDragOver
               ? "border-fuchsia-500 bg-fuchsia-500/10 text-fuchsia-300 scale-[0.99]"
-              : "border-outline-variant/60 bg-surface-container-lowest/40 text-on-surface-variant hover:border-fuchsia-500/40 hover:bg-surface-container-lowest"
+              : "border-border/60 bg-background/40 text-muted-foreground hover:border-fuchsia-500/40 hover:bg-background"
           )}
         >
           <div className="grid size-14 sm:size-16 place-items-center rounded-2xl border border-fuchsia-500/20 bg-fuchsia-500/10 text-fuchsia-400 shadow-inner transition-transform group-hover:scale-110">
             <Sparkles className="size-7 sm:size-8" />
           </div>
           <div className="space-y-1">
-            <p className="font-headline text-sm sm:text-base font-bold text-on-surface">
+            <p className="font-display text-sm sm:text-base font-bold text-foreground">
               {isDragOver ? "Drop image to erase" : "Drag & drop image here"}
             </p>
-            <p className="font-body text-xs text-on-surface-variant/80 max-w-sm">
+            <p className="font-sans text-xs text-muted-foreground/80 max-w-sm">
               Works with DALL-E, Midjourney, Bing, Meta AI, or any ✦ AI logo. Generatively restores the photo background.
             </p>
           </div>
@@ -463,7 +463,7 @@ export function WatermarkRemover() {
             <span className="rounded-full border border-fuchsia-500/30 bg-fuchsia-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-fuchsia-300">
               Generative Subject Synthesis
             </span>
-            <span className="rounded-full border border-outline-variant/50 bg-surface-container-highest px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-on-surface-variant">
+            <span className="rounded-full border border-border/50 bg-secondary px-3 py-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
               100% On-Device · Web & APK
             </span>
           </div>
@@ -474,16 +474,16 @@ export function WatermarkRemover() {
       {imageFile && (originalSrc || cleanedSrc) && (
         <div className="flex flex-1 flex-col gap-3">
           {/* Controls Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-outline-variant/50 bg-surface-container-low p-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/50 bg-card/40 p-2">
             {/* View Mode Toggle */}
-            <div className="flex items-center gap-1 rounded-lg border border-outline-variant/60 bg-surface-container-lowest p-0.5 text-xs">
+            <div className="flex items-center gap-1 rounded-lg border border-border/60 bg-background p-0.5 text-xs">
               <button
                 onClick={() => setViewMode("cleaned")}
                 className={cn(
-                  "flex items-center gap-1 rounded-md px-2.5 py-1 font-headline font-semibold text-[11px] sm:text-xs transition-colors",
+                  "flex items-center gap-1 rounded-md px-2.5 py-1 font-sans font-medium text-[11px] sm:text-xs transition-colors",
                   viewMode === "cleaned"
                     ? "bg-fuchsia-500/20 text-fuchsia-300"
-                    : "text-on-surface-variant hover:text-on-surface"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <Eye className="size-3" /> Cleaned
@@ -491,10 +491,10 @@ export function WatermarkRemover() {
               <button
                 onClick={() => setViewMode("compare")}
                 className={cn(
-                  "flex items-center gap-1 rounded-md px-2.5 py-1 font-headline font-semibold text-[11px] sm:text-xs transition-colors",
+                  "flex items-center gap-1 rounded-md px-2.5 py-1 font-sans font-medium text-[11px] sm:text-xs transition-colors",
                   viewMode === "compare"
                     ? "bg-fuchsia-500/20 text-fuchsia-300"
-                    : "text-on-surface-variant hover:text-on-surface"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <Split className="size-3" /> Split Slider
@@ -502,10 +502,10 @@ export function WatermarkRemover() {
               <button
                 onClick={() => setViewMode("original")}
                 className={cn(
-                  "rounded-md px-2.5 py-1 font-headline font-semibold text-[11px] sm:text-xs transition-colors",
+                  "rounded-md px-2.5 py-1 font-sans font-medium text-[11px] sm:text-xs transition-colors",
                   viewMode === "original"
                     ? "bg-fuchsia-500/20 text-fuchsia-300"
-                    : "text-on-surface-variant hover:text-on-surface"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 Original
@@ -530,7 +530,7 @@ export function WatermarkRemover() {
                     "whitespace-nowrap rounded-lg px-2.5 py-1 font-mono text-[10px] sm:text-[11px] transition-colors disabled:opacity-50",
                     selectedZone === z.id
                       ? "bg-fuchsia-600 text-white font-bold shadow-sm"
-                      : "border border-outline-variant/50 bg-surface-container-lowest text-on-surface-variant hover:text-on-surface"
+                      : "border border-border/50 bg-background text-muted-foreground hover:text-foreground"
                   )}
                 >
                   {z.label}
@@ -545,7 +545,7 @@ export function WatermarkRemover() {
             onClick={handleImageClick}
             onPointerDown={viewMode === "compare" ? handlePointerDown : undefined}
             className={cn(
-              "relative flex flex-1 select-none items-center justify-center overflow-hidden rounded-2xl border border-outline-variant/60 bg-black/80 p-2 shadow-2xl min-h-[380px] sm:min-h-[500px]",
+              "relative flex flex-1 select-none items-center justify-center overflow-hidden rounded-2xl border border-border/60 bg-black/80 p-2 shadow-2xl min-h-[380px] sm:min-h-[500px]",
               viewMode === "compare" ? "cursor-ew-resize" : "cursor-crosshair"
             )}
           >
@@ -563,7 +563,7 @@ export function WatermarkRemover() {
                     <Scan className="size-8 animate-pulse text-fuchsia-400" />
                   </div>
                   <div className="text-center px-4">
-                    <p className="font-headline text-sm font-bold text-white tracking-wide">
+                    <p className="font-display text-sm font-bold text-white tracking-wide">
                       RECONSTRUCTING BACKGROUND & SUBJECT…
                     </p>
                     <p className="mt-1 font-mono text-xs text-fuchsia-300">
@@ -591,7 +591,7 @@ export function WatermarkRemover() {
                   ref={imageElementRef}
                   src={isHoldingOriginal ? originalSrc || cleanedSrc : cleanedSrc}
                   alt="Cleaned Result"
-                  className="max-h-[62vh] sm:max-h-[72vh] max-w-full rounded-xl border border-outline-variant/30 object-contain shadow-2xl"
+                  className="max-h-[62vh] sm:max-h-[72vh] max-w-full rounded-xl border border-border/30 object-contain shadow-2xl"
                 />
 
                 {/* Floating "Hold to Compare" Button on Mobile */}
@@ -621,7 +621,7 @@ export function WatermarkRemover() {
                   ref={imageElementRef}
                   src={originalSrc}
                   alt="Original"
-                  className="max-h-[62vh] sm:max-h-[72vh] max-w-full rounded-xl border border-outline-variant/30 object-contain shadow-2xl"
+                  className="max-h-[62vh] sm:max-h-[72vh] max-w-full rounded-xl border border-border/30 object-contain shadow-2xl"
                 />
                 {detection && (
                   <div className="absolute top-3 right-3 rounded-lg border border-fuchsia-500/80 bg-fuchsia-500/25 px-2.5 py-1 font-mono text-[10px] font-bold text-fuchsia-200 backdrop-blur-md">
@@ -633,7 +633,7 @@ export function WatermarkRemover() {
 
             {/* Display View: Interactive Split Slider Mode */}
             {viewMode === "compare" && originalSrc && cleanedSrc && (
-              <div className="relative max-h-[62vh] sm:max-h-[72vh] max-w-full overflow-hidden rounded-xl border border-outline-variant/30 shadow-2xl">
+              <div className="relative max-h-[62vh] sm:max-h-[72vh] max-w-full overflow-hidden rounded-xl border border-border/30 shadow-2xl">
                 {/* Base Layer: Cleaned */}
                 <img
                   ref={imageElementRef}
@@ -675,7 +675,7 @@ export function WatermarkRemover() {
           </div>
 
           {/* Bottom Micro Hint & Area Inspection */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-1 text-[11px] text-on-surface-variant font-mono">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-1 text-[11px] text-muted-foreground font-mono">
             <span className="flex items-center gap-1 text-fuchsia-300">
               <Crosshair className="size-3 shrink-0" />
               Tap anywhere on photo to pinpoint & erase custom objects or logos
@@ -689,15 +689,15 @@ export function WatermarkRemover() {
 
           {/* Area Inspection Card */}
           {detection && detection.originalThumbnail && detection.cleanedThumbnail && (
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-outline-variant/50 bg-surface-container-low p-3">
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-card/40 p-3">
               <div className="space-y-0.5 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <ShieldCheck className="size-3.5 text-emerald-400 shrink-0" />
-                  <span className="font-headline text-[11px] sm:text-xs font-bold uppercase tracking-wider text-on-surface truncate">
+                  <span className="font-display text-[11px] sm:text-xs font-bold uppercase tracking-wider text-foreground truncate">
                     Inspection: {detection.label}
                   </span>
                 </div>
-                <p className="font-body text-[10px] text-on-surface-variant truncate">
+                <p className="font-sans text-[10px] text-muted-foreground truncate">
                   Close-up view of generative background reconstruction
                 </p>
               </div>
@@ -714,7 +714,7 @@ export function WatermarkRemover() {
                   <span className="font-mono text-[8px] uppercase text-red-400">Before</span>
                 </div>
 
-                <ChevronRight className="size-3 text-on-surface-variant/40" />
+                <ChevronRight className="size-3 text-muted-foreground/40" />
 
                 <div className="flex flex-col items-center gap-0.5">
                   <div className="size-11 sm:size-12 overflow-hidden rounded-lg border border-emerald-500/50 bg-black shadow-inner">

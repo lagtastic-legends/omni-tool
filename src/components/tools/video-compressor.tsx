@@ -77,6 +77,8 @@ export function VideoCompressor() {
         ? null
         : `scale=-2:'trunc(min(ih,${effectiveResolution})/2)*2'`;
 
+    const shouldKeepAudio = keepAudio && meta?.hasAudio !== false;
+
     const args = [
       "-i", virtualInputPath,
       "-c:v", "libx264",
@@ -85,7 +87,7 @@ export function VideoCompressor() {
       "-pix_fmt", "yuv420p",
       "-max_muxing_queue_size", "1024",
       ...(vf ? ["-vf", vf] : []),
-      ...(keepAudio ? ["-c:a", "aac", "-b:a", "128k"] : ["-an"]),
+      ...(shouldKeepAudio ? ["-c:a", "aac", "-b:a", "192k"] : ["-an"]),
       "-movflags", "+faststart",
       outputPath,
     ];

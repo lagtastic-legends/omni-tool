@@ -164,7 +164,7 @@ export function AiMessageBubble({
         <div
           className={`rounded-2xl p-3.5 shadow-sm text-sm leading-relaxed transition-all ${
             isUser
-              ? "bg-primary text-primary-foreground rounded-tr-xs font-body font-medium"
+              ? "bg-primary text-primary-foreground rounded-tr-xs font-sans font-medium"
               : "bg-card/90 border border-border/80 text-foreground rounded-tl-xs backdrop-blur-md"
           }`}
         >

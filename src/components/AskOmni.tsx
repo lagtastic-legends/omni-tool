@@ -368,7 +368,7 @@ export default function AskOmni({ showTrigger = false }: AskOmniProps) {
                       ? 'Generating response...'
                       : 'Ask Zeno about audio, video, PDF, or vault...'
                   }
-                  className="w-full bg-secondary/50 border border-border/80 rounded-xl py-3 pl-3.5 pr-20 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/40 transition-all font-body"
+                  className="w-full bg-secondary/50 border border-border/80 rounded-xl py-3 pl-3.5 pr-20 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/60 focus:ring-1 focus:ring-primary/40 transition-all font-sans"
                 />
 
                 <div className="absolute right-2 flex items-center gap-1">

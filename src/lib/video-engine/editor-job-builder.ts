@@ -334,6 +334,9 @@ export async function buildEditorJobSpec(options: EditorJobOptions): Promise<Job
 
   if (volume !== 1) {
     aFilters.push(`volume=${volume.toFixed(2)}`);
+    if (volume > 1) {
+      aFilters.push("alimiter=limit=0.98");
+    }
   }
 
   // 4. Construct FFmpeg Command Arguments

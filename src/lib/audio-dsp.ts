@@ -285,22 +285,23 @@ export function buildReverbFilter(p: ReverbParams): string[] {
 
 export function buildVocalRemoverFilter(p: VocalRemoverParams): string[] {
   if (p.mode === "phase_cancel") {
-    // Center-channel vocal cancellation with mono-safe phase matching
-    return ["pan=stereo|c0=c0-c1|c1=c0-c1"];
+    // True OOPS (Out-Of-Phase Stereo) cancellation with 0.5 headroom factor to avoid +6dB clipping
+    return ["pan=stereo|c0=0.5*c0-0.5*c1|c1=0.5*c1-0.5*c0", "alimiter=limit=0.98"];
   }
 
   if (p.mode === "karaoke_bandpass") {
-    // Vocal band attenuation in 200Hz - 5000Hz with mono-safe phase matching
+    // Vocal band attenuation in 200Hz - 5000Hz with safe phase cancellation
     return [
-      "pan=stereo|c0=c0-c1|c1=c0-c1",
+      "pan=stereo|c0=0.5*c0-0.5*c1|c1=0.5*c1-0.5*c0",
       "equalizer=f=3000:t=q:w=1.5:g=-6",
+      "alimiter=limit=0.98",
     ];
   }
 
   // Bass-Preserved Mode (Filter graph preserving rhythm kick/sub below crossover frequency)
   const cutoff = p.bassPreserveCutoffHz ?? 140;
   return [
-    `[0:a]asplit=2[vocal_in][bass_in];[vocal_in]pan=stereo|c0=c0-c1|c1=c0-c1,highpass=f=${cutoff}[vocal_clean];[bass_in]lowpass=f=${cutoff}[bass_clean];[vocal_clean][bass_clean]amix=inputs=2:weights=1|1[outa]`,
+    `[0:a]asplit=2[vocal_in][bass_in];[vocal_in]pan=stereo|c0=0.5*c0-0.5*c1|c1=0.5*c1-0.5*c0,highpass=f=${cutoff}[vocal_clean];[bass_in]lowpass=f=${cutoff}[bass_clean];[vocal_clean][bass_clean]amix=inputs=2:weights=1|1,alimiter=limit=0.98[outa]`,
   ];
 }
 
@@ -316,6 +317,7 @@ export function buildSpatial8DFilter(p: Spatial8DParams): string[] {
     `extrastereo=m=${widening.toFixed(2)}`,
     `apulsator=hz=${hz}:amount=${p.intensity.toFixed(2)}:mode=sine:width=1`,
     "aecho=0.88:0.75:18|28:0.2|0.14",
+    "alimiter=limit=0.98",
   ];
 }
 
@@ -416,6 +418,7 @@ export function buildReverseAudioFilter(p?: ReverseAudioParams): string[] {
       "aecho=0.82:0.75:18|26|34|42:0.28|0.22|0.16|0.12",
       "highpass=f=50",
       "treble=g=-3:f=5500",
+      "alimiter=limit=0.98",
     );
   }
   return chain;

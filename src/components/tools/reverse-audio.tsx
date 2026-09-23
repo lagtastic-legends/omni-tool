@@ -28,6 +28,7 @@ export function ReverseAudio() {
         "aecho=0.82:0.75:18|26|34|42:0.28|0.22|0.16|0.12",
         "highpass=f=50",
         "treble=g=-3:f=5500",
+        "alimiter=limit=0.98",
       );
     }
     await run({

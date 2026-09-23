@@ -132,6 +132,7 @@ export function spatialFilters({ cycleSec, intensity }: SpatialParams): string[]
     "extrastereo=m=1.35",
     `apulsator=hz=${hz}:amount=${intensity.toFixed(2)}:mode=sine:width=1`,
     "aecho=0.88:0.75:18|28:0.2|0.14",
+    "alimiter=limit=0.98",
   ];
 }
 
@@ -175,6 +176,7 @@ export function reverseFilters(includeEcho?: boolean): string[] {
       "aecho=0.82:0.75:18|26|34|42:0.28|0.22|0.16|0.12",
       "highpass=f=50",
       "treble=g=-3:f=5500",
+      "alimiter=limit=0.98",
     );
   }
   return chain;
@@ -247,6 +249,9 @@ export function trimFadeFilters({
   }
   if (boostDb !== 0) {
     chain.push(`volume=${boostDb}dB`);
+    if (boostDb > 0) {
+      chain.push("alimiter=limit=0.98");
+    }
   }
   return chain;
 }
@@ -285,7 +290,12 @@ export function editorFilters(p: EditorParams): { filters: string[]; finalLength
   if (p.reverse) filters.push("areverse");
   if (p.speed !== 1) filters.push(`atempo=${p.speed.toFixed(3)}`);
   if (p.normalize) filters.push("dynaudnorm=f=250:g=15:p=0.9");
-  else if (p.volumeDb !== 0) filters.push(`volume=${p.volumeDb}dB`);
+  else if (p.volumeDb !== 0) {
+    filters.push(`volume=${p.volumeDb}dB`);
+    if (p.volumeDb > 0) {
+      filters.push("alimiter=limit=0.98");
+    }
+  }
 
   const finalLength = trimLength / (p.speed !== 1 ? p.speed : 1);
   if (p.fadeInSec > 0.01) {
