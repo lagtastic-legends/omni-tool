@@ -24,7 +24,7 @@
   3. **Tier 3 (Web Fallback):** Full-page `signInWithRedirect` flow that navigates directly through Google Accounts, immune to mobile browser popup blockers and partitioned third-party cookies.
   4. **Tier 4 (Direct In-Tab Gmail):** Zero-friction direct email entry form that operates completely client-side without external redirects, ideal for corporate intranets or restricted networks.
   5. **Tier 5 (Offline Guest Sandbox):** Instant 1-tap bypass granting immediate access to all 20+ WebAssembly media and document tools with zero network requests or login credentials.
-- **Zero Mock Users:** Fully eradicated hardcoded demo accounts (`demo.user1@zenodeck.app`). The device account switcher exclusively lists accounts genuinely authenticated on that physical hardware.
+- **Zero Mock Users:** Fully eradicated hardcoded demo accounts. The device account switcher exclusively lists accounts genuinely authenticated on that physical hardware.
 - **Auto-Navigation Fix:** Logging in, switching accounts, or entering guest mode now programmatically navigates immediately to the Dashboard (`dashboard`), permanently resolving the "stuck on login page" issue.
 
 ### 📱 2. Universal Phone Ergonomics (All Form Factors)

@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bumped Android `versionCode` to `320` and `versionName` to `"3.2.0"`
 
 ### Removed
-- **Hardcoded mock accounts** (`DEFAULT_SUGGESTED_ACCOUNTS` with `demo.user1@zenodeck.app`) — the saved accounts list now starts empty and only contains genuine accounts the user has signed in with
+- **Hardcoded mock accounts** (`DEFAULT_SUGGESTED_ACCOUNTS`) — the saved accounts list now starts empty and only contains genuine accounts the user has signed in with
 
 ### Fixed
 - **Video to audio extraction quality**: integrated `aresample=async=1000` PTS timestamp synchronization and explicit stereo downmix (`-ac 2`), eliminating stutter, robotic glitches, and dropped dialogue packets in converted video files
