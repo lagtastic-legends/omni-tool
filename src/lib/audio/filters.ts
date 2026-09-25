@@ -103,13 +103,13 @@ export function bassFilters({ intensity, cutoff, clarity }: BassParams): string[
 
   // 4. Automatic Headroom Compensation: Scales down pre-gain proportionally
   // so the boosted low-end energy does not blast past the 0 dBFS clipping ceiling.
-  const headroomDb = (gain * 0.38).toFixed(1);
+  const headroomDb = (gain * 0.55).toFixed(1);
   chain.push(`volume=-${headroomDb}dB`);
 
-  // 5. Studio Lookahead ASC Limiter: Features 5ms lookahead attack, smooth 60ms release,
-  // -0.35 dBFS ceiling, and Auto-Sub-Band Control (asc=1) to prevent bass from choking
-  // mid-range vocals and eliminate audio tearing completely.
-  chain.push("alimiter=level_in=1:level_out=0.96:limit=0.96:attack=5:release=60:asc=1");
+  // 5. Broadcast Lookahead Peak Limiter: Features 7ms lookahead attack, musical 100ms release,
+  // and -0.18 dBFS true peak ceiling. Eliminates auto-sub-band modulation tearing so vocals
+  // and sub-bass remain pristine and transparent.
+  chain.push("alimiter=level_in=1:level_out=0.98:limit=0.98:attack=7:release=100");
 
   return chain;
 }

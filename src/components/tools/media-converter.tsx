@@ -125,10 +125,10 @@ function buildAudioArgs(
   }
 
   // Audio filter for pristine voice clarity and zero glitching:
-  // 1. aresample=async=1000: Synchronizes audio PTS timestamps to eliminate audio packet jitter, clicks, and robotic voice stutter.
-  // 2. aformat=channel_layouts=stereo: Downmixes multi-channel (5.1/7.1) cleanly to stereo, preserving center vocal clarity.
-  // 3. alimiter=limit=0.98: Prevents digital inter-sample peak clipping on loud vocal passages.
-  const syncFilter = "aresample=async=1000,aformat=channel_layouts=stereo,alimiter=limit=0.98";
+  // 1. asetpts=PTS-STARTPTS: Normalizes audio presentation timestamps from 0, preventing sample dropping or duplication (zero robotic stutter).
+  // 2. aformat=channel_layouts=stereo: Downmixes multi-channel (5.1/7.1) cleanly to stereo, preserving vocal center presence.
+  // 3. alimiter=limit=0.98: Transparent lookahead peak limiter protecting against digital inter-sample clipping on loud peaks.
+  const syncFilter = "asetpts=PTS-STARTPTS,aformat=channel_layouts=stereo,alimiter=limit=0.98";
 
   switch (format) {
     case "mp3":
@@ -139,7 +139,6 @@ function buildAudioArgs(
         "-af", syncFilter,
         "-c:a", "libmp3lame",
         "-b:a", `${audioKbps}k`,
-        "-ar", "44100",
         "-ac", "2",
         output,
       ];
@@ -148,9 +147,8 @@ function buildAudioArgs(
         ...trimArgs,
         "-i", input,
         "-vn",
-        "-af", "aresample=async=1000,aformat=channel_layouts=stereo",
+        "-af", syncFilter,
         "-c:a", "pcm_s16le",
-        "-ar", "44100",
         "-ac", "2",
         output,
       ];
@@ -162,7 +160,6 @@ function buildAudioArgs(
         "-af", syncFilter,
         "-c:a", "aac",
         "-b:a", `${audioKbps}k`,
-        "-ar", "44100",
         "-ac", "2",
         output,
       ];
@@ -171,10 +168,9 @@ function buildAudioArgs(
         ...trimArgs,
         "-i", input,
         "-vn",
-        "-af", "aresample=async=1000,aformat=channel_layouts=stereo",
+        "-af", syncFilter,
         "-c:a", "flac",
         "-compression_level", "5",
-        "-ar", "44100",
         "-ac", "2",
         output,
       ];
@@ -186,7 +182,6 @@ function buildAudioArgs(
         "-af", syncFilter,
         "-c:a", "libvorbis",
         "-q:a", "6",
-        "-ar", "44100",
         "-ac", "2",
         output,
       ];

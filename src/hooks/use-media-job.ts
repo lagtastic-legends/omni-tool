@@ -75,9 +75,12 @@ export function useMediaJob() {
 
   const { playSuccess, playError } = useUIAudio();
   const playSuccessRef = useRef(playSuccess);
-  playSuccessRef.current = playSuccess;
   const playErrorRef = useRef(playError);
-  playErrorRef.current = playError;
+
+  useEffect(() => {
+    playSuccessRef.current = playSuccess;
+    playErrorRef.current = playError;
+  }, [playSuccess, playError]);
 
   /* Revoke dangling blob URLs and clean orphaned virtual FS files on unmount. */
   useEffect(() => {

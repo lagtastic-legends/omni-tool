@@ -76,10 +76,12 @@ export function useAudioProcessor() {
 
   const busy = phase === "allocating" || phase === "processing" || phase === "reading";
   const busyRef = useRef(false);
-  busyRef.current = busy;
-
   const activeEngineRef = useRef<any>(engine);
-  if (engine) activeEngineRef.current = engine;
+
+  useEffect(() => {
+    busyRef.current = busy;
+    if (engine) activeEngineRef.current = engine;
+  }, [busy, engine]);
 
   const allocatedFilesRef = useRef<Set<string>>(new Set());
   const blobUrlsRef = useRef<string[]>([]);

@@ -182,19 +182,43 @@ export function UnifiedAudioStudio({
           const tier = BASS_BOOST_TIERS[params.tier as BassTier] || BASS_BOOST_TIERS[3];
           const gain = typeof params.customGainDb === "number" ? params.customGainDb : tier.gain;
           const cutoff = params.cutoff || tier.defaultCutoff;
+
+          // 1. Subsonic highpass filter (28Hz) to prevent inaudible cone flapping & DAC clipping
+          const subRumble = ctx.createBiquadFilter();
+          subRumble.type = "highpass";
+          subRumble.frequency.value = 28;
+          nodes.push(subRumble);
+
+          // 2. Precision low-shelf filter
           const bassFilter = ctx.createBiquadFilter();
           bassFilter.type = "lowshelf";
           bassFilter.frequency.value = cutoff;
           bassFilter.gain.value = gain;
           nodes.push(bassFilter);
 
+          // 3. Proportional high-shelf clarity filter
           if (params.clarity !== false) {
             const clarityFilter = ctx.createBiquadFilter();
             clarityFilter.type = "highshelf";
-            clarityFilter.frequency.value = 8000;
-            clarityFilter.gain.value = 3;
+            clarityFilter.frequency.value = 6500;
+            clarityFilter.gain.value = Math.min(3.5, 1.5 + gain * 0.12);
             nodes.push(clarityFilter);
           }
+
+          // 4. Dynamic headroom compensation (-55% of boost)
+          const headroomGain = ctx.createGain();
+          const headroomDb = gain * 0.55;
+          headroomGain.gain.value = Math.pow(10, -headroomDb / 20);
+          nodes.push(headroomGain);
+
+          // 5. Studio peak limiter to eliminate audio tearing and crackle
+          const limiter = ctx.createDynamicsCompressor();
+          limiter.threshold.value = -0.5;
+          limiter.knee.value = 0;
+          limiter.ratio.value = 20;
+          limiter.attack.value = 0.007;
+          limiter.release.value = 0.1;
+          nodes.push(limiter);
           break;
         }
 

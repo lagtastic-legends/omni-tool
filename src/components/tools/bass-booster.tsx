@@ -56,11 +56,11 @@ export function BassBooster() {
   };
 
   const TIERS = [
-    { tier: 1, label: "Warmth", gain: "+3.0 dB", val: 2, cut: "110", clar: false, desc: "Subtle analog warmth" },
-    { tier: 2, label: "Punchy", gain: "+6.0 dB", val: 4, cut: "95", clar: true, desc: "Kick drum punch & drive" },
-    { tier: 3, label: "Deep Club", gain: "+9.0 dB", val: 6, cut: "80", clar: true, desc: "Chest-thumping club bass" },
-    { tier: 4, label: "Heavy Sub", gain: "+12.0 dB", val: 8, cut: "65", clar: true, desc: "808 boom & trap sub" },
-    { tier: 5, label: "Earthquake", gain: "+15.0 dB", val: 10, cut: "55", clar: true, desc: "Max impact · ASC limited" },
+    { tier: 1, label: "Warmth", gain: "+3.0 dB", val: 2, cut: "110", clar: false, desc: "Subtle analog warmth · zero distortion" },
+    { tier: 2, label: "Punchy", gain: "+6.0 dB", val: 4, cut: "95", clar: true, desc: "Kick drum punch & transient drive" },
+    { tier: 3, label: "Deep Club", gain: "+9.0 dB", val: 6, cut: "80", clar: true, desc: "Chest-thumping club sub-bass" },
+    { tier: 4, label: "Heavy Sub", gain: "+12.0 dB", val: 8, cut: "65", clar: true, desc: "808 acoustic boom & pressure" },
+    { tier: 5, label: "Earthquake", gain: "+15.0 dB", val: 10, cut: "55", clar: true, desc: "Max sub impact · studio peak limited" },
   ];
 
   const activeTier = TIERS.find((t) => t.val === intensity) ?? null;
@@ -82,7 +82,7 @@ export function BassBooster() {
       job={job}
       output={outputs[0] ?? null}
       badge="bass boosted"
-      note="Studio Butterworth low-shelf DSP with 28Hz subsonic rumble guard, dynamic headroom attenuation, and Auto-Sub-Band (ASC) lookahead limiting. Delivers massive bass without digital clipping, audio tearing, or vocal distortion."
+      note="Studio Butterworth low-shelf DSP with 28Hz subsonic rumble guard, dynamic headroom attenuation (-55%), and broadcast lookahead peak limiting. Delivers massive bass without digital clipping, audio tearing, or vocal distortion."
       runIcon={<Speaker className="size-4" />}
       controls={
         <ParamPanel title="low-end engine">
@@ -132,7 +132,7 @@ export function BassBooster() {
 
             <div className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-mono text-emerald-400">
               <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Anti-Tear ASC Limiter & Auto-Headroom Active</span>
+              <span>Anti-Tear Studio Limiter & Dynamic Headroom Active</span>
             </div>
           </div>
 

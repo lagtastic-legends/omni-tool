@@ -154,7 +154,7 @@ export const BASS_BOOST_TIERS: Record<
   2: { name: "Punchy Kick", gain: 6.0, defaultCutoff: 95, desc: "+6.0 dB defined punch & kick transient attack" },
   3: { name: "Deep Club", gain: 9.0, defaultCutoff: 80, desc: "+9.0 dB room-filling sub-bass & chest drive" },
   4: { name: "Heavy Sub (808)", gain: 12.0, defaultCutoff: 65, desc: "+12.0 dB high-energy acoustic boom & 808 pressure" },
-  5: { name: "Earthquake Max", gain: 15.0, defaultCutoff: 55, desc: "+15.0 dB maximum sub saturation with anti-tear ASC limiting" },
+  5: { name: "Earthquake Max", gain: 15.0, defaultCutoff: 55, desc: "+15.0 dB maximum sub saturation · studio lookahead peak protection" },
 };
 
 export function buildBassFilter(p: BassBoosterParams): string[] {
@@ -170,9 +170,9 @@ export function buildBassFilter(p: BassBoosterParams): string[] {
     const trebleGain = Math.min(3.5, 1.5 + gain * 0.12).toFixed(1);
     chain.push(`treble=g=${trebleGain}:f=6500:t=s`);
   }
-  const headroomDb = (gain * 0.38).toFixed(1);
+  const headroomDb = (gain * 0.55).toFixed(1);
   chain.push(`volume=-${headroomDb}dB`);
-  chain.push("alimiter=level_in=1:level_out=0.96:limit=0.96:attack=5:release=60:asc=1");
+  chain.push("alimiter=level_in=1:level_out=0.98:limit=0.98:attack=7:release=100");
   return chain;
 }
 
