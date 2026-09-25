@@ -74,14 +74,22 @@ const TrimmerStudioTool = () => <UnifiedAudioStudio initialToolId="trimmer" />;
 
 function ToolSkeleton() {
   return (
-    <div className="panel-hud scanlines flex min-h-[300px] flex-col items-center justify-center gap-3 rounded-tactile border border-border/80 p-10 text-center shadow-tactile animate-pulse">
-      <Loader2 className="size-8 animate-spin text-primary" />
-      <p className="font-display text-xs font-bold tracking-[0.2em] text-foreground/80">
-        MOUNTING MODULE WORKSPACE…
-      </p>
-      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-        Zero cloud latency · Allocating isolated sandbox memory
-      </p>
+    <div className="panel-hud relative flex min-h-[320px] flex-col items-center justify-center gap-4 rounded-2xl border border-primary/20 bg-card/40 p-8 text-center shadow-elevation2">
+      <div className="relative grid size-12 place-items-center">
+        <span className="absolute inset-0 animate-ping rounded-full bg-primary/20" />
+        <Loader2 className="size-6 animate-spin text-primary" />
+      </div>
+      <div className="space-y-1">
+        <p className="font-display text-xs font-bold tracking-[0.2em] text-foreground">
+          MOUNTING MODULE WORKSPACE…
+        </p>
+        <p className="font-mono text-[11px] text-muted-foreground">
+          100% On-Device · Allocating isolated sandbox memory
+        </p>
+      </div>
+      <div className="mx-auto h-1 w-32 overflow-hidden rounded-full bg-border/60">
+        <div className="h-full w-2/3 animate-[pulse_1.2s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-primary via-plasma to-neon" />
+      </div>
     </div>
   );
 }

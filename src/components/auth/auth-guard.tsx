@@ -6,26 +6,18 @@
  * Authored under Ponytail, GSD, Ralph Loop, and CodeRabbit guardrails.
  */
 
-import { Loader2, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import type { ReactNode } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { UnifiedLoginCard } from "@/components/auth/unified-login-card";
+import { ZenoLoadingScreen } from "@/components/shell/zeno-loading-screen";
 
 export function AuthGuard({ children }: { children: ReactNode }) {
   const { mode, user } = useAuth();
 
   /* 1. Probing State ----------------------------------------------------- */
   if (mode === "probing") {
-    return (
-      <div className="grid min-h-[60vh] place-items-center">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="size-8 animate-spin text-primary" />
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            Verifying Identity Session…
-          </p>
-        </div>
-      </div>
-    );
+    return <ZenoLoadingScreen status="VERIFYING SECURE SESSION…" />;
   }
 
   /* 2. Open Mode (Gate disengaged) --------------------------------------- */
