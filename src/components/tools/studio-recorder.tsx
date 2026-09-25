@@ -22,6 +22,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Capacitor } from "@capacitor/core";
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { OmniRecorder } from "@/lib/native-recorder";
+import { ensureCameraPermission, ensureMicrophonePermission, openAppSettings } from "@/lib/permissions";
 import { OutputCard } from "@/components/media/output-card";
 import { useNavStore } from "@/lib/navigation/nav-store";
 import fixWebmDuration from "fix-webm-duration";
@@ -286,6 +287,23 @@ export function StudioRecorder() {
       if (m === "screen" && Capacitor.isNativePlatform()) {
         setMediaState("live");
         return;
+      }
+
+      if (Capacitor.isNativePlatform()) {
+        if (m === "webcam") {
+          const cOk = await ensureCameraPermission();
+          const mOk = await ensureMicrophonePermission();
+          if (!cOk || !mOk) {
+            setMediaState("denied");
+            return;
+          }
+        } else if (m === "mic") {
+          const mOk = await ensureMicrophonePermission();
+          if (!mOk) {
+            setMediaState("denied");
+            return;
+          }
+        }
       }
       
       const stream = await acquireStream(m);
@@ -606,14 +624,22 @@ export function StudioRecorder() {
                     </button>
                   </div>
                 ) : mediaState === "denied" ? (
-                  <div className="space-y-2">
-                    <p className="font-mono text-[11px] text-red-300">
-                      capture blocked
+                  <div className="flex flex-col items-center gap-2.5 max-w-xs mx-auto text-center">
+                    <p className="font-mono text-[11px] text-red-300 font-bold uppercase tracking-wider">
+                      Capture Blocked
                     </p>
                     <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
-                      permission denied or hardware unavailable in this environment — allow
-                      access in the browser prompt and arm again
+                      Permission was denied. Grant microphone and camera access to enable recording.
                     </p>
+                    {Capacitor.isNativePlatform() && (
+                      <button
+                        type="button"
+                        onClick={() => void openAppSettings()}
+                        className="rounded-lg border border-primary/40 bg-primary/20 px-3 py-1 font-mono text-[10px] uppercase font-bold tracking-wider text-primary hover:bg-primary/30 cursor-pointer"
+                      >
+                        Open Settings
+                      </button>
+                    )}
                   </div>
                 ) : mediaState === "starting" ? (
                   <p className="animate-pulse font-mono text-[11px] text-muted-foreground">

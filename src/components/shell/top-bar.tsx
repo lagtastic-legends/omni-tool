@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Download, LogOut, ShieldAlert } from "lucide-react";
+import { Download, LogOut, ShieldAlert, ShieldCheck } from "lucide-react";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { useAuth } from "@/lib/auth/auth-context";
 import { SearchPalette } from "@/components/shell/search-palette";
@@ -120,7 +120,7 @@ export function TopBar() {
           <AudioToggle />
           <SearchPalette />
 
-          {!isNative && (
+          {!isNative ? (
             <button
               type="button"
               onClick={() => setDownloadModalOpen(true)}
@@ -129,6 +129,20 @@ export function TopBar() {
             >
               <Download className="size-3 shrink-0" />
               <span className="hidden xs:inline sm:inline">Get App</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("omni:show-permissions"));
+                }
+              }}
+              className="grid size-8 place-items-center rounded-lg border border-border/70 text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground cursor-pointer"
+              title="Manage Device Permissions"
+              aria-label="Manage Device Permissions"
+            >
+              <ShieldCheck className="size-3.5 text-primary/80" />
             </button>
           )}
 

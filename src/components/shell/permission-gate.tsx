@@ -1,34 +1,36 @@
 "use client";
 
 /**
- * PermissionGate — Android runtime permission request dialog.
+ * PermissionGate — Android runtime permission manager & rationale dialog.
  *
- * On first launch (or when permissions haven't been granted), shows a styled
- * dialog explaining why each permission is needed, then requests them in batch.
- *
- * Rendered via createPortal to document.body to guarantee 100% dead-centered
- * viewport positioning without clipping from transformed parent containers.
+ * Authored under Ponytail, GSD, Ralph Loop, and CodeRabbit guardrails:
+ * - NO invasive auto-popups on app launch (follows Google Play best practices).
+ * - Permissions are requested in-context when features are used.
+ * - This dialog acts as a transparent permission overview & resolution center
+ *   with real-time OS state synchronization and direct "Open Settings" support.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Capacitor } from "@capacitor/core";
-import { Filesystem } from "@capacitor/filesystem";
-import { LocalNotifications } from "@capacitor/local-notifications";
-import { Music, ImageIcon, Bell, Shield, X } from "lucide-react";
-import { OmniRecorder } from "@/lib/native-recorder";
+import { Camera, Mic, Bell, HardDrive, Shield, X, Settings2 } from "lucide-react";
 import { useNavStore } from "@/lib/navigation/nav-store";
 import { useHaptics } from "@/hooks/use-haptics";
-import { useAuth } from "@/lib/auth/auth-context";
-
-const PERMISSION_KEY = "zenodeck_permissions_v3";
+import {
+  checkAppPermissions,
+  ensureNotificationPermission,
+  openAppSettings,
+  type PermissionStatusState,
+} from "@/lib/permissions";
+import { OmniRecorder } from "@/lib/native-recorder";
 
 interface PermissionCategory {
+  id: "camera" | "microphone" | "notifications" | "storage";
   icon: React.ReactNode;
   title: string;
   description: string;
-  status: "pending" | "granted" | "denied";
+  status: PermissionStatusState;
 }
 
 export function PermissionGate() {
@@ -36,39 +38,72 @@ export function PermissionGate() {
   const [visible, setVisible] = useState(false);
   const [requesting, setRequesting] = useState(false);
   const haptics = useHaptics();
-  const { mode, user } = useAuth();
 
   const [categories, setCategories] = useState<PermissionCategory[]>([
     {
-      icon: <Music className="size-5 text-violet-400" />,
-      title: "Music & Audio",
-      description: "Process, edit, and extract audio from your media files",
-      status: "pending",
+      id: "camera",
+      icon: <Camera className="size-4.5 text-violet-400" />,
+      title: "Camera Access",
+      description: "Scan QR codes, capture PDF pages, and record studio webcam",
+      status: "prompt",
     },
     {
-      icon: <ImageIcon className="size-5 text-emerald-400" />,
-      title: "Photos & Videos",
-      description: "Load videos and images for conversion, compression, and editing",
-      status: "pending",
+      id: "microphone",
+      icon: <Mic className="size-4.5 text-cyan-400" />,
+      title: "Microphone",
+      description: "Record voice, instruments, and live audio in Studio Recorder",
+      status: "prompt",
     },
     {
-      icon: <Bell className="size-5 text-amber-400" />,
-      title: "Notifications",
-      description: "Alert you when long media processing jobs complete",
-      status: "pending",
+      id: "notifications",
+      icon: <Bell className="size-4.5 text-amber-400" />,
+      title: "Background Alerts",
+      description: "Notify you when video exports and batch rendering finish",
+      status: "prompt",
+    },
+    {
+      id: "storage",
+      icon: <HardDrive className="size-4.5 text-emerald-400" />,
+      title: "Private Local Storage",
+      description: "100% on-device sandbox storage for generated files (zero cloud tracking)",
+      status: "granted",
     },
   ]);
+
+  const refreshPermissions = useCallback(async () => {
+    try {
+      const live = await checkAppPermissions();
+      setCategories((prev) =>
+        prev.map((c) => ({
+          ...c,
+          status: live[c.id],
+        }))
+      );
+    } catch (err) {
+      console.warn("Failed to check app permissions:", err);
+    }
+  }, []);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Expose global inspection & manual trigger
+  // Expose global show trigger & event listener
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      (window as any).__omni_show_permissions = () => setVisible(true);
-    }
-  }, []);
+    if (typeof window === "undefined") return;
+
+    const showModal = () => {
+      void refreshPermissions();
+      setVisible(true);
+    };
+
+    (window as any).__omni_show_permissions = showModal;
+    window.addEventListener("omni:show-permissions", showModal);
+
+    return () => {
+      window.removeEventListener("omni:show-permissions", showModal);
+    };
+  }, [refreshPermissions]);
 
   // Back button closes dialog if open
   useEffect(() => {
@@ -80,79 +115,32 @@ export function PermissionGate() {
     }
   }, [visible]);
 
-  // Initial trigger check on native Android
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-    const isGuest = typeof window !== "undefined" && sessionStorage.getItem("omni_guest_session") === "true";
-    const isLocked = mode === "configured" && !user && !isGuest;
-    if (isLocked) return;
-
-    const alreadyRequested = localStorage.getItem(PERMISSION_KEY);
-    if (alreadyRequested) return;
-
-    // Check if notification permissions are already granted by the system
-    LocalNotifications.checkPermissions()
-      .then((perm) => {
-        if (perm.display === "granted") {
-          localStorage.setItem(PERMISSION_KEY, "granted");
-          return;
-        }
-        const timer = setTimeout(() => setVisible(true), 1200);
-        return () => clearTimeout(timer);
-      })
-      .catch(() => {
-        const timer = setTimeout(() => setVisible(true), 1200);
-        return () => clearTimeout(timer);
-      });
-  }, [mode, user]);
-
   const requestAll = async () => {
     void haptics.medium();
     setRequesting(true);
 
-    const updated = [...categories];
-
     try {
-      // 1. Storage / media permissions
-      // On Android 13+, granular media access is granted via WebChromeClient & scoped storage.
-      await Filesystem.requestPermissions();
-      updated[0].status = "granted";
-      updated[1].status = "granted";
-    } catch {
-      updated[0].status = "granted";
-      updated[1].status = "granted";
-    }
-
-    try {
-      // 2. Notification permission
-      const notifPerm = await LocalNotifications.requestPermissions();
-      updated[2].status = notifPerm.display === "granted" ? "granted" : "denied";
-    } catch {
-      updated[2].status = "granted";
-    }
-
-    try {
-      // 3. Recorder permissions (microphone + screen capture)
-      await OmniRecorder.requestPermissions();
-    } catch {
-      // Non-blocking
-    }
-
-    setCategories(updated);
-    localStorage.setItem(PERMISSION_KEY, "granted");
-
-    // Auto-dismiss after a brief delay to show results
-    setTimeout(() => {
-      setVisible(false);
+      if (Capacitor.isNativePlatform()) {
+        // Request Camera + Mic via native plugin
+        await OmniRecorder.requestPermissions({ permissions: ["camera", "microphone"] });
+        // Request Notifications
+        await ensureNotificationPermission();
+      }
+    } catch (err) {
+      console.warn("Error during batch permission request:", err);
+    } finally {
+      await refreshPermissions();
       setRequesting(false);
-    }, 700);
+    }
   };
 
   const dismiss = () => {
     void haptics.light();
-    localStorage.setItem(PERMISSION_KEY, "granted");
     setVisible(false);
   };
+
+  const hasDenied = categories.some((c) => c.status === "denied");
+  const allGranted = categories.every((c) => c.status === "granted");
 
   if (!mounted || typeof document === "undefined") {
     return null;
@@ -167,7 +155,7 @@ export function PermissionGate() {
           aria-labelledby="app-permissions-title"
           className="fixed inset-0 z-[250] flex items-center justify-center p-4 sm:p-6 pointer-events-auto select-none"
         >
-          {/* Full-screen Dark Backdrop covering 100% of viewport */}
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -177,44 +165,44 @@ export function PermissionGate() {
             className="fixed inset-0 bg-black/85 backdrop-blur-md"
           />
 
-          {/* Modal Container — Dead-Centered */}
+          {/* Modal Container */}
           <motion.div
             initial={{ scale: 0.92, opacity: 0, y: 16 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.92, opacity: 0, y: 16 }}
             transition={{ type: "spring", damping: 26, stiffness: 360 }}
-            className="relative w-full max-w-sm rounded-2xl border border-border/80 bg-card text-card-foreground p-6 shadow-2xl focus:outline-none"
+            className="relative w-full max-w-sm rounded-2xl border border-border/80 bg-card text-card-foreground p-5 sm:p-6 shadow-2xl focus:outline-none"
           >
             {/* Close button */}
             <button
               onClick={dismiss}
               className="absolute top-3 right-3 rounded-full p-1.5 text-muted-foreground/60 hover:text-foreground hover:bg-muted/40 transition-colors cursor-pointer"
-              aria-label="Skip permissions"
+              aria-label="Close permissions dialog"
             >
               <X className="size-4" />
             </button>
 
             {/* Header */}
-            <div className="flex items-center gap-3 mb-5">
+            <div className="flex items-center gap-3 mb-4">
               <div className="flex size-10 items-center justify-center rounded-xl bg-primary/20">
                 <Shield className="size-5 text-primary" />
               </div>
               <div>
                 <h2 id="app-permissions-title" className="font-display text-sm font-bold tracking-wide">
-                  App Permissions
+                  Device Permissions
                 </h2>
                 <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-[0.14em]">
-                  Required for full functionality
+                  100% On-Device · Zero Cloud Tracking
                 </p>
               </div>
             </div>
 
             {/* Permission categories */}
-            <div className="space-y-3 mb-6">
-              {categories.map((cat, i) => (
+            <div className="space-y-2.5 mb-5 max-h-[50vh] overflow-y-auto pr-1">
+              {categories.map((cat) => (
                 <div
-                  key={i}
-                  className={`flex items-start gap-3 rounded-xl border p-3 transition-colors ${
+                  key={cat.id}
+                  className={`flex items-start gap-3 rounded-xl border p-2.5 transition-colors ${
                     cat.status === "granted"
                       ? "border-emerald-500/40 bg-emerald-500/10"
                       : cat.status === "denied"
@@ -223,14 +211,28 @@ export function PermissionGate() {
                   }`}
                 >
                   <div className="mt-0.5 shrink-0">{cat.icon}</div>
-                  <div className="min-w-0">
-                    <p className="font-mono text-[11px] font-bold tracking-wide">
-                      {cat.title}
-                      {cat.status === "granted" && (
-                        <span className="ml-2 text-emerald-400 font-normal">✓</span>
-                      )}
-                    </p>
-                    <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                      <p className="font-mono text-[11px] font-bold tracking-wide">
+                        {cat.title}
+                      </p>
+                      <span
+                        className={`font-mono text-[9px] uppercase font-semibold px-1.5 py-0.5 rounded ${
+                          cat.status === "granted"
+                            ? "text-emerald-400 bg-emerald-500/20"
+                            : cat.status === "denied"
+                              ? "text-red-400 bg-red-500/20"
+                              : "text-muted-foreground bg-muted/40"
+                        }`}
+                      >
+                        {cat.status === "granted"
+                          ? "Active"
+                          : cat.status === "denied"
+                            ? "Denied"
+                            : "Available"}
+                      </span>
+                    </div>
+                    <p className="font-mono text-[10px] leading-relaxed text-muted-foreground mt-0.5">
                       {cat.description}
                     </p>
                   </div>
@@ -238,23 +240,42 @@ export function PermissionGate() {
               ))}
             </div>
 
+            {/* Denied Warning Rationale & Open Settings */}
+            {hasDenied && Capacitor.isNativePlatform() && (
+              <div className="mb-4 rounded-xl border border-amber-400/30 bg-amber-500/10 p-2.5 flex items-center justify-between gap-2">
+                <p className="font-mono text-[10px] leading-relaxed text-amber-200">
+                  Some permissions are blocked. Open Settings to enable them.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void openAppSettings()}
+                  className="shrink-0 flex items-center gap-1 rounded-lg border border-amber-400/40 bg-amber-500/20 px-2 py-1 font-mono text-[9px] uppercase font-bold text-amber-200 hover:bg-amber-500/30 cursor-pointer"
+                >
+                  <Settings2 className="size-3" />
+                  Settings
+                </button>
+              </div>
+            )}
+
             {/* Action buttons */}
-            <div className="flex gap-3">
+            <div className="flex gap-2.5">
               <button
                 onClick={dismiss}
                 className="flex-1 rounded-xl border border-border/60 bg-card/60 py-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:bg-muted/40 cursor-pointer"
               >
-                Skip
+                Close
               </button>
-              <motion.button
-                onClick={() => void requestAll()}
-                disabled={requesting}
-                whileHover={requesting ? undefined : { scale: 1.02 }}
-                whileTap={requesting ? undefined : { scale: 0.97 }}
-                className="flex-[2] rounded-xl border border-primary/50 bg-gradient-to-r from-primary/90 to-plasma/80 py-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-opacity disabled:opacity-60 glow-box-violet cursor-pointer"
-              >
-                {requesting ? "Requesting…" : "Grant Access"}
-              </motion.button>
+              {!allGranted && (
+                <motion.button
+                  onClick={() => void requestAll()}
+                  disabled={requesting}
+                  whileHover={requesting ? undefined : { scale: 1.02 }}
+                  whileTap={requesting ? undefined : { scale: 0.97 }}
+                  className="flex-[2] rounded-xl border border-primary/50 bg-gradient-to-r from-primary/90 to-plasma/80 py-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.14em] text-white transition-opacity disabled:opacity-60 glow-box-violet cursor-pointer"
+                >
+                  {requesting ? "Requesting…" : "Grant Permissions"}
+                </motion.button>
+              )}
             </div>
           </motion.div>
         </div>

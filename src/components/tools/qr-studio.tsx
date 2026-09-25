@@ -34,6 +34,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { JobOutput } from "@/hooks/use-media-job";
 import { formatClock } from "@/lib/format";
+import { Capacitor } from "@capacitor/core";
+import { ensureCameraPermission, openAppSettings } from "@/lib/permissions";
 
 type Mode = "scan" | "generate";
 type ScanSource = "camera" | "file";
@@ -108,6 +110,11 @@ function QrScanner() {
   const startCamera = async () => {
     setCameraState("starting");
     try {
+      const granted = await ensureCameraPermission();
+      if (!granted) {
+        setCameraState("denied");
+        return;
+      }
       // Fresh instance each run — html5-qrcode dislikes reusing elements.
       await stopCamera();
       scannerRef.current = new Html5Qrcode(viewfinderId.current);
@@ -263,10 +270,20 @@ function QrScanner() {
         )}
 
         {cameraState === "denied" && (
-          <p className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-3 py-2 font-mono text-[10px] leading-relaxed text-amber-300">
-            camera blocked — grant permission (or use the image-file mode). On
-            Android the app requests the CAMERA permission at install time.
-          </p>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 rounded-xl border border-amber-400/30 bg-amber-500/10 p-3">
+            <p className="font-mono text-[11px] leading-relaxed text-amber-300">
+              Camera access was denied. Enable camera access to scan QR codes with your device camera.
+            </p>
+            {Capacitor.isNativePlatform() && (
+              <button
+                type="button"
+                onClick={() => void openAppSettings()}
+                className="shrink-0 rounded-lg border border-amber-400/40 bg-amber-500/20 px-2.5 py-1 font-mono text-[10px] uppercase font-bold tracking-wider text-amber-200 hover:bg-amber-500/30 cursor-pointer"
+              >
+                Open Settings
+              </button>
+            )}
+          </div>
         )}
       </div>
 

@@ -47,6 +47,10 @@ import java.util.Locale;
             strings = { Manifest.permission.RECORD_AUDIO }
         ),
         @Permission(
+            alias = "camera",
+            strings = { Manifest.permission.CAMERA }
+        ),
+        @Permission(
             alias = "notifications",
             strings = { Manifest.permission.POST_NOTIFICATIONS }
         )
@@ -154,7 +158,11 @@ public class OmniRecorderPlugin extends Plugin {
     @PermissionCallback
     private void microphonePermsCallback(PluginCall call) {
         if (getPermissionState("microphone") == PermissionState.GRANTED) {
-            launchScreenCaptureIntent(call);
+            if (android.os.Build.VERSION.SDK_INT >= 33 && getPermissionState("notifications") != PermissionState.GRANTED) {
+                requestPermissionForAlias("notifications", call, "notificationsPermsCallback");
+            } else {
+                launchScreenCaptureIntent(call);
+            }
         } else {
             call.reject("Microphone permission is required for internal audio or mic recording");
         }
@@ -315,5 +323,18 @@ public class OmniRecorderPlugin extends Plugin {
         }
 
         call.resolve(new JSObject());
+    }
+
+    @PluginMethod
+    public void openAppSettings(PluginCall call) {
+        try {
+            Intent intent = new Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.fromParts("package", getContext().getPackageName(), null));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(intent);
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("Could not open settings: " + e.getMessage());
+        }
     }
 }

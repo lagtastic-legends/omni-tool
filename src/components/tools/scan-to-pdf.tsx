@@ -16,6 +16,8 @@ import { OutputCard } from "@/components/media/output-card";
 import { useToast } from "@/hooks/use-toast";
 import { useNavStore } from "@/lib/navigation/nav-store";
 import type { JobOutput } from "@/hooks/use-media-job";
+import { Capacitor } from "@capacitor/core";
+import { ensureCameraPermission, openAppSettings } from "@/lib/permissions";
 import {
   buildImagePdf,
   buildPdfOutput,
@@ -92,6 +94,16 @@ export function ScanToPdf() {
   const startCamera = async () => {
     setCamera("starting");
     try {
+      const granted = await ensureCameraPermission();
+      if (!granted) {
+        setCamera("denied");
+        toast({
+          title: "Camera permission required",
+          description: "Please grant camera permission to scan documents.",
+          variant: "destructive",
+        });
+        return;
+      }
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "environment", width: { ideal: 1920 } },
         audio: false,
@@ -236,14 +248,25 @@ export function ScanToPdf() {
               aria-label="Camera preview"
             />
             {camera !== "live" && (
-              <div className="grid aspect-video w-full place-items-center">
-                <p className="max-w-56 text-center font-mono text-[10px] leading-relaxed text-muted-foreground">
-                  {camera === "denied"
-                    ? "camera blocked — upload pages below instead"
-                    : camera === "starting"
-                      ? "requesting camera…"
-                      : "camera off · start it or upload scans"}
-                </p>
+              <div className="grid aspect-video w-full place-items-center p-4">
+                <div className="flex flex-col items-center gap-2 max-w-64 text-center">
+                  <p className="font-mono text-[10px] leading-relaxed text-muted-foreground">
+                    {camera === "denied"
+                      ? "Camera blocked. Grant permission to capture documents with your camera."
+                      : camera === "starting"
+                        ? "Requesting camera…"
+                        : "Camera off · Start it or upload scans below"}
+                  </p>
+                  {camera === "denied" && Capacitor.isNativePlatform() && (
+                    <button
+                      type="button"
+                      onClick={() => void openAppSettings()}
+                      className="rounded-lg border border-primary/40 bg-primary/20 px-3 py-1 font-mono text-[10px] uppercase font-bold tracking-wider text-primary hover:bg-primary/30 cursor-pointer"
+                    >
+                      Open Settings
+                    </button>
+                  )}
+                </div>
               </div>
             )}
             {camera === "live" && (
