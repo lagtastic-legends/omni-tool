@@ -1,0 +1,424 @@
+/**
+ * ZenoDeck — YouTube InnerTube Metadata & Stream Resolver
+ *
+ * Lightweight, zero-dependency extractor querying YouTube's official
+ * InnerTube player endpoints (ANDROID_VR / TVHTML5 profiles).
+ * Resolves full adaptive stream manifests including 4K 60fps (2160p60)
+ * with direct unthrottled streaming URLs.
+ */
+
+export interface YouTubeFormatMeta {
+  itag: number;
+  url: string;
+  mimeType: string;
+  container: "mp4" | "webm" | "m4a";
+  codec: string;
+  bitrate: number;
+  averageBitrate?: number;
+  contentLength?: number;
+  qualityLabel?: string;
+  width?: number;
+  height?: number;
+  fps?: number;
+  audioQuality?: string;
+  audioSampleRate?: string;
+  approxDurationMs?: number;
+}
+
+export interface YouTubeQualityOption {
+  id: string; // e.g. "4k-60", "2k-60", "1080p-60", "720p", "audio-mp3"
+  label: string;
+  resolutionLabel: string;
+  fps: number;
+  badge: "4K 60FPS" | "4K" | "2K 60FPS" | "2K" | "1080P 60" | "1080P" | "720P" | "SD" | "AUDIO";
+  is4K: boolean;
+  is60fps: boolean;
+  isAudioOnly: boolean;
+  container: "mp4" | "webm" | "mp3" | "m4a";
+  approxSizeBytes: number;
+  videoFormat?: YouTubeFormatMeta;
+  audioFormat?: YouTubeFormatMeta;
+}
+
+export interface YouTubeVideoInfo {
+  videoId: string;
+  title: string;
+  author: string;
+  channelId?: string;
+  durationSeconds: number;
+  durationFormatted: string;
+  thumbnailUrl: string;
+  viewCount?: string;
+  qualities: YouTubeQualityOption[];
+}
+
+/**
+ * Robust YouTube video ID parser supporting watch URLs, short URLs,
+ * shorts, embeds, and raw 11-char video IDs.
+ */
+export function extractYouTubeId(urlOrId: string): string | null {
+  if (!urlOrId) return null;
+  const trimmed = urlOrId.trim();
+
+  // If already an 11-character video ID
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  // Handle standard YouTube URLs
+  const patterns = [
+    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|live\/))([a-zA-Z0-9_-]{11})/,
+    /[?&]v=([a-zA-Z0-9_-]{11})/,
+  ];
+
+  for (const regex of patterns) {
+    const match = trimmed.match(regex);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Format duration in seconds to "MM:SS" or "HH:MM:SS"
+ */
+export function formatDuration(sec: number): string {
+  if (isNaN(sec) || sec < 0) return "00:00";
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = Math.floor(sec % 60);
+
+  if (h > 0) {
+    return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  }
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
+/**
+ * Format bytes to readable size string (MB / GB)
+ */
+export function formatBytes(bytes: number): string {
+  if (!bytes || bytes <= 0) return "Unknown size";
+  if (bytes >= 1024 * 1024 * 1024) {
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  }
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/**
+ * Helper to get the absolute or relative YouTube API endpoint.
+ * In web dev/production, relative /api/youtube/... is used.
+ * In Capacitor Android APK, falls back to the production API origin.
+ */
+export function getYouTubeApiUrl(path: string): string {
+  if (typeof window !== "undefined") {
+    const origin = window.location.origin;
+    if (origin && !origin.includes("capacitor") && !origin.startsWith("file:")) {
+      // In dev (port 3000) or public web domain, use origin directly
+      if (window.location.port === "3000" || (!origin.includes("localhost") && !origin.includes("127.0.0.1"))) {
+        return `${origin}${path}`;
+      }
+    }
+  }
+  const fallback = process.env.NEXT_PUBLIC_APP_URL || "https://omni-tool-two.vercel.app";
+  return `${fallback.replace(/\/$/, "")}${path}`;
+}
+
+const INNERTUBE_CLIENTS = [
+  {
+    name: "ANDROID_VR",
+    context: {
+      client: {
+        clientName: "ANDROID_VR",
+        clientVersion: "1.60.19",
+        deviceModel: "Quest 3",
+        hl: "en",
+        gl: "US",
+      },
+    },
+  },
+  {
+    name: "TVHTML5",
+    context: {
+      client: {
+        clientName: "TVHTML5",
+        clientVersion: "7.20240901.00.00",
+        hl: "en",
+        gl: "US",
+      },
+    },
+  },
+];
+
+/**
+ * Resolves video details and extracts complete 4K 60fps streaming manifest
+ */
+export async function resolveYouTubeVideo(videoIdOrUrl: string): Promise<YouTubeVideoInfo> {
+  const videoId = extractYouTubeId(videoIdOrUrl);
+  if (!videoId) {
+    throw new Error("Invalid YouTube URL or Video ID. Please check the link and try again.");
+  }
+
+  let lastError: Error | null = null;
+  let playerResponse: any = null;
+
+  for (const clientConfig of INNERTUBE_CLIENTS) {
+    try {
+      const res = await fetch("https://www.youtube.com/youtubei/v1/player", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        },
+        body: JSON.stringify({
+          videoId,
+          context: clientConfig.context,
+        }),
+      });
+
+      if (!res.ok) continue;
+
+      const data = await res.json();
+      const status = data.playabilityStatus?.status;
+
+      if (status === "OK" && (data.streamingData?.formats || data.streamingData?.adaptiveFormats)) {
+        playerResponse = data;
+        break;
+      }
+    } catch (err: any) {
+      lastError = err;
+    }
+  }
+
+  if (!playerResponse) {
+    throw new Error(
+      lastError?.message ||
+        "Could not retrieve video streaming data. The video may be private, age-restricted, or region-locked."
+    );
+  }
+
+  const details = playerResponse.videoDetails || {};
+  const title = details.title || "YouTube Video";
+  const author = details.author || details.channelTitle || "Unknown Artist";
+  const durationSeconds = Number(details.lengthSeconds) || 0;
+  const durationFormatted = formatDuration(durationSeconds);
+  const viewCount = Number(details.viewCount || 0).toLocaleString();
+
+  // Pick highest quality thumbnail
+  const thumbs = details.thumbnail?.thumbnails || [];
+  const thumbnailUrl =
+    thumbs[thumbs.length - 1]?.url || `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+
+  const rawAdaptive: any[] = playerResponse.streamingData?.adaptiveFormats || [];
+  const rawCombined: any[] = playerResponse.streamingData?.formats || [];
+
+  // Parse all formats
+  const parsedFormats: YouTubeFormatMeta[] = [];
+
+  for (const f of [...rawCombined, ...rawAdaptive]) {
+    if (!f.url) continue;
+
+    const mime = f.mimeType || "";
+    const container = mime.includes("video/mp4")
+      ? "mp4"
+      : mime.includes("audio/mp4")
+      ? "m4a"
+      : "webm";
+    const codecMatch = mime.match(/codecs="([^"]+)"/);
+    const codec = codecMatch ? codecMatch[1] : "";
+
+    const contentLength = f.contentLength ? Number(f.contentLength) : undefined;
+    const bitrate = Number(f.bitrate) || 0;
+
+    parsedFormats.push({
+      itag: f.itag,
+      url: f.url,
+      mimeType: mime,
+      container,
+      codec,
+      bitrate,
+      averageBitrate: f.averageBitrate ? Number(f.averageBitrate) : undefined,
+      contentLength:
+        contentLength ||
+        (durationSeconds && bitrate ? Math.round((bitrate * durationSeconds) / 8) : undefined),
+      qualityLabel: f.qualityLabel,
+      width: f.width,
+      height: f.height,
+      fps: f.fps || 30,
+      audioQuality: f.audioQuality,
+      audioSampleRate: f.audioSampleRate,
+      approxDurationMs: f.approxDurationMs ? Number(f.approxDurationMs) : undefined,
+    });
+  }
+
+  // Find best available audio format (prioritize high-bitrate Opus or AAC)
+  const audioFormats = parsedFormats
+    .filter((f) => f.mimeType.startsWith("audio/"))
+    .sort((a, b) => b.bitrate - a.bitrate);
+
+  const bestAudio = audioFormats[0];
+
+  // Group and sort video formats
+  const videoFormats = parsedFormats.filter((f) => f.mimeType.startsWith("video/"));
+
+  // Build targeted quality tiers
+  const qualities: YouTubeQualityOption[] = [];
+
+  // Helper to find best format matching resolution and fps criteria
+  const findFormat = (minHeight: number, maxHeight: number, prefer60 = false) => {
+    const candidates = videoFormats.filter((f) => {
+      const h = f.height || (f.qualityLabel ? parseInt(f.qualityLabel) : 0);
+      return h >= minHeight && h <= maxHeight;
+    });
+
+    if (candidates.length === 0) return null;
+
+    if (prefer60) {
+      const fps60 = candidates.filter((f) => (f.fps || 0) >= 50);
+      if (fps60.length > 0) {
+        return fps60.sort((a, b) => b.bitrate - a.bitrate)[0];
+      }
+    }
+
+    return candidates.sort((a, b) => b.bitrate - a.bitrate)[0];
+  };
+
+  // 1. 4K 60fps / 4K UHD (2160p)
+  const fmt4k = findFormat(2000, 2160, true);
+  if (fmt4k) {
+    const is60 = (fmt4k.fps || 0) >= 50;
+    const vSize = fmt4k.contentLength || 0;
+    const aSize = bestAudio?.contentLength || 0;
+    qualities.push({
+      id: is60 ? "2160p60" : "2160p",
+      label: is60 ? "4K Ultra HD 60fps" : "4K Ultra HD",
+      resolutionLabel: "3840 × 2160 (2160p)",
+      fps: fmt4k.fps || 30,
+      badge: is60 ? "4K 60FPS" : "4K",
+      is4K: true,
+      is60fps: is60,
+      isAudioOnly: false,
+      container: "mp4",
+      approxSizeBytes: vSize + aSize,
+      videoFormat: fmt4k,
+      audioFormat: bestAudio,
+    });
+  }
+
+  // 2. 2K 60fps / 1440p QHD
+  const fmt2k = findFormat(1300, 1440, true);
+  if (fmt2k) {
+    const is60 = (fmt2k.fps || 0) >= 50;
+    const vSize = fmt2k.contentLength || 0;
+    const aSize = bestAudio?.contentLength || 0;
+    qualities.push({
+      id: is60 ? "1440p60" : "1440p",
+      label: is60 ? "2K Quad HD 60fps" : "2K Quad HD",
+      resolutionLabel: "2560 × 1440 (1440p)",
+      fps: fmt2k.fps || 30,
+      badge: is60 ? "2K 60FPS" : "2K",
+      is4K: false,
+      is60fps: is60,
+      isAudioOnly: false,
+      container: "mp4",
+      approxSizeBytes: vSize + aSize,
+      videoFormat: fmt2k,
+      audioFormat: bestAudio,
+    });
+  }
+
+  // 3. 1080p 60fps / 1080p FHD
+  const fmt1080 = findFormat(950, 1080, true);
+  if (fmt1080) {
+    const is60 = (fmt1080.fps || 0) >= 50;
+    const vSize = fmt1080.contentLength || 0;
+    const aSize = bestAudio?.contentLength || 0;
+    qualities.push({
+      id: is60 ? "1080p60" : "1080p",
+      label: is60 ? "Full HD 60fps" : "Full HD 1080p",
+      resolutionLabel: "1920 × 1080 (1080p)",
+      fps: fmt1080.fps || 30,
+      badge: is60 ? "1080P 60" : "1080P",
+      is4K: false,
+      is60fps: is60,
+      isAudioOnly: false,
+      container: "mp4",
+      approxSizeBytes: vSize + aSize,
+      videoFormat: fmt1080,
+      audioFormat: bestAudio,
+    });
+  }
+
+  // 4. 720p HD
+  const fmt720 = findFormat(650, 720, true);
+  if (fmt720) {
+    const vSize = fmt720.contentLength || 0;
+    const aSize = bestAudio?.contentLength || 0;
+    qualities.push({
+      id: "720p",
+      label: "High Definition 720p",
+      resolutionLabel: "1280 × 720 (720p)",
+      fps: fmt720.fps || 30,
+      badge: "720P",
+      is4K: false,
+      is60fps: (fmt720.fps || 0) >= 50,
+      isAudioOnly: false,
+      container: "mp4",
+      approxSizeBytes: vSize + aSize,
+      videoFormat: fmt720,
+      audioFormat: bestAudio,
+    });
+  }
+
+  // 5. 480p / 360p Standard Quality
+  const fmt480 = findFormat(320, 480);
+  if (fmt480) {
+    const vSize = fmt480.contentLength || 0;
+    const aSize = bestAudio?.contentLength || 0;
+    qualities.push({
+      id: "480p",
+      label: "Standard Definition 480p",
+      resolutionLabel: "854 × 480 (480p)",
+      fps: fmt480.fps || 30,
+      badge: "SD",
+      is4K: false,
+      is60fps: false,
+      isAudioOnly: false,
+      container: "mp4",
+      approxSizeBytes: vSize + aSize,
+      videoFormat: fmt480,
+      audioFormat: bestAudio,
+    });
+  }
+
+  // 6. Audio Only (MP3 Studio Quality)
+  if (bestAudio) {
+    qualities.push({
+      id: "audio-mp3",
+      label: "Studio Audio (MP3)",
+      resolutionLabel: "Audio Track (320kbps MP3)",
+      fps: 0,
+      badge: "AUDIO",
+      is4K: false,
+      is60fps: false,
+      isAudioOnly: true,
+      container: "mp3",
+      approxSizeBytes: bestAudio.contentLength || 0,
+      audioFormat: bestAudio,
+    });
+  }
+
+  return {
+    videoId,
+    title,
+    author,
+    channelId: details.channelId,
+    durationSeconds,
+    durationFormatted,
+    thumbnailUrl,
+    viewCount,
+    qualities,
+  };
+}

@@ -340,7 +340,7 @@ export function AuthGateway() {
             </div>
             <div className="flex items-center justify-between py-1 border-b border-border/50">
               <span className="text-muted-foreground">Native Android App</span>
-              <span className="text-foreground">com.omnitool.app (v3.2.0)</span>
+              <span className="text-foreground">com.omnitool.app (v3.3.0)</span>
             </div>
             <div className="flex items-center justify-between py-1 border-b border-border/50">
               <span className="text-muted-foreground">Authentication Protocol</span>

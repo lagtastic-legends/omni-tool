@@ -10,13 +10,13 @@
 
 <p align="center">
   <a href="https://github.com/lagtastic-legends/zenodeck/releases">
-    <img src="https://img.shields.io/badge/Release-v3.2.0-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.2.0" />
+    <img src="https://img.shields.io/badge/Release-v3.3.0-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.3.0" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.2.0/ZenoDeck-v3.2.0-release.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-v3.2.0%20Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
+  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.3.0/ZenoDeck-v3.3.0-release.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-v3.3.0%20Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
   </a>
   <a href="https://omni-tool-two.vercel.app/api/ios-profile">
     <img src="https://img.shields.io/badge/iOS%20Profile-Install%20on%20iPhone-000000?style=for-the-badge&logo=apple&logoColor=white" alt="iOS Profile Download" />
@@ -42,9 +42,9 @@ Unlike traditional cloud converters and SaaS editing tools that upload your sens
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web Application** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero installation required. Instant launch in any modern browser. |
-| **📱 Android APK (Signed Production v3.2.0)** | [**Download ZenoDeck-v3.2.0-release.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.2.0/ZenoDeck-v3.2.0-release.apk) | Production signed APK optimized for all phones (slabs, flips, foldables) and tablets. |
+| **📱 Android APK (Signed Production v3.3.0)** | [**Download ZenoDeck-v3.3.0-release.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.3.0/ZenoDeck-v3.3.0-release.apk) | Production signed APK optimized for all phones (slabs, flips, foldables) and tablets. |
 | **🍏 Apple iOS Profile (iPhone & iPad)** | [**Download zenodeck.mobileconfig**](https://omni-tool-two.vercel.app/api/ios-profile) | Apple Web Clip Configuration Profile. Installs ZenoDeck to Home Screen in full-screen standalone mode. |
-| **📦 GitHub Releases & Source** | [**GitHub Releases Hub**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.2.0) | Complete release packages, checksums, changelogs, and release assets. |
+| **📦 GitHub Releases & Source** | [**GitHub Releases Hub**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.3.0) | Complete release packages, checksums, changelogs, and release assets. |
 
 ---
 

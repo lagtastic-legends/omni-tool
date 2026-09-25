@@ -5,6 +5,19 @@ All notable changes to ZenoDeck are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] — 2026-09-25
+
+### Added
+- **Dedicated YouTube 4K 60fps Turbo Downloader section (`youtube-downloader`)**:
+  - Full support for YouTube URLs (standard watch, youtu.be, shorts, embeds, and video IDs).
+  - High-resolution adaptive stream extraction supporting **4K 60fps (2160p60)**, **2K 60fps (1440p60)**, **1080p60**, 720p, 480p, and Studio Audio MP3 (320kbps).
+  - Multi-worker concurrent Range chunk acceleration (`Range: bytes=start-end`) across 4–8 parallel threads, bypassing single-connection CDN throttling for insane download speeds.
+  - Zero-reencoding, lossless FFmpeg WASM stream-copy muxing (`-c copy`) that merges 4K video and high-bitrate audio streams in 1–2 seconds with zero audio/video desync.
+  - Dark Cyber HUD interface featuring real-time download speed gauge (in MB/s), active worker thread counters, dynamic ETA timer, and stream size badges.
+  - One-tap native saving via `nativeSave` directly to device storage on both Desktop and Android APK.
+- Added `"red"` accent support to `ToolMeta` accents and workstation ribbon navigation.
+- Bumped Android `versionCode` to `330` and `versionName` to `"3.3.0"`.
+
 ---
 
 ## [3.2.0] — 2026-09-22

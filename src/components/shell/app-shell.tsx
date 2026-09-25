@@ -31,6 +31,7 @@ import { DesktopInspector } from "@/components/shell/desktop-inspector";
 import { WorkstationRibbon } from "@/components/shell/workstation-ribbon";
 
 /* Dynamic code-split tool modules to control memory & isolate thread workloads */
+const YouTubeDownloader = lazy(() => import("@/components/tools/youtube-downloader").then((m) => ({ default: m.YouTubeDownloader })));
 const VideoEditor = lazy(() => import("@/components/tools/video-editor").then((m) => ({ default: m.VideoEditor })));
 const MediaConverter = lazy(() => import("@/components/tools/media-converter").then((m) => ({ default: m.MediaConverter })));
 const VideoCompressor = lazy(() => import("@/components/tools/video-compressor").then((m) => ({ default: m.VideoCompressor })));
@@ -96,6 +97,7 @@ function ToolSkeleton() {
 
 /** tool id → module implementation (grows every phase) */
 const TOOL_COMPONENTS: Record<string, React.ComponentType> = {
+  "youtube-downloader": YouTubeDownloader,
   "video-editor": VideoEditor,
   "video-converter": MediaConverter,
   "video-compressor": VideoCompressor,

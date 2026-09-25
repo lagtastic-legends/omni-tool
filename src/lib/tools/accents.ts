@@ -29,4 +29,8 @@ export const ACCENT_STYLES: Record<
     tile: "border-amber-400/30 bg-amber-500/10 text-amber-300",
     phaseChip: "border-amber-400/25 text-amber-300/90",
   },
+  red: {
+    tile: "border-red-500/40 bg-red-500/15 text-red-400",
+    phaseChip: "border-red-500/30 text-red-400",
+  },
 };
