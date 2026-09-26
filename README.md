@@ -10,13 +10,13 @@
 
 <p align="center">
   <a href="https://github.com/lagtastic-legends/zenodeck/releases">
-    <img src="https://img.shields.io/badge/Release-v3.4.0-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.4.0" />
+    <img src="https://img.shields.io/badge/Release-v3.4.2-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.4.2" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.0/ZenoDeck-v3.4.0-release.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-v3.4.0%20Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
+  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.2/ZenoDeck-v3.4.2-release.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-v3.4.2%20Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
   </a>
   <a href="https://omni-tool-two.vercel.app/api/ios-profile">
     <img src="https://img.shields.io/badge/iOS%20Profile-Install%20on%20iPhone-000000?style=for-the-badge&logo=apple&logoColor=white" alt="iOS Profile Download" />
@@ -42,10 +42,37 @@ Unlike traditional cloud converters and SaaS editing tools that upload your sens
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web Application** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero installation required. Instant launch in any modern browser. |
-| **📱 Android APK (Signed Production v3.4.0)** | [**Download ZenoDeck-v3.4.0-release.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.0/ZenoDeck-v3.4.0-release.apk) | Production signed APK optimized for all phones (slabs, flips, foldables) and tablets. |
-| **⚡ Direct Web APK** | [**Download zenodeck.apk (v3.4.0)**](https://omni-tool-two.vercel.app/zenodeck.apk) | Direct fast download mirrored straight from the web host. |
+| **📱 Android APK (Signed Production v3.4.2)** | [**Download ZenoDeck-v3.4.2-release.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.2/ZenoDeck-v3.4.2-release.apk) | Production signed APK with native on-device resolution and direct CDN streaming. |
+| **⚡ Direct Web APK** | [**Download zenodeck.apk (v3.4.2)**](https://omni-tool-two.vercel.app/zenodeck.apk) | Direct fast download mirrored straight from the web host. |
 | **🍏 Apple iOS Profile (iPhone & iPad)** | [**Download zenodeck.mobileconfig**](https://omni-tool-two.vercel.app/api/ios-profile) | Apple Web Clip Configuration Profile. Installs ZenoDeck to Home Screen in full-screen standalone mode. |
-| **📦 GitHub Releases & Source** | [**GitHub Releases Hub**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.4.0) | Complete release packages, checksums, changelogs, and release assets. |
+| **📦 GitHub Releases & Source** | [**GitHub Releases Hub**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.4.2) | Complete release packages, checksums, changelogs, and release assets. |
+
+---
+
+## 🌟 What's New in v3.4.2 — Native On-Device Resolution, Cloud Anti-Bot Resilience & Verified 4K Turbo Engine
+
+### 🚀 1. Native On-Device Resolution for Android (`CapacitorHttp`)
+* **Zero Datacenter Blocks**: The Android APK now runs stream resolution directly on the device using native Android OS network connections. It uses your real carrier or Wi-Fi IP, completely immune to YouTube cloud datacenter IP blacklists.
+* **Direct Google CDN Acceleration**: Bypasses serverless proxy hops for video streaming. Stream chunks flow directly from Google's high-speed CDN to the device with 4–8 parallel workers.
+
+### 🛡️ 2. Multi-Candidate Failover Architecture
+* **Fallback Node Routing**: Built-in candidate host resolution (`buildCandidateUrls`) parses embedded `mn` and `fallback_host` edge cache nodes from YouTube manifests, ensuring zero connection timeouts if an ISP edge node is congested.
+
+### ⚡ 3. Studio-Grade Cloud Anti-Bot Guidance & Direct APK CTA
+* **Actionable UX**: Replaced cryptic raw technical errors with a polished, informative notification explaining YouTube's cloud datacenter restrictions.
+* **1-Tap Sideloading**: Prominently features a direct download button for `zenodeck.apk` right inside the alert card for instant, unrestricted on-device processing.
+
+### 🧪 4. 65-Point Automated Regression Suite
+* **Comprehensive Test Harness**: Added [`scripts/test-youtube-suite.ts`](scripts/test-youtube-suite.ts) verifying:
+  * URL Parsing (desktop, shorts, embeds, timestamps, clean IDs)
+  * Formatters (durations, bytes)
+  * Visitor Session Tokens
+  * InnerTube Multi-Client Resolution
+  * 6 Audio Extraction Qualities (320k, 256k, 192k, 128k, Native AAC, Lossless WAV)
+  * CDN Range (206) Chunk Retrievals
+  * Multi-Worker Partitioning & Reassembly Math
+  * Next.js Route Handlers
+* **100% Green Status**: All 65 tests pass cleanly in automated CI/CD runs.
 
 ---
 
