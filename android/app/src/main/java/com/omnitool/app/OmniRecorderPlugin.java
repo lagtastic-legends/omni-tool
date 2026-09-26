@@ -36,7 +36,9 @@ import android.Manifest;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 @CapacitorPlugin(
@@ -53,6 +55,13 @@ import java.util.Locale;
         @Permission(
             alias = "notifications",
             strings = { Manifest.permission.POST_NOTIFICATIONS }
+        ),
+        @Permission(
+            alias = "storage",
+            strings = {
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            }
         )
     }
 )
@@ -323,6 +332,40 @@ public class OmniRecorderPlugin extends Plugin {
         }
 
         call.resolve(new JSObject());
+    }
+
+    @PluginMethod
+    public void requestAllPermissions(PluginCall call) {
+        List<String> aliases = new ArrayList<>();
+        aliases.add("camera");
+        aliases.add("microphone");
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            aliases.add("notifications");
+        } else {
+            aliases.add("storage");
+        }
+        requestPermissionForAliases(aliases.toArray(new String[0]), call, "allPermissionsCallback");
+    }
+
+    @PermissionCallback
+    private void allPermissionsCallback(PluginCall call) {
+        checkAllPermissions(call);
+    }
+
+    @PluginMethod
+    public void checkAllPermissions(PluginCall call) {
+        JSObject ret = new JSObject();
+        ret.put("camera", getPermissionState("camera").toString().toLowerCase());
+        ret.put("microphone", getPermissionState("microphone").toString().toLowerCase());
+
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            ret.put("notifications", getPermissionState("notifications").toString().toLowerCase());
+            ret.put("storage", "granted"); // Android 13+ Scoped Storage for app & Documents is always accessible
+        } else {
+            ret.put("notifications", "granted"); // Not restricted by runtime permission below API 33
+            ret.put("storage", getPermissionState("storage").toString().toLowerCase());
+        }
+        call.resolve(ret);
     }
 
     @PluginMethod

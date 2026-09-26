@@ -44,24 +44,23 @@ jobs:
       - name: Make Gradlew Executable
         run: chmod +x android/gradlew
 
-      - name: Build Signed Android Release APK and Bundle
+      - name: Build Signed Android Release APK
         run: |
           cd android
-          ./gradlew assembleRelease bundleRelease --no-daemon
+          ./gradlew assembleRelease --no-daemon
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
 
       - name: Stage Release Artifact
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/release/app-release.apk dist/ZenoDeck-${{ github.ref_name }}-release.apk
-          cp android/app/build/outputs/bundle/release/app-release.aab dist/ZenoDeck-${{ github.ref_name }}-release.aab
+          cp android/app/build/outputs/apk/release/app-release.apk dist/releases.apk
           if [ -f "RELEASE_NOTES_${{ github.ref_name }}.md" ]; then
             cp "RELEASE_NOTES_${{ github.ref_name }}.md" dist/RELEASE_NOTES.md
-          elif [ -f "RELEASE_NOTES_v3.1.1.md" ]; then
-            cp "RELEASE_NOTES_v3.1.1.md" dist/RELEASE_NOTES.md
-          elif [ -f "RELEASE_NOTES_v3.1.0.md" ]; then
-            cp "RELEASE_NOTES_v3.1.0.md" dist/RELEASE_NOTES.md
+          elif [ -f "RELEASE_NOTES_v3.4.5.md" ]; then
+            cp "RELEASE_NOTES_v3.4.5.md" dist/RELEASE_NOTES.md
+          elif [ -f "RELEASE_NOTES_v3.4.4.md" ]; then
+            cp "RELEASE_NOTES_v3.4.4.md" dist/RELEASE_NOTES.md
           else
             cp "RELEASE_NOTES_v3.0.0.md" dist/RELEASE_NOTES.md
           fi
@@ -74,7 +73,6 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            dist/ZenoDeck-${{ github.ref_name }}-release.apk
-            dist/ZenoDeck-${{ github.ref_name }}-release.aab
+            dist/releases.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

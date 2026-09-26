@@ -19,11 +19,14 @@ import { useNavStore } from "@/lib/navigation/nav-store";
 import { useHaptics } from "@/hooks/use-haptics";
 import {
   checkAppPermissions,
+  requestAllAppPermissions,
+  ensureCameraPermission,
+  ensureMicrophonePermission,
   ensureNotificationPermission,
+  ensureStoragePermission,
   openAppSettings,
   type PermissionStatusState,
 } from "@/lib/permissions";
-import { OmniRecorder } from "@/lib/native-recorder";
 
 interface PermissionCategory {
   id: "camera" | "microphone" | "notifications" | "storage";
@@ -66,7 +69,7 @@ export function PermissionGate() {
       icon: <HardDrive className="size-4.5 text-emerald-400" />,
       title: "Private Local Storage",
       description: "100% on-device sandbox storage for generated files (zero cloud tracking)",
-      status: "granted",
+      status: "prompt",
     },
   ]);
 
@@ -115,17 +118,28 @@ export function PermissionGate() {
     }
   }, [visible]);
 
+  const requestSingle = async (id: PermissionCategory["id"]) => {
+    void haptics.light();
+    setRequesting(true);
+    try {
+      if (id === "camera") await ensureCameraPermission();
+      else if (id === "microphone") await ensureMicrophonePermission();
+      else if (id === "notifications") await ensureNotificationPermission();
+      else if (id === "storage") await ensureStoragePermission();
+    } catch (err) {
+      console.warn(`Failed requesting ${id} permission:`, err);
+    } finally {
+      await refreshPermissions();
+      setRequesting(false);
+    }
+  };
+
   const requestAll = async () => {
     void haptics.medium();
     setRequesting(true);
 
     try {
-      if (Capacitor.isNativePlatform()) {
-        // Request Camera + Mic via native plugin
-        await OmniRecorder.requestPermissions({ permissions: ["camera", "microphone"] });
-        // Request Notifications
-        await ensureNotificationPermission();
-      }
+      await requestAllAppPermissions();
     } catch (err) {
       console.warn("Error during batch permission request:", err);
     } finally {
@@ -216,21 +230,33 @@ export function PermissionGate() {
                       <p className="font-mono text-[11px] font-bold tracking-wide">
                         {cat.title}
                       </p>
-                      <span
-                        className={`font-mono text-[9px] uppercase font-semibold px-1.5 py-0.5 rounded ${
-                          cat.status === "granted"
-                            ? "text-emerald-400 bg-emerald-500/20"
+                      <div className="flex items-center gap-1.5">
+                        {cat.status !== "granted" && (
+                          <button
+                            type="button"
+                            onClick={() => void requestSingle(cat.id)}
+                            disabled={requesting}
+                            className="font-mono text-[9px] uppercase font-bold px-1.5 py-0.5 rounded bg-primary/20 text-primary hover:bg-primary/30 transition-colors disabled:opacity-50 cursor-pointer"
+                          >
+                            Grant
+                          </button>
+                        )}
+                        <span
+                          className={`font-mono text-[9px] uppercase font-semibold px-1.5 py-0.5 rounded ${
+                            cat.status === "granted"
+                              ? "text-emerald-400 bg-emerald-500/20"
+                              : cat.status === "denied"
+                                ? "text-red-400 bg-red-500/20"
+                                : "text-muted-foreground bg-muted/40"
+                          }`}
+                        >
+                          {cat.status === "granted"
+                            ? "Active"
                             : cat.status === "denied"
-                              ? "text-red-400 bg-red-500/20"
-                              : "text-muted-foreground bg-muted/40"
-                        }`}
-                      >
-                        {cat.status === "granted"
-                          ? "Active"
-                          : cat.status === "denied"
-                            ? "Denied"
-                            : "Available"}
-                      </span>
+                              ? "Denied"
+                              : "Available"}
+                        </span>
+                      </div>
                     </div>
                     <p className="font-mono text-[10px] leading-relaxed text-muted-foreground mt-0.5">
                       {cat.description}

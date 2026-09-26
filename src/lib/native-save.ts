@@ -1,6 +1,7 @@
 import { Capacitor } from "@capacitor/core";
 import { Directory, Filesystem } from "@capacitor/filesystem";
 import { useSaveDialogStore } from "@/hooks/useSaveDialogStore";
+import { ensureStoragePermission } from "@/lib/permissions";
 
 export const nativeSave = async (blob: Blob, filename: string) => {
   if (!Capacitor.isNativePlatform()) {
@@ -28,13 +29,9 @@ export const nativeSave = async (blob: Blob, filename: string) => {
   try {
     if (Capacitor.getPlatform() === "android") {
       try {
-        const perm = await Filesystem.checkPermissions();
-        // Only request if explicitly in 'prompt' state on Android 12 or below
-        if (perm.publicStorage === "prompt") {
-          await Filesystem.requestPermissions();
-        }
+        await ensureStoragePermission();
       } catch {
-        // Scoped storage in Directory.Documents succeeds without legacy publicStorage
+        // Continue and attempt write anyway in case scoped storage handles it
       }
     }
 
@@ -48,27 +45,40 @@ export const nativeSave = async (blob: Blob, filename: string) => {
       reader.readAsDataURL(blob);
     });
 
-    const savedFile = await Filesystem.writeFile({
-      path: filename,
-      data: base64,
-      directory: Directory.Documents,
-    });
+    let savedFile;
+    let savedDirectory = "Documents";
+
+    try {
+      savedFile = await Filesystem.writeFile({
+        path: filename,
+        data: base64,
+        directory: Directory.Documents,
+      });
+    } catch (primaryErr) {
+      console.warn("Direct write to Documents failed, falling back to Data sandbox:", primaryErr);
+      savedFile = await Filesystem.writeFile({
+        path: filename,
+        data: base64,
+        directory: Directory.Data,
+      });
+      savedDirectory = "App Storage";
+    }
 
     useSaveDialogStore.getState().showSuccess({
       filename,
-      directory: "Documents",
+      directory: savedDirectory,
       uri: savedFile.uri,
       fileSize: blob.size,
       blob,
     });
   } catch (error) {
-    console.error("Native save failed:", error);
+    console.error("Native save failed completely:", error);
     useSaveDialogStore.getState().showError({
       filename,
       errorMessage:
         error instanceof Error
           ? error.message
-          : "Could not save to Documents. Please check storage permissions.",
+          : "Could not save to storage. Please check permissions.",
     });
   }
 };
