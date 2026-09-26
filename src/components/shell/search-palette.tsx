@@ -10,7 +10,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { TOOL_REGISTRY } from "@/lib/tools/registry";
+import { getVisibleTools } from "@/lib/tools/registry";
 import { useNavStore } from "@/lib/navigation/nav-store";
 import { useSearchStore } from "@/lib/search/search-store";
 
@@ -84,7 +84,7 @@ export function SearchPalette({ hideTrigger = false }: { hideTrigger?: boolean }
         <CommandList>
           <CommandEmpty>No tools found.</CommandEmpty>
           <CommandGroup heading="Tools & Modules">
-            {TOOL_REGISTRY.map((tool) => (
+            {getVisibleTools().map((tool) => (
               <CommandItem
                 key={tool.id}
                 value={tool.name + " " + tool.description}

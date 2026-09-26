@@ -63,6 +63,8 @@ export interface ToolMeta {
   accent: "violet" | "cyan" | "fuchsia" | "emerald" | "amber" | "blue" | "red";
   /** false for tools that run without the FFmpeg engine (defaults true). */
   requiresEngine?: boolean;
+  /** When true, tool is exclusively available in native Capacitor mobile builds (Android APK). */
+  nativeOnly?: boolean;
 }
 
 export interface RuntimeProgress {

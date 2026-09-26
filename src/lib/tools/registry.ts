@@ -78,6 +78,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     status: "online",
     accent: "red",
     requiresEngine: true,
+    nativeOnly: true,
   },
   {
     id: "video-editor",
@@ -449,16 +450,29 @@ export const TOOL_REGISTRY: ToolMeta[] = [
 
 /* Helpers ----------------------------------------------------------- */
 
+export function isToolSupported(tool: ToolMeta): boolean {
+  if (tool.nativeOnly) {
+    if (process.env.NEXT_PUBLIC_MOBILE_EXPORT === "1") return true;
+    if (typeof window !== "undefined" && Capacitor.isNativePlatform?.()) return true;
+    return false;
+  }
+  return true;
+}
+
+export function getVisibleTools(): ToolMeta[] {
+  return TOOL_REGISTRY.filter(isToolSupported);
+}
+
 export function getToolsByPhase(phase: number): ToolMeta[] {
-  return TOOL_REGISTRY.filter((tool) => tool.phase === phase);
+  return TOOL_REGISTRY.filter((tool) => tool.phase === phase && isToolSupported(tool));
 }
 
 export function getOnlineTools(): ToolMeta[] {
-  return TOOL_REGISTRY.filter((tool) => tool.status === "online");
+  return TOOL_REGISTRY.filter((tool) => tool.status === "online" && isToolSupported(tool));
 }
 
 export function totalToolCount(): number {
-  return TOOL_REGISTRY.length;
+  return getVisibleTools().length;
 }
 
 /** Icon used for a category chip in the dashboard filter bar. */

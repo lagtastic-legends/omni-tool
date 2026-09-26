@@ -6,17 +6,25 @@
  *
  * Key Capabilities:
  *  1. Multi-Threaded Range Chunk Streaming: Bypasses single-connection throttling
- *     by splitting streams across 4–8 concurrent range workers (Range: bytes=X-Y).
+ *     by splitting streams across progressive range workers (Range: bytes=X-Y).
  *  2. Dual-Stream Concurrent Fetching: Downloads 4K 60fps video and studio audio
- *     simultaneously.
- *  3. Zero-Loss Stream-Copy Muxing: Uses FFmpeg WASM `-c copy` to combine video
+ *     simultaneously with dynamic worker allocation.
+ *  3. Edge Node Failover & Resume: Automatically cycles candidate CDN edge nodes
+ *     (mn, fallback_host) with automatic retry and stall detection.
+ *  4. Fast-Path Direct Saving: Native AAC (M4A) and pre-muxed 720p MP4 save
+ *     instantly without WebAssembly overhead.
+ *  5. Zero-Loss Stream-Copy Muxing: Uses FFmpeg WASM `-c copy` to combine video
  *     and audio streams in seconds with zero re-encoding artifacts or CPU lag.
- *  4. Live Telemetry: Instantaneous throughput gauge (MB/s), thread counter,
+ *  6. Live Telemetry: Instantaneous throughput gauge (MB/s), thread counter,
  *     and dynamic ETA computation.
  */
 
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
-import { getYouTubeApiUrl, type YouTubeQualityOption } from "./innertube";
+import {
+  buildCandidateUrls,
+  getYouTubeApiUrl,
+  type YouTubeQualityOption,
+} from "./innertube";
 
 export type TurboPhase =
   | "idle"
@@ -40,7 +48,7 @@ export interface TurboProgress {
 export interface TurboDownloadOptions {
   option: YouTubeQualityOption;
   videoTitle: string;
-  engine: FFmpeg;
+  engine?: FFmpeg | null;
   maxParallelWorkers?: number;
   onProgress: (prog: TurboProgress) => void;
   signal?: AbortSignal;
@@ -57,10 +65,9 @@ export interface TurboDownloadResult {
 }
 
 /**
- * Builds the stream proxy URL for web CORS compatibility or returns direct URL
+ * Builds the stream proxy URL for web CORS compatibility or returns direct URL for native mobile
  */
 function getProxiedStreamUrl(directUrl: string): string {
-  // If running natively in Capacitor (Android/iOS), fetch directly from CDN without server proxy
   if (typeof window !== "undefined" && (window as any).Capacitor?.isNativePlatform?.()) {
     return directUrl;
   }
@@ -68,27 +75,51 @@ function getProxiedStreamUrl(directUrl: string): string {
 }
 
 /**
- * Measures content length of stream URL via HEAD request
+ * Safely measures content length of stream URL via Range: bytes=0-0 GET probe
+ * Bypasses hanging HEAD requests on Google Video CDN and CapacitorHttp
  */
-async function probeStreamSize(url: string, signal?: AbortSignal): Promise<number> {
-  try {
-    const res = await fetch(url, {
-      method: "HEAD",
-      signal,
-      headers: {
-        "User-Agent": "Mozilla/5.0",
-      },
-    });
-    const len = res.headers.get("content-length");
-    if (len) return parseInt(len, 10);
-  } catch {}
+async function probeStreamSizeSafe(
+  candidateUrls: string[],
+  knownSize?: number,
+  signal?: AbortSignal
+): Promise<number> {
+  if (knownSize && knownSize > 0) return knownSize;
+
+  for (const directUrl of candidateUrls) {
+    if (signal?.aborted) return 0;
+    try {
+      const targetUrl = getProxiedStreamUrl(directUrl);
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 3500);
+      const onParentAbort = () => controller.abort();
+      signal?.addEventListener("abort", onParentAbort);
+
+      const res = await fetch(targetUrl, {
+        method: "GET",
+        headers: { Range: "bytes=0-0" },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timer);
+      signal?.removeEventListener("abort", onParentAbort);
+
+      const cr = res.headers.get("content-range");
+      if (cr) {
+        const match = cr.match(/\/(\d+)$/);
+        if (match) {
+          const size = parseInt(match[1], 10);
+          if (size > 0) return size;
+        }
+      }
+    } catch {}
+  }
   return 0;
 }
 
 /**
- * Downloads a single stream using parallel Range chunk requests
+ * Downloads a single stream using progressive range chunk workers with candidate failover
  */
-async function fetchStreamParallel({
+async function downloadStreamResilient({
   streamUrl,
   knownSize,
   maxWorkers = 4,
@@ -103,124 +134,130 @@ async function fetchStreamParallel({
   onChunkBytes: (bytes: number) => void;
   signal?: AbortSignal;
 }): Promise<Uint8Array> {
-  const proxiedUrl = getProxiedStreamUrl(streamUrl);
+  const candidateUrls = buildCandidateUrls(streamUrl);
 
-  // 1. Determine exact file size
-  let totalSize = knownSize || 0;
-  if (!totalSize) {
-    totalSize = await probeStreamSize(proxiedUrl, signal);
-  }
+  // 1. Determine exact file size safely without hanging HEAD requests
+  let totalSize = await probeStreamSizeSafe(candidateUrls, knownSize, signal);
 
-  // If size is unknown or small (< 2 MB), fall back to single stream
-  if (!totalSize || totalSize < 2 * 1024 * 1024) {
-    const res = await fetch(proxiedUrl, { signal });
-    if (!res.ok) throw new Error(`Stream fetch failed (${res.status}) for ${label}`);
-
-    if (!res.body) {
-      const buf = await res.arrayBuffer();
-      onChunkBytes(buf.byteLength);
-      return new Uint8Array(buf);
-    }
-
-    const reader = res.body.getReader();
-    const chunks: Uint8Array[] = [];
-    while (true) {
-      if (signal?.aborted) throw new Error("Download aborted");
-      const { done, value } = await reader.read();
-      if (done) break;
-      if (value) {
-        chunks.push(value);
-        onChunkBytes(value.byteLength);
-      }
-    }
-
-    const totalLen = chunks.reduce((acc, c) => acc + c.byteLength, 0);
-    const merged = new Uint8Array(totalLen);
-    let offset = 0;
-    for (const c of chunks) {
-      merged.set(c, offset);
-      offset += c.byteLength;
-    }
-    return merged;
-  }
-
-  // 2. Multi-Worker Parallel Range Partitioning
-  const workers = Math.max(2, Math.min(maxWorkers, 8));
-  const chunkSize = Math.ceil(totalSize / workers);
-  const partBuffers: Uint8Array[] = new Array(workers);
-
-  const fetchPart = async (index: number) => {
-    const start = index * chunkSize;
-    const end = Math.min((index + 1) * chunkSize - 1, totalSize - 1);
-
-    let lastError: Error | null = null;
-    for (let attempt = 1; attempt <= 3; attempt++) {
+  // Fallback: if size is still unknown or very small (< 1 MB), perform direct streaming fetch
+  if (!totalSize || totalSize < 1024 * 1024) {
+    let lastErr: Error | null = null;
+    for (const cand of candidateUrls) {
       if (signal?.aborted) throw new Error("Download aborted");
       try {
-        const res = await fetch(proxiedUrl, {
-          signal,
-          headers: {
-            Range: `bytes=${start}-${end}`,
-          },
-        });
-
-        if (!res.ok && res.status !== 206) {
-          throw new Error(`Range request failed (${res.status}) on worker ${index + 1}`);
-        }
+        const targetUrl = getProxiedStreamUrl(cand);
+        const res = await fetch(targetUrl, { signal });
+        if (!res.ok) throw new Error(`Stream fetch failed (${res.status}) for ${label}`);
 
         if (!res.body) {
           const buf = await res.arrayBuffer();
-          partBuffers[index] = new Uint8Array(buf);
-          onChunkBytes(partBuffers[index].byteLength);
-          return;
+          onChunkBytes(buf.byteLength);
+          return new Uint8Array(buf);
         }
 
         const reader = res.body.getReader();
         const chunks: Uint8Array[] = [];
-        let bytesReceived = 0;
         while (true) {
           if (signal?.aborted) throw new Error("Download aborted");
           const { done, value } = await reader.read();
           if (done) break;
           if (value) {
             chunks.push(value);
-            bytesReceived += value.byteLength;
             onChunkBytes(value.byteLength);
           }
         }
 
-        const partMerged = new Uint8Array(bytesReceived);
+        const totalLen = chunks.reduce((acc, c) => acc + c.byteLength, 0);
+        const merged = new Uint8Array(totalLen);
         let offset = 0;
         for (const c of chunks) {
-          partMerged.set(c, offset);
+          merged.set(c, offset);
           offset += c.byteLength;
         }
-        partBuffers[index] = partMerged;
-        return;
+        return merged;
       } catch (err: any) {
-        lastError = err;
-        if (attempt < 3 && !signal?.aborted) {
-          await new Promise((r) => setTimeout(r, 400 * attempt));
-        }
+        lastErr = err;
       }
     }
-    throw lastError || new Error(`Worker ${index + 1} failed after 3 attempts`);
-  };
-
-  // Run all workers concurrently
-  await Promise.all(Array.from({ length: workers }, (_, i) => fetchPart(i)));
-
-  // Merge final parts in sequential order
-  const finalMerged = new Uint8Array(totalSize);
-  let finalOffset = 0;
-  for (const part of partBuffers) {
-    if (part) {
-      finalMerged.set(part, finalOffset);
-      finalOffset += part.byteLength;
-    }
+    throw lastErr || new Error(`Failed to fetch ${label} stream.`);
   }
 
-  return finalMerged;
+  // 2. Progressive Sized Chunk Partitioning
+  // 512KB for streams < 10MB; 1MB for larger streams.
+  // This guarantees fast packet-by-packet UI feedback (0% -> 2% -> 5% -> ...)
+  // while preventing Android WebView base64 IPC bridge congestion.
+  const CHUNK_SIZE = totalSize > 10 * 1024 * 1024 ? 1024 * 1024 : 512 * 1024;
+  const numChunks = Math.ceil(totalSize / CHUNK_SIZE);
+  const outputBuffer = new Uint8Array(totalSize);
+
+  // Use 2–4 workers for optimal mobile network saturation without throttling
+  const concurrency = Math.max(1, Math.min(maxWorkers, 4, numChunks));
+  let nextChunkIndex = 0;
+
+  const worker = async (workerId: number) => {
+    while (true) {
+      if (signal?.aborted) throw new Error("Download aborted");
+      const chunkIndex = nextChunkIndex++;
+      if (chunkIndex >= numChunks) break;
+
+      const start = chunkIndex * CHUNK_SIZE;
+      const end = Math.min((chunkIndex + 1) * CHUNK_SIZE - 1, totalSize - 1);
+
+      let chunkSuccess = false;
+      let lastErr: Error | null = null;
+
+      // Retry up to 3 times per chunk with candidate edge node failover
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (signal?.aborted) throw new Error("Download aborted");
+        const candidate = candidateUrls[(chunkIndex + attempt) % candidateUrls.length];
+        const requestUrl = getProxiedStreamUrl(candidate);
+
+        const chunkController = new AbortController();
+        const timeoutTimer = setTimeout(() => chunkController.abort(), 8000);
+        const onParentAbort = () => chunkController.abort();
+        signal?.addEventListener("abort", onParentAbort);
+
+        try {
+          const res = await fetch(requestUrl, {
+            signal: chunkController.signal,
+            headers: { Range: `bytes=${start}-${end}` },
+          });
+
+          clearTimeout(timeoutTimer);
+          signal?.removeEventListener("abort", onParentAbort);
+
+          if (!res.ok && res.status !== 206) {
+            throw new Error(`Range request failed (HTTP ${res.status})`);
+          }
+
+          const buf = await res.arrayBuffer();
+          const partData = new Uint8Array(buf);
+          if (partData.byteLength === 0) {
+            throw new Error("Received empty chunk payload");
+          }
+
+          outputBuffer.set(partData, start);
+          onChunkBytes(partData.byteLength);
+          chunkSuccess = true;
+          break;
+        } catch (err: any) {
+          clearTimeout(timeoutTimer);
+          signal?.removeEventListener("abort", onParentAbort);
+          lastErr = err;
+          if (attempt < 2 && !signal?.aborted) {
+            await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+          }
+        }
+      }
+
+      if (!chunkSuccess) {
+        throw lastErr || new Error(`Chunk ${chunkIndex + 1}/${numChunks} failed after 3 attempts`);
+      }
+    }
+  };
+
+  await Promise.all(Array.from({ length: concurrency }, (_, i) => worker(i)));
+  return outputBuffer;
 }
 
 /**
@@ -244,6 +281,13 @@ export async function downloadYouTubeStream({
   let bytesSinceLastSample = 0;
   let currentSpeedMbps = 0;
 
+  const hasSeparateAudio = Boolean(!isAudioOnly && option.audioFormat);
+  const isDirectFastPath =
+    (!isAudioOnly && !option.audioFormat && Boolean(option.videoFormat)) ||
+    (isAudioOnly && option.id === "audio-m4a" && option.audioFormat?.container === "m4a");
+
+  const progressMaxPct = isDirectFastPath ? 98 : 92;
+
   const updateProgress = (
     phase: TurboPhase,
     statusMessage: string,
@@ -259,7 +303,7 @@ export async function downloadYouTubeStream({
       bytesSinceLastSample = 0;
     }
 
-    const pct = Math.min(100, Math.round((downloadedBytes / totalEstBytes) * 92)); // 0..92% for download, 92..100% for mux
+    const pct = Math.min(100, Math.round((downloadedBytes / totalEstBytes) * progressMaxPct));
     const remainingBytes = Math.max(0, totalEstBytes - downloadedBytes);
     const etaSeconds = currentSpeedMbps > 0 ? Math.round((remainingBytes / (1024 * 1024)) / currentSpeedMbps) : 0;
 
@@ -278,7 +322,7 @@ export async function downloadYouTubeStream({
   const handleChunk = (size: number) => {
     downloadedBytes += size;
     bytesSinceLastSample += size;
-    updateProgress("downloading", `Streaming ${option.label} via ${maxParallelWorkers} parallel channels…`);
+    updateProgress("downloading", `Streaming ${option.label} via multi-worker pipeline…`);
   };
 
   updateProgress("resolving", "Connecting to high-speed stream servers…", 0);
@@ -290,10 +334,10 @@ export async function downloadYouTubeStream({
     .substring(0, 60);
 
   // -------------------------------------------------------------
-  // Case A: Audio Only (Extraction & Transcoding in Multiple Qualities)
+  // Case A: Audio Only
   // -------------------------------------------------------------
   if (isAudioOnly && option.audioFormat) {
-    const audioData = await fetchStreamParallel({
+    const audioData = await downloadStreamResilient({
       streamUrl: option.audioFormat.url,
       knownSize: option.audioFormat.contentLength,
       maxWorkers: Math.min(maxParallelWorkers, 4),
@@ -301,6 +345,39 @@ export async function downloadYouTubeStream({
       onChunkBytes: handleChunk,
       signal,
     });
+
+    // Fast-path for Native AAC (M4A): direct container save without FFmpeg
+    if (option.id === "audio-m4a" && option.audioFormat.container === "m4a") {
+      const blob = new Blob([audioData.buffer as ArrayBuffer], { type: "audio/mp4" });
+      const url = URL.createObjectURL(blob);
+      const filename = `${sanitizedTitle} [Native AAC].m4a`;
+
+      onProgress({
+        phase: "complete",
+        progress: 100,
+        speedMbps: currentSpeedMbps,
+        downloadedBytes: blob.size,
+        totalBytes: blob.size,
+        activeThreads: 0,
+        etaSeconds: 0,
+        statusMessage: "Audio extraction complete (Native AAC)!",
+      });
+
+      return {
+        blob,
+        url,
+        filename,
+        fileSizeBytes: blob.size,
+        mimeType: "audio/mp4",
+        is4K: false,
+        is60fps: false,
+      };
+    }
+
+    // FFmpeg audio transcoding for MP3 and WAV
+    if (!engine) {
+      throw new Error("FFmpeg engine is required to transcode audio.");
+    }
 
     const inputName = `input_audio.${option.audioFormat.container}`;
     await engine.writeFile(inputName, audioData);
@@ -315,12 +392,7 @@ export async function downloadYouTubeStream({
       mimeType = "audio/mp4";
       qualitySuffix = "[Native AAC]";
       updateProgress("muxing", "Packaging native AAC audio stream…", 1);
-
-      if (option.audioFormat.container === "m4a") {
-        ffmpegArgs = ["-i", inputName, "-vn", "-c:a", "copy", outputName];
-      } else {
-        ffmpegArgs = ["-i", inputName, "-vn", "-c:a", "aac", "-b:a", "256k", "-ar", "44100", outputName];
-      }
+      ffmpegArgs = ["-i", inputName, "-vn", "-c:a", "aac", "-b:a", "256k", "-ar", "44100", outputName];
     } else if (option.id === "audio-wav") {
       outputName = "output.wav";
       mimeType = "audio/wav";
@@ -399,13 +471,12 @@ export async function downloadYouTubeStream({
     throw new Error("Missing video stream format specification.");
   }
 
-  const hasSeparateAudio = Boolean(option.audioFormat);
   const videoWorkers = hasSeparateAudio ? Math.max(2, maxParallelWorkers - 2) : maxParallelWorkers;
   const audioWorkers = hasSeparateAudio ? 2 : 0;
 
-  // Parallel concurrent dual-stream download (Video + Audio simultaneously)
+  // Concurrent dual-stream download (Video + Audio simultaneously)
   const [videoBytes, audioBytes] = await Promise.all([
-    fetchStreamParallel({
+    downloadStreamResilient({
       streamUrl: option.videoFormat.url,
       knownSize: option.videoFormat.contentLength,
       maxWorkers: videoWorkers,
@@ -414,7 +485,7 @@ export async function downloadYouTubeStream({
       signal,
     }),
     hasSeparateAudio && option.audioFormat
-      ? fetchStreamParallel({
+      ? downloadStreamResilient({
           streamUrl: option.audioFormat.url,
           knownSize: option.audioFormat.contentLength,
           maxWorkers: audioWorkers,
@@ -425,9 +496,7 @@ export async function downloadYouTubeStream({
       : Promise.resolve(null),
   ]);
 
-  updateProgress("muxing", "Muxing 4K 60fps video & audio streams (lossless stream-copy)…", 1);
-
-  // If video format already had pre-muxed audio, return directly
+  // Fast-path: If video format was already pre-muxed (e.g. 720p MP4), save directly without FFmpeg
   if (!audioBytes) {
     const blob = new Blob([videoBytes.buffer as ArrayBuffer], { type: "video/mp4" });
     const url = URL.createObjectURL(blob);
@@ -455,7 +524,13 @@ export async function downloadYouTubeStream({
     };
   }
 
-  // Mux video stream + audio stream via FFmpeg stream copy (-c copy)
+  // Mux video stream + audio stream via FFmpeg lossless stream copy (-c copy)
+  if (!engine) {
+    throw new Error("FFmpeg engine is required for muxing separate streams.");
+  }
+
+  updateProgress("muxing", "Muxing 4K 60fps video & audio streams (lossless stream-copy)…", 1);
+
   const vInput = `stream_v.${option.videoFormat.container}`;
   const aInput = `stream_a.${option.audioFormat?.container || "webm"}`;
   const outputExt = "mp4";

@@ -19,6 +19,7 @@ import {
   CATEGORY_ORDER,
   TOOL_REGISTRY,
   getOnlineTools,
+  getVisibleTools,
 } from "@/lib/tools/registry";
 import type { ToolCategory, ToolMeta } from "@/types/omni";
 
@@ -223,20 +224,22 @@ export function ToolGrid() {
   const [layoutMode, setLayoutMode] = useState<"grid" | "list">("grid");
   const haptics = useHaptics();
 
+  const availableTools = useMemo(() => getVisibleTools(), []);
+
   const counts = useMemo(() => {
-    const map = new Map<Filter, number>([["all", TOOL_REGISTRY.length]]);
-    for (const tool of TOOL_REGISTRY) {
+    const map = new Map<Filter, number>([["all", availableTools.length]]);
+    for (const tool of availableTools) {
       map.set(tool.category, (map.get(tool.category) ?? 0) + 1);
     }
     return map;
-  }, []);
+  }, [availableTools]);
 
   const visible = useMemo(
     () =>
       filter === "all"
-        ? TOOL_REGISTRY
-        : TOOL_REGISTRY.filter((t) => t.category === filter),
-    [filter],
+        ? availableTools
+        : availableTools.filter((t) => t.category === filter),
+    [filter, availableTools],
   );
 
   const filters: { id: Filter; label: string }[] = [
@@ -246,10 +249,10 @@ export function ToolGrid() {
 
   const onlineCount = useMemo(
     () =>
-      TOOL_REGISTRY.filter(
+      availableTools.filter(
         (t) => t.status === "online" && (t.requiresEngine === false || state === "ready")
       ).length,
-    [state]
+    [state, availableTools]
   );
 
   return (

@@ -15,7 +15,7 @@ import { ToolGrid } from "@/components/dashboard/tool-grid";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { formatBytes } from "@/lib/format";
 import { useNavStore } from "@/lib/navigation/nav-store";
-import { getOnlineTools, TOOL_REGISTRY } from "@/lib/tools/registry";
+import { getOnlineTools, getVisibleTools, TOOL_REGISTRY } from "@/lib/tools/registry";
 import { useVault } from "@/lib/vault/vault-context";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -109,12 +109,14 @@ export function DashboardView() {
     }
   }, []);
 
+  const availableTools = useMemo(() => getVisibleTools(), []);
+
   const onlineCount = useMemo(
     () =>
-      TOOL_REGISTRY.filter(
+      availableTools.filter(
         (t) => t.status === "online" && (t.requiresEngine === false || state === "ready")
       ).length,
-    [state]
+    [state, availableTools]
   );
   const recent = items.slice(0, 4);
 
@@ -221,7 +223,7 @@ export function DashboardView() {
         <StatChip
           icon={Boxes}
           label="live modules"
-          value={`${onlineCount} / ${TOOL_REGISTRY.length}`}
+          value={`${onlineCount} / ${availableTools.length}`}
           tone="border-primary/30 bg-primary/10 text-primary"
           isNative={isNative}
         />

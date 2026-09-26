@@ -228,13 +228,19 @@ export function YouTubeDownloader() {
   const handleStartDownload = async () => {
     if (!videoInfo || !selectedQuality) return;
 
-    if (!engine || engineState !== "ready") {
-      await boot();
-    }
+    const isDirectFastPath =
+      (!selectedQuality.isAudioOnly && !selectedQuality.audioFormat && Boolean(selectedQuality.videoFormat)) ||
+      (selectedQuality.isAudioOnly && selectedQuality.id === "audio-m4a" && selectedQuality.audioFormat?.container === "m4a");
 
-    if (!engine) {
-      setResolveError("Media engine is initializing. Please wait a moment and try again.");
-      return;
+    if (!isDirectFastPath) {
+      if (!engine || engineState !== "ready") {
+        await boot();
+      }
+
+      if (!engine) {
+        setResolveError("Media engine is initializing. Please wait a moment and try again.");
+        return;
+      }
     }
 
     setIsDownloading(true);
