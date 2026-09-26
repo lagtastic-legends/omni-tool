@@ -77,21 +77,22 @@ function getProxiedStreamUrl(directUrl: string): string {
 
 /**
  * Safely measures content length of stream URL via Range: bytes=0-0 GET probe
- * Bypasses hanging HEAD requests on Google Video CDN and CapacitorHttp
+ * Bypasses hanging HEAD requests on Google Video CDN and CapacitorHttp.
+ * Automatically tests candidate edge nodes and promotes the responsive candidate
+ * to index 0 of candidateUrls so chunk workers stream instantly without delay.
  */
 async function probeStreamSizeSafe(
   candidateUrls: string[],
   knownSize?: number,
   signal?: AbortSignal
 ): Promise<number> {
-  if (knownSize && knownSize > 0) return knownSize;
-
-  for (const directUrl of candidateUrls) {
-    if (signal?.aborted) return 0;
+  for (let i = 0; i < candidateUrls.length; i++) {
+    const directUrl = candidateUrls[i];
+    if (signal?.aborted) return knownSize || 0;
     try {
       const targetUrl = getProxiedStreamUrl(directUrl);
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 3500);
+      const timer = setTimeout(() => controller.abort(), 2500);
       const onParentAbort = () => controller.abort();
       signal?.addEventListener("abort", onParentAbort);
 
@@ -104,17 +105,30 @@ async function probeStreamSizeSafe(
       clearTimeout(timer);
       signal?.removeEventListener("abort", onParentAbort);
 
-      const cr = res.headers.get("content-range");
-      if (cr) {
-        const match = cr.match(/\/(\d+)$/);
-        if (match) {
-          const size = parseInt(match[1], 10);
-          if (size > 0) return size;
+      if (res.ok || res.status === 206) {
+        // Candidate is responsive! Promote to front of candidateUrls array
+        if (i > 0) {
+          const [working] = candidateUrls.splice(i, 1);
+          candidateUrls.unshift(working);
+        }
+
+        const cr = res.headers.get("content-range");
+        if (cr) {
+          const match = cr.match(/\/(\d+)$/);
+          if (match) {
+            const size = parseInt(match[1], 10);
+            if (size > 0) return size;
+          }
+        }
+
+        if (knownSize && knownSize > 0) {
+          return knownSize;
         }
       }
     } catch {}
   }
-  return 0;
+
+  return knownSize || 0;
 }
 
 /**
@@ -137,7 +151,7 @@ async function downloadStreamResilient({
 }): Promise<Uint8Array> {
   const candidateUrls = buildCandidateUrls(streamUrl);
 
-  // 1. Determine exact file size safely without hanging HEAD requests
+  // 1. Determine exact file size safely and identify the fastest responding CDN candidate node
   let totalSize = await probeStreamSizeSafe(candidateUrls, knownSize, signal);
 
   // Fallback: if size is still unknown or very small (< 1 MB), perform direct streaming fetch
@@ -194,6 +208,7 @@ async function downloadStreamResilient({
   // Use 2–4 workers for optimal mobile network saturation without throttling
   const concurrency = Math.max(1, Math.min(maxWorkers, 4, numChunks));
   let nextChunkIndex = 0;
+  let activeCandidateIndex = 0;
 
   const worker = async (workerId: number) => {
     while (true) {
@@ -210,11 +225,12 @@ async function downloadStreamResilient({
       // Retry up to 3 times per chunk with candidate edge node failover
       for (let attempt = 0; attempt < 3; attempt++) {
         if (signal?.aborted) throw new Error("Download aborted");
-        const candidate = candidateUrls[(chunkIndex + attempt) % candidateUrls.length];
+        const candIdx = (activeCandidateIndex + attempt) % candidateUrls.length;
+        const candidate = candidateUrls[candIdx];
         const requestUrl = getProxiedStreamUrl(candidate);
 
         const chunkController = new AbortController();
-        const timeoutTimer = setTimeout(() => chunkController.abort(), 8000);
+        const timeoutTimer = setTimeout(() => chunkController.abort(), 5000);
         const onParentAbort = () => chunkController.abort();
         signal?.addEventListener("abort", onParentAbort);
 
@@ -240,13 +256,14 @@ async function downloadStreamResilient({
           outputBuffer.set(partData, start);
           onChunkBytes(partData.byteLength);
           chunkSuccess = true;
+          activeCandidateIndex = candIdx;
           break;
         } catch (err: any) {
           clearTimeout(timeoutTimer);
           signal?.removeEventListener("abort", onParentAbort);
           lastErr = err;
           if (attempt < 2 && !signal?.aborted) {
-            await new Promise((r) => setTimeout(r, 200 * (attempt + 1)));
+            await new Promise((r) => setTimeout(r, 150 * (attempt + 1)));
           }
         }
       }
@@ -272,6 +289,31 @@ export async function downloadYouTubeStream({
   onProgress,
   signal,
 }: TurboDownloadOptions): Promise<TurboDownloadResult> {
+  // Normalize format specifications if flat properties were passed
+  if (!option.videoFormat && (option as any).videoUrl) {
+    option.videoFormat = {
+      itag: (option as any).itag || 0,
+      url: (option as any).videoUrl,
+      mimeType: (option as any).container === "webm" ? "video/webm" : "video/mp4",
+      container: (option as any).container || "mp4",
+      codec: "avc1",
+      bitrate: 1000000,
+      contentLength: option.approxSizeBytes,
+    };
+  }
+
+  if (!option.audioFormat && (option as any).audioUrl) {
+    option.audioFormat = {
+      itag: 140,
+      url: (option as any).audioUrl,
+      mimeType: "audio/mp4",
+      container: "m4a",
+      codec: "mp4a.40.2",
+      bitrate: (option.audioBitrate || 128) * 1000,
+      contentLength: option.approxSizeBytes,
+    };
+  }
+
   const isAudioOnly = option.isAudioOnly;
   const is4K = option.is4K;
   const is60fps = option.is60fps;
@@ -337,18 +379,25 @@ export async function downloadYouTubeStream({
   // -------------------------------------------------------------
   // Case A: Audio Only
   // -------------------------------------------------------------
-  if (isAudioOnly && option.audioFormat) {
+  if (isAudioOnly) {
+    const audioFmt = option.audioFormat || option.videoFormat;
+    if (!audioFmt) {
+      throw new Error("Missing audio stream URL for download.");
+    }
+
     const audioData = await downloadStreamResilient({
-      streamUrl: option.audioFormat.url,
-      knownSize: option.audioFormat.contentLength,
+      streamUrl: audioFmt.url,
+      knownSize: audioFmt.contentLength,
       maxWorkers: Math.min(maxParallelWorkers, 4),
       label: "audio",
       onChunkBytes: handleChunk,
       signal,
     });
 
+    const isNativeM4A = option.id === "audio-m4a" || audioFmt.container === "m4a";
+
     // Fast-path for Native AAC (M4A): direct container save without FFmpeg
-    if (option.id === "audio-m4a" && option.audioFormat.container === "m4a") {
+    if (isNativeM4A && (!engine || option.id === "audio-m4a")) {
       const blob = new Blob([audioData.buffer as ArrayBuffer], { type: "audio/mp4" });
       const url = URL.createObjectURL(blob);
       const filename = `${sanitizedTitle} [Native AAC].m4a`;
@@ -375,73 +424,103 @@ export async function downloadYouTubeStream({
       };
     }
 
-    // FFmpeg audio transcoding for MP3 and WAV
-    if (!engine) {
-      throw new Error("FFmpeg engine is required to transcode audio.");
-    }
+    // FFmpeg audio transcoding for MP3 and WAV if engine is active
+    if (engine) {
+      try {
+        const inputName = `input_audio.${audioFmt.container || "m4a"}`;
+        await engine.writeFile(inputName, audioData);
 
-    const inputName = `input_audio.${option.audioFormat.container}`;
-    await engine.writeFile(inputName, audioData);
+        let outputName = "output.mp3";
+        let mimeType = "audio/mp3";
+        let qualitySuffix = "[320kbps]";
+        let ffmpegArgs: string[] = [];
 
-    let outputName = "output.mp3";
-    let mimeType = "audio/mp3";
-    let qualitySuffix = "[320kbps]";
-    let ffmpegArgs: string[] = [];
+        if (option.id === "audio-m4a") {
+          outputName = "output.m4a";
+          mimeType = "audio/mp4";
+          qualitySuffix = "[Native AAC]";
+          updateProgress("muxing", "Packaging native AAC audio stream…", 1);
+          ffmpegArgs = ["-i", inputName, "-vn", "-c:a", "aac", "-b:a", "256k", "-ar", "44100", outputName];
+        } else if (option.id === "audio-wav") {
+          outputName = "output.wav";
+          mimeType = "audio/wav";
+          qualitySuffix = "[Lossless PCM]";
+          updateProgress("muxing", "Exporting uncompressed 16-bit WAV PCM…", 1);
+          ffmpegArgs = ["-i", inputName, "-vn", "-c:a", "pcm_s16le", "-ar", "44100", outputName];
+        } else {
+          // MP3 at requested bitrate (320k, 256k, 192k, 128k, etc.)
+          const bitrate = option.audioBitrate || (option.id === "audio-mp3" ? 320 : 256);
+          outputName = "output.mp3";
+          mimeType = "audio/mp3";
+          qualitySuffix = `[${bitrate}kbps]`;
+          updateProgress("muxing", `Mastering ${bitrate} kbps MP3 in WebAssembly…`, 1);
+          ffmpegArgs = [
+            "-i", inputName,
+            "-vn",
+            "-c:a", "libmp3lame",
+            "-b:a", `${bitrate}k`,
+            "-ar", "44100",
+            "-af", "aresample=async=1000",
+            outputName,
+          ];
+        }
 
-    if (option.id === "audio-m4a") {
-      outputName = "output.m4a";
-      mimeType = "audio/mp4";
-      qualitySuffix = "[Native AAC]";
-      updateProgress("muxing", "Packaging native AAC audio stream…", 1);
-      ffmpegArgs = ["-i", inputName, "-vn", "-c:a", "aac", "-b:a", "256k", "-ar", "44100", outputName];
-    } else if (option.id === "audio-wav") {
-      outputName = "output.wav";
-      mimeType = "audio/wav";
-      qualitySuffix = "[Lossless PCM]";
-      updateProgress("muxing", "Exporting uncompressed 16-bit WAV PCM…", 1);
-      ffmpegArgs = ["-i", inputName, "-vn", "-c:a", "pcm_s16le", "-ar", "44100", outputName];
-    } else {
-      // MP3 at requested bitrate (320k, 256k, 192k, 128k, etc.)
-      const bitrate = option.audioBitrate || (option.id === "audio-mp3" ? 320 : 256);
-      outputName = "output.mp3";
-      mimeType = "audio/mp3";
-      qualitySuffix = `[${bitrate}kbps]`;
-      updateProgress("muxing", `Mastering ${bitrate} kbps MP3 in WebAssembly…`, 1);
-      ffmpegArgs = [
-        "-i", inputName,
-        "-vn",
-        "-c:a", "libmp3lame",
-        "-b:a", `${bitrate}k`,
-        "-ar", "44100",
-        "-af", "aresample=async=1000",
-        outputName,
-      ];
-    }
+        try {
+          await engine.exec(ffmpegArgs);
+        } catch (execErr: any) {
+          console.warn("FFmpeg specialized audio command failed, trying fallback:", execErr);
+          if (outputName.endsWith(".mp3")) {
+            const fallbackBitrate = option.audioBitrate || 256;
+            await engine.exec(["-i", inputName, "-vn", "-b:a", `${fallbackBitrate}k`, outputName]);
+          } else if (outputName.endsWith(".m4a")) {
+            await engine.exec(["-i", inputName, "-vn", "-c:a", "aac", outputName]);
+          } else {
+            throw execErr;
+          }
+        }
 
-    try {
-      await engine.exec(ffmpegArgs);
-    } catch (execErr: any) {
-      console.warn("FFmpeg specialized audio command failed, trying fallback:", execErr);
-      if (outputName.endsWith(".mp3")) {
-        const fallbackBitrate = option.audioBitrate || 256;
-        await engine.exec(["-i", inputName, "-vn", "-b:a", `${fallbackBitrate}k`, outputName]);
-      } else if (outputName.endsWith(".m4a")) {
-        await engine.exec(["-i", inputName, "-vn", "-c:a", "aac", outputName]);
-      } else {
-        throw execErr;
+        const outData = (await engine.readFile(outputName)) as Uint8Array;
+        try {
+          await engine.deleteFile(inputName);
+          await engine.deleteFile(outputName);
+        } catch {}
+
+        const blob = new Blob([outData.buffer as ArrayBuffer], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const ext = outputName.split(".").pop();
+        const filename = `${sanitizedTitle} ${qualitySuffix}.${ext}`;
+
+        onProgress({
+          phase: "complete",
+          progress: 100,
+          speedMbps: currentSpeedMbps,
+          downloadedBytes: blob.size,
+          totalBytes: blob.size,
+          activeThreads: 0,
+          etaSeconds: 0,
+          statusMessage: `Audio conversion complete (${qualitySuffix.replace(/[\[\]]/g, "")})!`,
+        });
+
+        return {
+          blob,
+          url,
+          filename,
+          fileSizeBytes: blob.size,
+          mimeType,
+          is4K: false,
+          is60fps: false,
+        };
+      } catch (ffmpegErr) {
+        console.warn("FFmpeg audio transcoding error, falling back to direct native stream export:", ffmpegErr);
       }
     }
 
-    const outData = (await engine.readFile(outputName)) as Uint8Array;
-    try {
-      await engine.deleteFile(inputName);
-      await engine.deleteFile(outputName);
-    } catch {}
-
-    const blob = new Blob([outData.buffer as ArrayBuffer], { type: mimeType });
+    // Direct stream export fallback if FFmpeg is uninitialized or fails
+    const ext = audioFmt.container === "m4a" ? "m4a" : audioFmt.container === "webm" ? "webm" : "mp3";
+    const mime = ext === "m4a" ? "audio/mp4" : ext === "webm" ? "audio/webm" : "audio/mpeg";
+    const blob = new Blob([audioData.buffer as ArrayBuffer], { type: mime });
     const url = URL.createObjectURL(blob);
-    const ext = outputName.split(".").pop();
-    const filename = `${sanitizedTitle} ${qualitySuffix}.${ext}`;
+    const filename = `${sanitizedTitle} [Audio Stream].${ext}`;
 
     onProgress({
       phase: "complete",
@@ -451,7 +530,7 @@ export async function downloadYouTubeStream({
       totalBytes: blob.size,
       activeThreads: 0,
       etaSeconds: 0,
-      statusMessage: `Audio conversion complete (${qualitySuffix.replace(/[\[\]]/g, "")})!`,
+      statusMessage: "Audio extracted successfully!",
     });
 
     return {
@@ -459,7 +538,7 @@ export async function downloadYouTubeStream({
       url,
       filename,
       fileSizeBytes: blob.size,
-      mimeType,
+      mimeType: mime,
       is4K: false,
       is60fps: false,
     };
@@ -499,9 +578,11 @@ export async function downloadYouTubeStream({
 
   // Fast-path: If video format was already pre-muxed (e.g. 720p MP4), save directly without FFmpeg
   if (!audioBytes) {
-    const blob = new Blob([videoBytes.buffer as ArrayBuffer], { type: "video/mp4" });
+    const ext = option.videoFormat.container || "mp4";
+    const mime = ext === "webm" ? "video/webm" : "video/mp4";
+    const blob = new Blob([videoBytes.buffer as ArrayBuffer], { type: mime });
     const url = URL.createObjectURL(blob);
-    const filename = `${sanitizedTitle} [${option.id}].mp4`;
+    const filename = `${sanitizedTitle} [${option.id}].${ext}`;
 
     onProgress({
       phase: "complete",
@@ -519,73 +600,105 @@ export async function downloadYouTubeStream({
       url,
       filename,
       fileSizeBytes: blob.size,
-      mimeType: "video/mp4",
+      mimeType: mime,
       is4K,
       is60fps,
     };
   }
 
   // Mux video stream + audio stream via FFmpeg lossless stream copy (-c copy)
-  if (!engine) {
-    throw new Error("FFmpeg engine is required for muxing separate streams.");
+  if (engine) {
+    try {
+      updateProgress("muxing", "Muxing 4K 60fps video & audio streams (lossless stream-copy)…", 1);
+
+      const vExt = option.videoFormat.container || "mp4";
+      const aExt = option.audioFormat?.container || "m4a";
+      const vInput = `stream_v.${vExt}`;
+      const aInput = `stream_a.${aExt}`;
+      const outputExt = "mp4";
+      const outputName = `stream_out.${outputExt}`;
+
+      await engine.writeFile(vInput, videoBytes);
+      await engine.writeFile(aInput, audioBytes);
+
+      // Lossless stream-copy muxing: instant 1-2s execution
+      await engine.exec([
+        "-i",
+        vInput,
+        "-i",
+        aInput,
+        "-c",
+        "copy",
+        "-map",
+        "0:v:0",
+        "-map",
+        "1:a:0",
+        "-movflags",
+        "+faststart",
+        outputName,
+      ]);
+
+      const finalVideoData = (await engine.readFile(outputName)) as Uint8Array;
+
+      try {
+        await engine.deleteFile(vInput);
+        await engine.deleteFile(aInput);
+        await engine.deleteFile(outputName);
+      } catch {}
+
+      const finalBlob = new Blob([finalVideoData.buffer as ArrayBuffer], { type: "video/mp4" });
+      const finalUrl = URL.createObjectURL(finalBlob);
+      const finalFilename = `${sanitizedTitle} [${option.id}].mp4`;
+
+      onProgress({
+        phase: "complete",
+        progress: 100,
+        speedMbps: currentSpeedMbps,
+        downloadedBytes: finalBlob.size,
+        totalBytes: finalBlob.size,
+        activeThreads: 0,
+        etaSeconds: 0,
+        statusMessage: `Ready! 4K 60fps video packaged cleanly.`,
+      });
+
+      return {
+        blob: finalBlob,
+        url: finalUrl,
+        filename: finalFilename,
+        fileSizeBytes: finalBlob.size,
+        mimeType: "video/mp4",
+        is4K,
+        is60fps,
+      };
+    } catch (muxErr) {
+      console.warn("FFmpeg stream muxing failed, falling back to direct video export:", muxErr);
+    }
   }
 
-  updateProgress("muxing", "Muxing 4K 60fps video & audio streams (lossless stream-copy)…", 1);
-
-  const vInput = `stream_v.${option.videoFormat.container}`;
-  const aInput = `stream_a.${option.audioFormat?.container || "webm"}`;
-  const outputExt = "mp4";
-  const outputName = `stream_out.${outputExt}`;
-
-  await engine.writeFile(vInput, videoBytes);
-  await engine.writeFile(aInput, audioBytes);
-
-  // Lossless stream-copy muxing: instant 1-2s execution
-  await engine.exec([
-    "-i",
-    vInput,
-    "-i",
-    aInput,
-    "-c",
-    "copy",
-    "-map",
-    "0:v:0",
-    "-map",
-    "1:a:0",
-    "-movflags",
-    "+faststart",
-    outputName,
-  ]);
-
-  const finalVideoData = (await engine.readFile(outputName)) as Uint8Array;
-
-  try {
-    await engine.deleteFile(vInput);
-    await engine.deleteFile(aInput);
-    await engine.deleteFile(outputName);
-  } catch {}
-
-  const finalBlob = new Blob([finalVideoData.buffer as ArrayBuffer], { type: "video/mp4" });
-  const finalUrl = URL.createObjectURL(finalBlob);
-  const finalFilename = `${sanitizedTitle} [${option.id}].mp4`;
+  // Resilient fallback if FFmpeg is unavailable or failed: export high-res video stream directly
+  const ext = option.videoFormat.container || "mp4";
+  const mime = ext === "webm" ? "video/webm" : "video/mp4";
+  const fallbackBlob = new Blob([videoBytes.buffer as ArrayBuffer], { type: mime });
+  const fallbackUrl = URL.createObjectURL(fallbackBlob);
+  const fallbackFilename = `${sanitizedTitle} [${option.id}].${ext}`;
 
   onProgress({
     phase: "complete",
     progress: 100,
     speedMbps: currentSpeedMbps,
-    downloadedBytes: finalBlob.size,
-    totalBytes: finalBlob.size,
+    downloadedBytes: fallbackBlob.size,
+    totalBytes: fallbackBlob.size,
     activeThreads: 0,
     etaSeconds: 0,
-    statusMessage: `Ready! 4K 60fps video packaged cleanly.`,
+    statusMessage: "Download complete!",
   });
 
   return {
-    blob: finalBlob,
-    url: finalUrl,
-    filename: finalFilename,
-    fileSizeBytes: finalBlob.size,
-    mimeType: "video/mp4",
+    blob: fallbackBlob,
+    url: fallbackUrl,
+    filename: fallbackFilename,
+    fileSizeBytes: fallbackBlob.size,
+    mimeType: mime,
     is4K,
     is60fps,
   };

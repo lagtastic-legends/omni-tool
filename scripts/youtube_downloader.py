@@ -55,10 +55,32 @@ def get_video_info(url):
             qualities = []
             seen_badges = set()
 
+            # Find best audio source URL first
+            best_audio = None
+            best_abr = 0
+            for f in formats:
+                if f.get("vcodec") == "none" and (f.get("acodec") != "none"):
+                    abr = f.get("abr") or 0
+                    if abr > best_abr and f.get("url"):
+                        best_abr = abr
+                        best_audio = f
+
+            best_audio_format = None
+            if best_audio:
+                best_audio_format = {
+                    "itag": best_audio.get("format_id", 140),
+                    "url": best_audio.get("url"),
+                    "mimeType": best_audio.get("mime_type") or "audio/mp4",
+                    "container": best_audio.get("ext") or "m4a",
+                    "codec": best_audio.get("acodec") or "aac",
+                    "bitrate": int((best_audio.get("abr") or 128) * 1000),
+                    "contentLength": best_audio.get("filesize") or best_audio.get("filesize_approx") or 0,
+                }
+
             # Process Video Formats (look for 4K 60, 4K, 2K, 1080p60, 1080p, 720p)
             for f in formats:
                 vcodec = f.get("vcodec", "none")
-                if vcodec == "none":
+                if vcodec == "none" or not f.get("url"):
                     continue
                 height = f.get("height") or 0
                 fps = f.get("fps") or 30
@@ -88,7 +110,21 @@ def get_video_info(url):
 
                 if badge and badge not in seen_badges:
                     seen_badges.add(badge)
+                    v_format = {
+                        "itag": f.get("format_id", 0),
+                        "url": f.get("url"),
+                        "mimeType": f.get("mime_type") or f"video/{f.get('ext', 'mp4')}",
+                        "container": f.get("ext", "mp4"),
+                        "codec": vcodec,
+                        "bitrate": int((f.get("tbr") or 1000) * 1000),
+                        "contentLength": filesize,
+                        "width": f.get("width"),
+                        "height": height,
+                        "fps": int(fps),
+                    }
+                    total_bytes = filesize + (best_audio_format.get("contentLength", 0) if best_audio_format else 0)
                     qualities.append({
+                        "id": badge.lower().replace(" ", "-"),
                         "itag": f.get("format_id", 0),
                         "label": label,
                         "resolutionLabel": f"{height}p",
@@ -98,8 +134,9 @@ def get_video_info(url):
                         "is60fps": is_60,
                         "isAudioOnly": False,
                         "container": f.get("ext", "mp4"),
-                        "approxSizeBytes": filesize,
-                        "videoUrl": f.get("url"),
+                        "approxSizeBytes": total_bytes,
+                        "videoFormat": v_format,
+                        "audioFormat": best_audio_format,
                     })
 
             # Process Audio Formats
@@ -112,22 +149,18 @@ def get_video_info(url):
                 ("audio-wav", "Lossless Studio Audio (WAV PCM)", "WAV PCM", 1411, "wav"),
             ]
 
-            # Find best audio source URL
-            best_audio = None
-            best_abr = 0
-            for f in formats:
-                if f.get("vcodec") == "none" and (f.get("acodec") != "none"):
-                    abr = f.get("abr") or 0
-                    if abr > best_abr:
-                        best_abr = abr
-                        best_audio = f
-
-            audio_url = best_audio.get("url") if best_audio else None
             duration = meta.get("duration", 0)
 
             for key, label, badge, bitrate, ext in audio_tiers:
-                approx_bytes = int((bitrate * 1000 / 8) * duration) if duration else 0
+                approx_bytes = int((bitrate * 1000 / 8) * duration) if duration else (best_audio_format.get("contentLength", 0) if best_audio_format else 0)
+                tier_audio_format = None
+                if best_audio_format:
+                    tier_audio_format = {
+                        **best_audio_format,
+                        "container": ext,
+                    }
                 qualities.append({
+                    "id": key,
                     "itag": key,
                     "label": label,
                     "resolutionLabel": f"{bitrate} kbps",
@@ -139,7 +172,7 @@ def get_video_info(url):
                     "audioBitrate": bitrate,
                     "container": ext,
                     "approxSizeBytes": approx_bytes,
-                    "audioUrl": audio_url,
+                    "audioFormat": tier_audio_format,
                 })
 
             return {

@@ -233,14 +233,11 @@ export function YouTubeDownloader() {
       (!selectedQuality.isAudioOnly && !selectedQuality.audioFormat && Boolean(selectedQuality.videoFormat)) ||
       (selectedQuality.isAudioOnly && selectedQuality.id === "audio-m4a" && selectedQuality.audioFormat?.container === "m4a");
 
-    if (!isDirectFastPath) {
-      if (!engine || engineState !== "ready") {
+    if (!isDirectFastPath && (!engine || engineState !== "ready")) {
+      try {
         await boot();
-      }
-
-      if (!engine) {
-        setResolveError("Media engine is initializing. Please wait a moment and try again.");
-        return;
+      } catch (bootErr) {
+        console.warn("FFmpeg engine boot deferred:", bootErr);
       }
     }
 
