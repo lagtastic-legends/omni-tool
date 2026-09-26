@@ -14,9 +14,12 @@ import {
   Cpu,
   Layers,
   ExternalLink,
+  Sparkles,
 } from "lucide-react";
 import { usePwaStore } from "@/lib/pwa/pwa-store";
 import { useHaptics } from "@/hooks/use-haptics";
+import { APP_VERSION } from "@/config/version";
+import { UpdateModal } from "@/components/dialogs/update-modal";
 
 export function AppDownloadModal() {
   const { isDownloadModalOpen, setDownloadModalOpen, isInstallable, promptInstall, isInstalled } =
@@ -24,6 +27,7 @@ export function AppDownloadModal() {
   const haptics = useHaptics();
   const [mounted, setMounted] = useState(false);
   const [installing, setInstalling] = useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -75,7 +79,7 @@ export function AppDownloadModal() {
                   Get ZenoDeck
                 </h3>
                 <p className="font-mono text-xs text-muted-foreground">
-                  v3.1.1 · Web, Android APK & PWA
+                  v{APP_VERSION} · Web, Android APK & PWA
                 </p>
               </div>
             </div>
@@ -199,8 +203,28 @@ export function AppDownloadModal() {
             </div>
           </div>
 
+          {/* Check for Updates Action */}
+          <div className="mt-4 flex items-center justify-between rounded-xl border border-border/70 bg-card/40 p-3">
+            <div className="flex items-center gap-2">
+              <Sparkles className="size-4 text-primary" />
+              <span className="font-mono text-xs text-foreground">
+                ZenoDeck Release Channel
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                haptics.light();
+                setIsUpdateModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 px-3 py-1.5 font-mono text-xs font-semibold text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer"
+            >
+              <span>Check for Updates</span>
+            </button>
+          </div>
+
           {/* Footer Security Guarantee */}
-          <div className="mt-5 rounded-xl border border-border/60 bg-background/30 p-3 text-center">
+          <div className="mt-4 rounded-xl border border-border/60 bg-background/30 p-3 text-center">
             <p className="flex items-center justify-center gap-1.5 font-mono text-[11px] text-muted-foreground">
               <Cpu className="size-3.5 text-neon" />
               <span>All versions run 100% on-device WebAssembly. Zero telemetry, zero uploads.</span>
@@ -208,6 +232,11 @@ export function AppDownloadModal() {
           </div>
         </motion.div>
       </div>
+
+      <UpdateModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+      />
     </AnimatePresence>
   );
 

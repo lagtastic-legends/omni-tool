@@ -26,6 +26,7 @@ import {
   getYouTubeApiUrl,
   type YouTubeQualityOption,
 } from "./innertube";
+import { tagMp3Buffer } from "./id3-tagger";
 
 export type TurboPhase =
   | "idle"
@@ -49,6 +50,8 @@ export interface TurboProgress {
 export interface TurboDownloadOptions {
   option: YouTubeQualityOption;
   videoTitle: string;
+  author?: string;
+  thumbnailUrl?: string;
   engine?: FFmpeg | null;
   maxParallelWorkers?: number;
   onProgress: (prog: TurboProgress) => void;
@@ -284,6 +287,8 @@ async function downloadStreamResilient({
 export async function downloadYouTubeStream({
   option,
   videoTitle,
+  author,
+  thumbnailUrl,
   engine,
   maxParallelWorkers = 6,
   onProgress,
@@ -485,7 +490,21 @@ export async function downloadYouTubeStream({
           await engine.deleteFile(outputName);
         } catch {}
 
-        const blob = new Blob([outData.buffer as ArrayBuffer], { type: mimeType });
+        let finalAudioData = outData;
+        if (outputName.endsWith(".mp3")) {
+          try {
+            updateProgress("muxing", "Embedding ID3v2 tags & album cover art…", 1);
+            finalAudioData = await tagMp3Buffer(outData, {
+              title: videoTitle || "YouTube Audio",
+              artist: author || "YouTube Creator",
+              thumbnailUrl,
+            });
+          } catch (tagErr) {
+            console.warn("Failed to apply ID3 tags to MP3:", tagErr);
+          }
+        }
+
+        const blob = new Blob([finalAudioData.buffer as ArrayBuffer], { type: mimeType });
         const url = URL.createObjectURL(blob);
         const ext = outputName.split(".").pop();
         const filename = `${sanitizedTitle} ${qualitySuffix}.${ext}`;

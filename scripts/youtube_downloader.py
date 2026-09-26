@@ -226,15 +226,70 @@ def download_video(url, quality="best", output_dir="."):
         print(json.dumps({"error": str(e)}))
         return 1
 
+def get_playlist_info(url):
+    try:
+        import yt_dlp
+    except ImportError:
+        return {"error": "yt-dlp is not installed."}
+
+    ydl_opts = {
+        'quiet': True,
+        'no_warnings': True,
+        'extract_flat': 'in_playlist',
+        'skip_download': True,
+    }
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            meta = ydl.extract_info(url, download=False)
+            if not meta:
+                return {"error": "Failed to extract playlist metadata"}
+
+            entries = meta.get("entries") or []
+            items = []
+            for idx, e in enumerate(entries, 1):
+                if not e:
+                    continue
+                vid_id = e.get("id") or ""
+                dur = e.get("duration") or 0
+                thumbnails = e.get("thumbnails") or []
+                thumb = thumbnails[-1].get("url") if thumbnails else f"https://i.ytimg.com/vi/{vid_id}/hqdefault.jpg"
+                items.append({
+                    "videoId": vid_id,
+                    "title": e.get("title") or "Untitled Video",
+                    "author": e.get("uploader") or meta.get("uploader") or "YouTube Creator",
+                    "durationSeconds": dur,
+                    "durationFormatted": format_duration(dur),
+                    "thumbnailUrl": thumb,
+                    "index": idx,
+                })
+
+            return {
+                "playlistId": meta.get("id") or "playlist",
+                "title": meta.get("title") or "YouTube Playlist",
+                "author": meta.get("uploader") or "YouTube Creator",
+                "videoCount": len(items),
+                "thumbnailUrl": items[0]["thumbnailUrl"] if items else "",
+                "items": items,
+            }
+    except Exception as e:
+        return {"error": str(e)}
+
 def main():
     parser = argparse.ArgumentParser(description="ZenoDeck YouTube 4K Downloader Engine")
     parser.add_argument("url", help="YouTube video URL or Video ID")
     parser.add_argument("--info-json", action="store_true", help="Output video details and stream qualities in JSON")
+    parser.add_argument("--playlist-json", action="store_true", help="Output playlist items in JSON")
     parser.add_argument("--download", action="store_true", help="Download the video directly")
     parser.add_argument("--quality", default="best", help="Target quality (4k, 2k, 1080p, 720p, audio)")
     parser.add_argument("--output-dir", default=".", help="Directory to save downloads")
 
     args = parser.parse_args()
+
+    if args.playlist_json:
+        data = get_playlist_info(args.url)
+        print(json.dumps(data, indent=2))
+        return 0 if "error" not in data else 1
+
     vid = extract_video_id(args.url)
     target_url = f"https://www.youtube.com/watch?v={vid}" if vid else args.url
 
@@ -253,3 +308,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main() or 0)
+

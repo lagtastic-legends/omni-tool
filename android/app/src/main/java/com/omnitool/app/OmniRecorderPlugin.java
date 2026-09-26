@@ -35,11 +35,19 @@ import com.getcapacitor.PermissionState;
 import android.Manifest;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import android.os.Build;
+import android.provider.Settings;
+import androidx.core.content.FileProvider;
 
 @CapacitorPlugin(
     name = "OmniRecorder",
@@ -465,5 +473,157 @@ public class OmniRecorderPlugin extends Plugin {
                 call.reject("Failed to write to clipboard: " + e.getMessage());
             }
         });
+    }
+
+    @PluginMethod
+    public void checkCanInstallApk(PluginCall call) {
+        JSObject ret = new JSObject();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            ret.put("canInstall", getContext().getPackageManager().canRequestPackageInstalls());
+        } else {
+            ret.put("canInstall", true);
+        }
+        call.resolve(ret);
+    }
+
+    @PluginMethod
+    public void openInstallPermissionSettings(PluginCall call) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+                intent.setData(Uri.parse("package:" + getContext().getPackageName()));
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(intent);
+            }
+            call.resolve();
+        } catch (Exception e) {
+            call.reject("Failed to open install settings: " + e.getMessage());
+        }
+    }
+
+    @PluginMethod
+    public void installApk(PluginCall call) {
+        String apkUrl = call.getString("apkUrl");
+        if (apkUrl == null || apkUrl.isEmpty()) {
+            call.reject("apkUrl is required");
+            return;
+        }
+
+        // Check if unknown app installs are allowed
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!getContext().getPackageManager().canRequestPackageInstalls()) {
+                try {
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES);
+                    intent.setData(Uri.parse("package:" + getContext().getPackageName()));
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    getContext().startActivity(intent);
+
+                    JSObject ret = new JSObject();
+                    ret.put("status", "PERMISSION_REQUIRED");
+                    ret.put("message", "Please allow install unknown apps for ZenoDeck");
+                    call.resolve(ret);
+                    return;
+                } catch (Exception e) {
+                    call.reject("Could not request install permission: " + e.getMessage());
+                    return;
+                }
+            }
+        }
+
+        // Download in background thread
+        new Thread(() -> {
+            File tempApk = new File(getContext().getCacheDir(), "zenodeck-update.apk");
+            try {
+                URL url = new URL(apkUrl);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestProperty("User-Agent", "ZenoDeck-Android");
+                conn.setConnectTimeout(15000);
+                conn.setReadTimeout(30000);
+                conn.setInstanceFollowRedirects(true);
+                conn.connect();
+
+                int status = conn.getResponseCode();
+                if (status == HttpURLConnection.HTTP_MOVED_TEMP || status == HttpURLConnection.HTTP_MOVED_PERM || status == 307 || status == 308) {
+                    String newUrl = conn.getHeaderField("Location");
+                    conn.disconnect();
+                    conn = (HttpURLConnection) new URL(newUrl).openConnection();
+                    conn.setRequestProperty("User-Agent", "ZenoDeck-Android");
+                    conn.setConnectTimeout(15000);
+                    conn.setReadTimeout(30000);
+                    conn.connect();
+                }
+
+                long totalBytes = conn.getContentLengthLong();
+                InputStream in = conn.getInputStream();
+                FileOutputStream out = new FileOutputStream(tempApk);
+
+                byte[] buffer = new byte[64 * 1024];
+                long bytesRead = 0;
+                int read;
+                long lastNotify = 0;
+
+                while ((read = in.read(buffer)) != -1) {
+                    out.write(buffer, 0, read);
+                    bytesRead += read;
+                    long now = System.currentTimeMillis();
+                    if (now - lastNotify > 300 && totalBytes > 0) {
+                        int progress = (int) ((bytesRead * 100) / totalBytes);
+                        JSObject progressObj = new JSObject();
+                        progressObj.put("progress", progress);
+                        progressObj.put("bytesRead", bytesRead);
+                        progressObj.put("totalBytes", totalBytes);
+                        notifyListeners("apkDownloadProgress", progressObj);
+                        lastNotify = now;
+                    }
+                }
+
+                out.flush();
+                out.close();
+                in.close();
+                conn.disconnect();
+
+                if (!tempApk.exists() || tempApk.length() == 0) {
+                    call.reject("Downloaded APK file is empty");
+                    return;
+                }
+
+                // Final progress
+                JSObject finalProgress = new JSObject();
+                finalProgress.put("progress", 100);
+                finalProgress.put("bytesRead", tempApk.length());
+                finalProgress.put("totalBytes", tempApk.length());
+                notifyListeners("apkDownloadProgress", finalProgress);
+
+                // Launch package installer on UI thread
+                getActivity().runOnUiThread(() -> {
+                    try {
+                        Uri apkUri = FileProvider.getUriForFile(
+                            getContext(),
+                            getContext().getPackageName() + ".fileprovider",
+                            tempApk
+                        );
+
+                        Intent installIntent = new Intent(Intent.ACTION_VIEW);
+                        installIntent.setDataAndType(apkUri, "application/vnd.android.package-archive");
+                        installIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        installIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        getContext().startActivity(installIntent);
+
+                        JSObject ret = new JSObject();
+                        ret.put("status", "INSTALLER_LAUNCHED");
+                        ret.put("path", tempApk.getAbsolutePath());
+                        call.resolve(ret);
+                    } catch (Exception installErr) {
+                        call.reject("Failed to start package installer: " + installErr.getMessage());
+                    }
+                });
+
+            } catch (Exception e) {
+                if (tempApk.exists()) {
+                    tempApk.delete();
+                }
+                call.reject("APK download failed: " + e.getMessage());
+            }
+        }).start();
     }
 }

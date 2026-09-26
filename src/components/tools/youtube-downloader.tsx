@@ -19,6 +19,12 @@ import {
   ShieldCheck,
   Radio,
   X,
+  ListPlus,
+  CheckSquare,
+  Square,
+  Pause,
+  PlayCircle,
+  Layers,
 } from "lucide-react";
 import { Capacitor } from "@capacitor/core";
 import { getClipboardText } from "@/lib/clipboard";
@@ -40,6 +46,18 @@ import {
   type TurboProgress,
   type TurboDownloadResult,
 } from "@/lib/youtube/turbo-downloader";
+import {
+  extractPlaylistId,
+  resolveYouTubePlaylist,
+  type YouTubePlaylistInfo,
+  type YouTubePlaylistItem,
+} from "@/lib/youtube/playlist";
+import {
+  BatchQueueController,
+  type BatchItem,
+  type QueueStats,
+} from "@/lib/youtube/batch-queue";
+import { updateDownloadNotification } from "@/lib/notifications";
 
 export function YouTubeDownloader() {
   const { engine, state: engineState, boot } = useFFmpegEngine();
@@ -58,6 +76,17 @@ export function YouTubeDownloader() {
   const [isDownloading, setIsDownloading] = useState(false);
   const [progress, setProgress] = useState<TurboProgress | null>(null);
   const [downloadResult, setDownloadResult] = useState<TurboDownloadResult | null>(null);
+
+  // Playlist & Batch Queue State
+  const [playlistInfo, setPlaylistInfo] = useState<YouTubePlaylistInfo | null>(null);
+  const [isPlaylistMode, setIsPlaylistMode] = useState(false);
+  const [selectedVideoIds, setSelectedVideoIds] = useState<Set<string>>(new Set());
+  const [batchQualityBadge, setBatchQualityBadge] = useState<string>("1080P");
+  const [batchIsAudioOnly, setBatchIsAudioOnly] = useState<boolean>(false);
+  const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
+  const [batchStats, setBatchStats] = useState<QueueStats | null>(null);
+  const [isBatchRunning, setIsBatchRunning] = useState(false);
+  const batchControllerRef = useRef<BatchQueueController | null>(null);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const videoPreviewRef = useRef<HTMLVideoElement | null>(null);
@@ -117,8 +146,10 @@ export function YouTubeDownloader() {
   // Handle URL Resolution
   const handleResolve = async (urlToResolve = inputUrl) => {
     const videoId = extractYouTubeId(urlToResolve);
-    if (!videoId) {
-      setResolveError("Please enter a valid YouTube URL (e.g. https://www.youtube.com/watch?v=...)");
+    const playlistId = extractPlaylistId(urlToResolve);
+
+    if (!videoId && !playlistId) {
+      setResolveError("Please enter a valid YouTube video or playlist URL (e.g. https://www.youtube.com/watch?v=... or /playlist?list=...)");
       void haptics.warning();
       return;
     }
@@ -128,6 +159,33 @@ export function YouTubeDownloader() {
     setVideoInfo(null);
     clearResult();
     void haptics.light();
+
+    // Check playlist concurrently if list parameter is present
+    if (playlistId) {
+      void resolveYouTubePlaylist(urlToResolve)
+        .then((pInfo) => {
+          setPlaylistInfo(pInfo);
+          setSelectedVideoIds(new Set(pInfo.items.map((i) => i.videoId)));
+          if (!videoId) {
+            setIsPlaylistMode(true);
+            setIsResolving(false);
+          }
+        })
+        .catch((pErr) => {
+          console.warn("Playlist detection resolution error:", pErr);
+          if (!videoId) {
+            setResolveError("Could not resolve YouTube playlist. Ensure the playlist is public or unlisted.");
+            setIsResolving(false);
+          }
+        });
+    } else {
+      setPlaylistInfo(null);
+      setIsPlaylistMode(false);
+    }
+
+    if (!videoId) {
+      return;
+    }
 
     try {
       let data: any = null;
@@ -251,9 +309,21 @@ export function YouTubeDownloader() {
       const result = await downloadYouTubeStream({
         option: selectedQuality,
         videoTitle: videoInfo.title,
+        author: videoInfo.author,
+        thumbnailUrl: videoInfo.thumbnailUrl,
         engine,
         maxParallelWorkers: workersCount,
-        onProgress: (p) => setProgress(p),
+        onProgress: (p) => {
+          setProgress(p);
+          void updateDownloadNotification({
+            id: 7777,
+            title: `Downloading ${selectedQuality.badge || selectedQuality.label}`,
+            itemTitle: videoInfo.title,
+            progress: p.progress,
+            speedMbps: p.speedMbps,
+            isComplete: p.phase === "complete",
+          });
+        },
         signal: abortControllerRef.current.signal,
       });
 
@@ -261,6 +331,15 @@ export function YouTubeDownloader() {
       setDownloadResult(result);
       void haptics.success();
       playSuccess();
+
+      // Notify completion in status bar
+      void updateDownloadNotification({
+        id: 7777,
+        title: "Download Complete",
+        itemTitle: result.filename,
+        progress: 100,
+        isComplete: true,
+      });
     } catch (err: any) {
       if (err.message !== "Download aborted") {
         console.error("Download error:", err);
@@ -271,6 +350,99 @@ export function YouTubeDownloader() {
     } finally {
       setIsDownloading(false);
     }
+  };
+
+  // Batch Download Handlers
+  const handleToggleVideoSelect = (vid: string) => {
+    void haptics.light();
+    setSelectedVideoIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(vid)) next.delete(vid);
+      else next.add(vid);
+      return next;
+    });
+  };
+
+  const handleToggleSelectAll = () => {
+    void haptics.light();
+    if (!playlistInfo) return;
+    if (selectedVideoIds.size === playlistInfo.items.length) {
+      setSelectedVideoIds(new Set());
+    } else {
+      setSelectedVideoIds(new Set(playlistInfo.items.map((i) => i.videoId)));
+    }
+  };
+
+  const handleStartBatchDownload = async () => {
+    if (!playlistInfo || selectedVideoIds.size === 0) return;
+
+    if (!engine || engineState !== "ready") {
+      try {
+        await boot();
+      } catch (bootErr) {
+        console.warn("FFmpeg engine boot deferred for batch:", bootErr);
+      }
+    }
+
+    const itemsToDownload: BatchItem[] = playlistInfo.items
+      .filter((item) => selectedVideoIds.has(item.videoId))
+      .map((item) => ({
+        id: `${item.videoId}-${Date.now()}`,
+        videoId: item.videoId,
+        title: item.title,
+        author: item.author,
+        durationFormatted: item.durationFormatted,
+        thumbnailUrl: item.thumbnailUrl,
+        status: "idle",
+        progress: 0,
+        speedMbps: 0,
+      }));
+
+    setBatchItems(itemsToDownload);
+    setIsBatchRunning(true);
+    void haptics.medium();
+
+    const controller = new BatchQueueController({
+      items: itemsToDownload,
+      targetQualityBadge: batchQualityBadge,
+      isAudioOnly: batchIsAudioOnly,
+      engine,
+      onItemUpdate: (updatedItem, stats) => {
+        setBatchItems((prev) =>
+          prev.map((i) => (i.videoId === updatedItem.videoId ? { ...updatedItem } : i))
+        );
+        setBatchStats(stats);
+      },
+      onQueueComplete: (finalItems) => {
+        setIsBatchRunning(false);
+        setBatchItems([...finalItems]);
+        void haptics.success();
+        playSuccess();
+      },
+    });
+
+    batchControllerRef.current = controller;
+    void controller.start();
+  };
+
+  const handlePauseBatch = () => {
+    void haptics.light();
+    batchControllerRef.current?.pause();
+    setIsBatchRunning(false);
+  };
+
+  const handleCancelBatch = () => {
+    void haptics.light();
+    batchControllerRef.current?.cancel();
+    setIsBatchRunning(false);
+    setBatchItems([]);
+    setBatchStats(null);
+  };
+
+  const handleRetryFailedBatch = () => {
+    void haptics.light();
+    setIsBatchRunning(true);
+    batchControllerRef.current?.retryFailed();
   };
 
   // Handle Cancel
@@ -452,9 +624,293 @@ export function YouTubeDownloader() {
         )}
       </div>
 
+      {/* Playlist Detection Banner */}
+      {playlistInfo && (
+        <div className="panel-hud flex flex-col sm:flex-row items-center justify-between gap-3 rounded-2xl border border-primary/40 bg-gradient-to-r from-primary/10 via-card/70 to-card/50 p-4 shadow-sm">
+          <div className="flex items-center gap-3.5 min-w-0">
+            {playlistInfo.thumbnailUrl ? (
+              <img
+                src={playlistInfo.thumbnailUrl}
+                alt={playlistInfo.title}
+                className="size-14 rounded-xl object-cover border border-primary/40 shrink-0 shadow-xs"
+              />
+            ) : (
+              <div className="grid size-14 place-items-center rounded-xl border border-primary/40 bg-primary/20 text-primary shrink-0">
+                <ListPlus className="size-7" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="rounded-full bg-primary/20 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-primary">
+                  Playlist Detected
+                </span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  {playlistInfo.videoCount} Videos
+                </span>
+              </div>
+              <h3 className="font-display text-sm font-bold text-foreground truncate mt-0.5">
+                {playlistInfo.title}
+              </h3>
+              <p className="font-mono text-xs text-muted-foreground truncate">
+                by {playlistInfo.author}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              void haptics.light();
+              setIsPlaylistMode(!isPlaylistMode);
+            }}
+            className={`flex items-center gap-2 rounded-xl px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shrink-0 ${
+              isPlaylistMode
+                ? "bg-primary text-primary-foreground shadow-md hover:brightness-110"
+                : "border border-primary/50 bg-primary/15 text-primary hover:bg-primary/25"
+            }`}
+          >
+            <Layers className="size-4" />
+            <span>{isPlaylistMode ? "View Single Video" : "Open Playlist Batch Deck"}</span>
+          </button>
+        </div>
+      )}
+
+      {/* Playlist Batch Deck */}
+      {isPlaylistMode && playlistInfo && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          <div className="panel-hud rounded-2xl border border-primary/30 bg-card/60 p-4 sm:p-6 shadow-elevation1 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/60 pb-4">
+              <div>
+                <h3 className="font-display text-base font-bold text-foreground flex items-center gap-2">
+                  <ListPlus className="size-5 text-primary" />
+                  <span>Batch Download Playlist ({selectedVideoIds.size} of {playlistInfo.videoCount} selected)</span>
+                </h3>
+                <p className="font-mono text-xs text-muted-foreground">
+                  Select videos and choose a target format to download and save sequentially to device.
+                </p>
+              </div>
+
+              {/* Select / Deselect All */}
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleToggleSelectAll}
+                  disabled={isBatchRunning}
+                  className="flex items-center gap-1.5 rounded-lg border border-border/70 bg-background/60 px-3 py-1.5 font-mono text-xs text-muted-foreground hover:text-foreground transition-all cursor-pointer disabled:opacity-50"
+                >
+                  {selectedVideoIds.size === playlistInfo.items.length ? (
+                    <>
+                      <Square className="size-3.5" />
+                      <span>Deselect All</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckSquare className="size-3.5" />
+                      <span>Select All ({playlistInfo.items.length})</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Target Quality Selector for Batch */}
+            <div className="space-y-2">
+              <label className="font-mono text-xs uppercase tracking-wider text-muted-foreground block">
+                Target Batch Quality & Format:
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {[
+                  { badge: "1080P", label: "Full HD 1080p", audio: false, desc: "Crisp Video MP4" },
+                  { badge: "720P", label: "HD 720p", audio: false, desc: "Fast-path Direct MP4" },
+                  { badge: "320 KBPS", label: "Pro MP3 (320k)", audio: true, desc: "ID3 Tagged + Cover Art" },
+                  { badge: "NATIVE AAC", label: "Native AAC (M4A)", audio: true, desc: "Direct Native Audio" },
+                ].map((opt) => (
+                  <button
+                    key={opt.badge}
+                    type="button"
+                    onClick={() => {
+                      setBatchQualityBadge(opt.badge);
+                      setBatchIsAudioOnly(opt.audio);
+                      void haptics.light();
+                    }}
+                    disabled={isBatchRunning}
+                    className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                      batchQualityBadge === opt.badge
+                        ? "border-primary bg-primary/10 shadow-xs"
+                        : "border-border/70 bg-background/40 hover:border-primary/40"
+                    } disabled:opacity-50`}
+                  >
+                    <span className="font-display text-xs font-bold text-foreground">
+                      {opt.label}
+                    </span>
+                    <span className="font-mono text-[10px] text-muted-foreground mt-0.5">
+                      {opt.desc}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Batch Controls & Progress Header */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+              {!isBatchRunning ? (
+                <button
+                  type="button"
+                  onClick={handleStartBatchDownload}
+                  disabled={selectedVideoIds.size === 0}
+                  className="flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3 font-display text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-md hover:brightness-110 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  <Download className="size-4" />
+                  <span>Start Batch Download ({selectedVideoIds.size} Items)</span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handlePauseBatch}
+                    className="flex items-center gap-1.5 rounded-xl border border-amber-500/50 bg-amber-500/10 px-4 py-2 font-display text-xs font-bold text-amber-300 hover:bg-amber-500/20 transition-all cursor-pointer"
+                  >
+                    <Pause className="size-4" />
+                    <span>Pause</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelBatch}
+                    className="flex items-center gap-1.5 rounded-xl border border-red-500/50 bg-red-500/10 px-4 py-2 font-display text-xs font-bold text-red-300 hover:bg-red-500/20 transition-all cursor-pointer"
+                  >
+                    <X className="size-4" />
+                    <span>Stop Queue</span>
+                  </button>
+                </div>
+              )}
+
+              {batchStats && (
+                <div className="flex items-center gap-3 font-mono text-xs text-muted-foreground">
+                  <span>
+                    Progress: <strong className="text-foreground">{batchStats.completed} / {batchStats.total}</strong>
+                  </span>
+                  <span>·</span>
+                  <span className="text-primary font-bold">{batchStats.overallProgress}%</span>
+                </div>
+              )}
+            </div>
+
+            {/* Overall Progress Gauge */}
+            {isBatchRunning && batchStats && (
+              <div className="space-y-1.5 pt-2">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-border/60">
+                  <div
+                    className="h-full bg-primary transition-all duration-300 ease-out"
+                    style={{ width: `${batchStats.overallProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Video List */}
+            <div className="space-y-2 max-h-[460px] overflow-y-auto pr-1">
+              {playlistInfo.items.map((item) => {
+                const isSelected = selectedVideoIds.has(item.videoId);
+                const activeBatchItem = batchItems.find((b) => b.videoId === item.videoId);
+
+                return (
+                  <div
+                    key={item.videoId}
+                    onClick={() => {
+                      if (!isBatchRunning) handleToggleVideoSelect(item.videoId);
+                    }}
+                    className={`flex items-center gap-3 p-2.5 sm:p-3 rounded-xl border transition-all cursor-pointer ${
+                      isSelected
+                        ? "border-primary/50 bg-background/80"
+                        : "border-border/60 bg-background/30 opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      disabled={isBatchRunning}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleVideoSelect(item.videoId);
+                      }}
+                      className="text-primary shrink-0"
+                    >
+                      {isSelected ? (
+                        <CheckSquare className="size-5 text-primary" />
+                      ) : (
+                        <Square className="size-5 text-muted-foreground" />
+                      )}
+                    </button>
+
+                    <div className="relative aspect-video w-20 sm:w-24 shrink-0 rounded-lg overflow-hidden border border-border/70 bg-black">
+                      <img
+                        src={item.thumbnailUrl}
+                        alt={item.title}
+                        className="h-full w-full object-cover"
+                      />
+                      <span className="absolute bottom-1 right-1 rounded bg-black/80 px-1 font-mono text-[9px] text-white">
+                        {item.durationFormatted}
+                      </span>
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-xs sm:text-sm text-foreground truncate">
+                        {item.title}
+                      </h4>
+                      <p className="font-mono text-[11px] text-muted-foreground truncate">
+                        {item.author}
+                      </p>
+
+                      {/* Active Download Progress */}
+                      {activeBatchItem && activeBatchItem.status === "downloading" && (
+                        <div className="mt-1.5 space-y-1">
+                          <div className="flex justify-between font-mono text-[10px] text-primary">
+                            <span>Downloading… {activeBatchItem.speedMbps > 0 ? `(${activeBatchItem.speedMbps.toFixed(1)} MB/s)` : ""}</span>
+                            <span>{activeBatchItem.progress}%</span>
+                          </div>
+                          <div className="h-1.5 w-full rounded-full bg-secondary/50 overflow-hidden">
+                            <div
+                              className="h-full bg-primary transition-all duration-200"
+                              style={{ width: `${activeBatchItem.progress}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="shrink-0 font-mono text-xs">
+                      {activeBatchItem?.status === "complete" ? (
+                        <span className="flex items-center gap-1 text-emerald-400 font-bold">
+                          <CheckCircle2 className="size-4" />
+                          <span className="hidden sm:inline">Saved</span>
+                        </span>
+                      ) : activeBatchItem?.status === "error" ? (
+                        <span className="flex items-center gap-1 text-red-400 font-bold">
+                          <AlertCircle className="size-4" />
+                          <span className="hidden sm:inline">Error</span>
+                        </span>
+                      ) : activeBatchItem?.status === "downloading" ? (
+                        <span className="flex items-center gap-1 text-primary animate-pulse font-bold">
+                          <Loader2 className="size-4 animate-spin" />
+                          <span className="hidden sm:inline">Processing</span>
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* Video Details & Quality Selection */}
       <AnimatePresence mode="wait">
-        {videoInfo && !downloadResult && (
+        {videoInfo && !isPlaylistMode && !downloadResult && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}

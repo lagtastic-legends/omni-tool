@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Download, LogOut, ShieldAlert, ShieldCheck } from "lucide-react";
+import { Download, LogOut, ShieldAlert, ShieldCheck, Sparkles } from "lucide-react";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { useAuth } from "@/lib/auth/auth-context";
 import { SearchPalette } from "@/components/shell/search-palette";
@@ -10,6 +10,9 @@ import { AudioToggle } from "@/components/shell/audio-toggle";
 import { UserAvatar } from "@/components/auth/user-avatar";
 import { useNavStore } from "@/lib/navigation/nav-store";
 import { usePwaStore } from "@/lib/pwa/pwa-store";
+import { checkForUpdates, type AppUpdateInfo } from "@/lib/updater";
+import { UpdateModal } from "@/components/dialogs/update-modal";
+import { useState, useEffect } from "react";
 import type { EngineState } from "@/types/omni";
 
 const STATE_META: Record<
@@ -44,6 +47,18 @@ export function TopBar() {
   const navigate = useNavStore((s) => s.navigate);
   const setDownloadModalOpen = usePwaStore((s) => s.setDownloadModalOpen);
   const meta = STATE_META[state];
+  const [updateInfo, setUpdateInfo] = useState<AppUpdateInfo | null>(null);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void checkForUpdates(false).then((info) => {
+      if (active) setUpdateInfo(info);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <motion.header
@@ -120,6 +135,30 @@ export function TopBar() {
           <AudioToggle />
           <SearchPalette />
 
+          {/* Update Button */}
+          {updateInfo?.updateAvailable ? (
+            <button
+              type="button"
+              onClick={() => setIsUpdateModalOpen(true)}
+              className="flex items-center gap-1.5 rounded-full border border-emerald-500/50 bg-emerald-500/15 px-2.5 py-1 text-emerald-300 hover:bg-emerald-500/25 transition-all font-mono text-[10px] uppercase tracking-wider cursor-pointer"
+              title={`Update available: v${updateInfo.latestVersion}`}
+            >
+              <span className="flex size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="hidden xs:inline sm:inline">Update</span>
+              <span>v{updateInfo.latestVersion}</span>
+            </button>
+          ) : isNative ? (
+            <button
+              type="button"
+              onClick={() => setIsUpdateModalOpen(true)}
+              className="grid size-8 place-items-center rounded-lg border border-border/70 text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground cursor-pointer"
+              title="Check for ZenoDeck Updates"
+              aria-label="Check for ZenoDeck Updates"
+            >
+              <Sparkles className="size-3.5 text-primary/80" />
+            </button>
+          ) : null}
+
           {!isNative ? (
             <button
               type="button"
@@ -179,6 +218,15 @@ export function TopBar() {
           )}
         </div>
       </div>
+
+      <UpdateModal
+        isOpen={isUpdateModalOpen}
+        onClose={() => setIsUpdateModalOpen(false)}
+        updateInfo={updateInfo}
+        onRefresh={() => {
+          void checkForUpdates(true).then(setUpdateInfo);
+        }}
+      />
     </motion.header>
   );
 }
