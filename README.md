@@ -10,13 +10,13 @@
 
 <p align="center">
   <a href="https://github.com/lagtastic-legends/zenodeck/releases">
-    <img src="https://img.shields.io/badge/Release-v3.3.0-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.3.0" />
+    <img src="https://img.shields.io/badge/Release-v3.4.0-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.4.0" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.3.0/ZenoDeck-v3.3.0-release.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-v3.3.0%20Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
+  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.0/ZenoDeck-v3.4.0-release.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-v3.4.0%20Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
   </a>
   <a href="https://omni-tool-two.vercel.app/api/ios-profile">
     <img src="https://img.shields.io/badge/iOS%20Profile-Install%20on%20iPhone-000000?style=for-the-badge&logo=apple&logoColor=white" alt="iOS Profile Download" />
@@ -42,9 +42,31 @@ Unlike traditional cloud converters and SaaS editing tools that upload your sens
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web Application** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero installation required. Instant launch in any modern browser. |
-| **📱 Android APK (Signed Production v3.3.0)** | [**Download ZenoDeck-v3.3.0-release.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.3.0/ZenoDeck-v3.3.0-release.apk) | Production signed APK optimized for all phones (slabs, flips, foldables) and tablets. |
+| **📱 Android APK (Signed Production v3.4.0)** | [**Download ZenoDeck-v3.4.0-release.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.0/ZenoDeck-v3.4.0-release.apk) | Production signed APK optimized for all phones (slabs, flips, foldables) and tablets. |
+| **⚡ Direct Web APK** | [**Download zenodeck.apk (v3.4.0)**](https://omni-tool-two.vercel.app/zenodeck.apk) | Direct fast download mirrored straight from the web host. |
 | **🍏 Apple iOS Profile (iPhone & iPad)** | [**Download zenodeck.mobileconfig**](https://omni-tool-two.vercel.app/api/ios-profile) | Apple Web Clip Configuration Profile. Installs ZenoDeck to Home Screen in full-screen standalone mode. |
-| **📦 GitHub Releases & Source** | [**GitHub Releases Hub**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.3.0) | Complete release packages, checksums, changelogs, and release assets. |
+| **📦 GitHub Releases & Source** | [**GitHub Releases Hub**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.4.0) | Complete release packages, checksums, changelogs, and release assets. |
+
+---
+
+## 🌟 What's New in v3.4.0 — Direct Audio Studio & Studio-Grade Performance
+
+### 🎵 1. Direct YouTube Audio Studio & Multi-Tier Mastering
+* **Multi-Bitrate MP3 Extraction**: Direct conversion into Studio Master (320 kbps), High Fidelity (256 kbps), Standard Crisp (192 kbps), and Voice & Podcast (128 kbps).
+* **Lossless Native Audio & DAW PCM**: Zero re-encoding extraction into native AAC (M4A) and uncompressed 16-bit 44.1 kHz WAV PCM for DAW audio editing.
+* **Integrated Audio Player Deck**: Real-time waveform styling, time counter, and instant one-tap save to device storage.
+
+### 🛡️ 2. Total Memory Leak Elimination
+* **Zero Blob Retention**: Garbage-collected and revoked multi-hundred-megabyte video/audio buffers on reset, convert, and unmount in YouTube Downloader.
+* **Generative Watermark Remover**: Safe disposal of raw image bitmaps and canvas buffers on new uploads.
+* **Reactive Cleanup**: Eliminated React stale closures in Image-to-PDF and Scan-to-PDF unmount hooks using mutable reactive refs.
+* **Worker Lifecycle Management**: Terminated in-flight Web Worker threads in ASCII Art Generator to prevent CPU thread congestion.
+
+### ⚡ 3. Engine Precision & Real-Time UX
+* **GIF Maker Precision**: Fixed parameter scoping in Pass 2 to guarantee exact trim clip lengths.
+* **Instant MP4 Streaming**: Added `-movflags +faststart` to Video Mute outputs for instant progressive playback.
+* **Debounced QR Studio**: Real-time 250ms debounced live generation as you type payloads or tweak module colors.
+* **Zero Compilation Errors**: Purged 1,130 lines of dead UI stubs for 100% strict TypeScript compliance (`0 errors`).
 
 ---
 
