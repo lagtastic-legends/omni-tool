@@ -126,25 +126,56 @@ export function getYouTubeApiUrl(path: string): string {
   return `${fallback.replace(/\/$/, "")}${path}`;
 }
 
+const IOS_CLIENT_VERSION = "20.10.4";
+const IOS_USER_AGENT = `com.google.ios.youtube/${IOS_CLIENT_VERSION} (iPhone16,2; U; CPU iOS 18_1 like Mac OS X; en_US)`;
+
 const INNERTUBE_CLIENTS = [
   {
-    name: "ANDROID_VR",
+    name: "IOS_PRIMARY",
+    headers: {
+      "Content-Type": "application/json",
+      "User-Agent": IOS_USER_AGENT,
+      "X-YouTube-Client-Name": "5",
+      "X-YouTube-Client-Version": IOS_CLIENT_VERSION,
+    },
     context: {
       client: {
-        clientName: "ANDROID_VR",
-        clientVersion: "1.60.19",
-        deviceModel: "Quest 3",
+        clientName: "IOS",
+        clientVersion: IOS_CLIENT_VERSION,
+        deviceModel: "iPhone16,2",
         hl: "en",
         gl: "US",
       },
     },
   },
   {
-    name: "TVHTML5",
+    name: "IOS_SECONDARY",
+    headers: {
+      "Content-Type": "application/json",
+      "User-Agent": `com.google.ios.youtube/20.15.2 (iPhone16,2; U; CPU iOS 18_1 like Mac OS X; en_US)`,
+      "X-YouTube-Client-Name": "5",
+      "X-YouTube-Client-Version": "20.15.2",
+    },
     context: {
       client: {
-        clientName: "TVHTML5",
-        clientVersion: "7.20240901.00.00",
+        clientName: "IOS",
+        clientVersion: "20.15.2",
+        deviceModel: "iPhone16,2",
+        hl: "en",
+        gl: "US",
+      },
+    },
+  },
+  {
+    name: "ANDROID_TESTSUITE",
+    headers: {
+      "Content-Type": "application/json",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    },
+    context: {
+      client: {
+        clientName: "ANDROID_TESTSUITE",
+        clientVersion: "1.9",
         hl: "en",
         gl: "US",
       },
@@ -168,13 +199,16 @@ export async function resolveYouTubeVideo(videoIdOrUrl: string): Promise<YouTube
     try {
       const res = await fetch("https://www.youtube.com/youtubei/v1/player", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-        },
+        headers: clientConfig.headers,
         body: JSON.stringify({
           videoId,
           context: clientConfig.context,
+          playbackContext: {
+            contentPlaybackContext: {
+              html5Preference: "HTML5_PREF_WANTS",
+              signatureTimestamp: 20000,
+            },
+          },
         }),
       });
 
@@ -389,6 +423,29 @@ export async function resolveYouTubeVideo(videoIdOrUrl: string): Promise<YouTube
       container: "mp4",
       approxSizeBytes: vSize + aSize,
       videoFormat: fmt480,
+      audioFormat: bestAudio,
+    });
+  }
+
+  // Fallback: If no standard quality tier matched (e.g. very old 240p/360p video), add highest available video format
+  const hasVideoTier = qualities.some((q) => !q.isAudioOnly);
+  if (!hasVideoTier && videoFormats.length > 0) {
+    const topVideo = [...videoFormats].sort((a, b) => (b.height || 0) - (a.height || 0))[0];
+    const h = topVideo.height || (topVideo.qualityLabel ? parseInt(topVideo.qualityLabel) : 360);
+    const vSize = topVideo.contentLength || 0;
+    const aSize = bestAudio?.contentLength || 0;
+    qualities.unshift({
+      id: `${h}p`,
+      label: `Standard Definition ${h}p`,
+      resolutionLabel: `${topVideo.width || 640} × ${h} (${h}p)`,
+      fps: topVideo.fps || 30,
+      badge: "SD",
+      is4K: false,
+      is60fps: false,
+      isAudioOnly: false,
+      container: "mp4",
+      approxSizeBytes: vSize + aSize,
+      videoFormat: topVideo,
       audioFormat: bestAudio,
     });
   }

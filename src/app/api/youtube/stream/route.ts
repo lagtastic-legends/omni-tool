@@ -60,9 +60,56 @@ export async function GET(req: Request) {
       fetchHeaders["Range"] = rangeHeader;
     }
 
-    const upstreamRes = await fetch(targetUrl, {
-      headers: fetchHeaders,
-    });
+    // Build candidate fallback URLs if the URL contains alternative mn hosts
+    const candidateUrls: string[] = [targetUrl];
+    try {
+      const parsedUrl = new URL(targetUrl);
+      const mnParam = parsedUrl.searchParams.get("mn");
+      if (mnParam) {
+        const nodes = mnParam.split(",").map((s) => s.trim()).filter(Boolean);
+        if (nodes.length > 1) {
+          const primaryNode = nodes[0];
+          for (let i = 1; i < nodes.length; i++) {
+            const altNode = nodes[i];
+            if (parsedUrl.host.includes(primaryNode)) {
+              const altUrl = new URL(targetUrl);
+              altUrl.host = parsedUrl.host.replace(primaryNode, altNode);
+              candidateUrls.push(altUrl.toString());
+            }
+          }
+        }
+      }
+    } catch {}
+
+    let upstreamRes: Response | null = null;
+    let lastError: Error | null = null;
+
+    for (const urlToTry of candidateUrls) {
+      try {
+        const res = await fetch(urlToTry, {
+          headers: fetchHeaders,
+          redirect: "follow",
+          signal: AbortSignal.timeout(8000),
+        });
+
+        if (res.ok || res.status === 206 || res.status === 304) {
+          upstreamRes = res;
+          break;
+        } else if (res.status >= 500) {
+          lastError = new Error(`CDN returned status ${res.status}`);
+          continue;
+        } else {
+          upstreamRes = res;
+          break;
+        }
+      } catch (err: any) {
+        lastError = err;
+      }
+    }
+
+    if (!upstreamRes) {
+      throw lastError || new Error("Failed to stream from any available CDN node");
+    }
 
     const responseHeaders = new Headers(corsHeaders);
 

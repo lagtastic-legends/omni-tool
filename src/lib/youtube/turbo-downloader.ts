@@ -149,44 +149,58 @@ async function fetchStreamParallel({
     const start = index * chunkSize;
     const end = Math.min((index + 1) * chunkSize - 1, totalSize - 1);
 
-    const res = await fetch(proxiedUrl, {
-      signal,
-      headers: {
-        Range: `bytes=${start}-${end}`,
-      },
-    });
-
-    if (!res.ok && res.status !== 206) {
-      throw new Error(`Range request failed (${res.status}) on worker ${index + 1}`);
-    }
-
-    if (!res.body) {
-      const buf = await res.arrayBuffer();
-      partBuffers[index] = new Uint8Array(buf);
-      onChunkBytes(partBuffers[index].byteLength);
-      return;
-    }
-
-    const reader = res.body.getReader();
-    const chunks: Uint8Array[] = [];
-    while (true) {
+    let lastError: Error | null = null;
+    for (let attempt = 1; attempt <= 3; attempt++) {
       if (signal?.aborted) throw new Error("Download aborted");
-      const { done, value } = await reader.read();
-      if (done) break;
-      if (value) {
-        chunks.push(value);
-        onChunkBytes(value.byteLength);
+      try {
+        const res = await fetch(proxiedUrl, {
+          signal,
+          headers: {
+            Range: `bytes=${start}-${end}`,
+          },
+        });
+
+        if (!res.ok && res.status !== 206) {
+          throw new Error(`Range request failed (${res.status}) on worker ${index + 1}`);
+        }
+
+        if (!res.body) {
+          const buf = await res.arrayBuffer();
+          partBuffers[index] = new Uint8Array(buf);
+          onChunkBytes(partBuffers[index].byteLength);
+          return;
+        }
+
+        const reader = res.body.getReader();
+        const chunks: Uint8Array[] = [];
+        let bytesReceived = 0;
+        while (true) {
+          if (signal?.aborted) throw new Error("Download aborted");
+          const { done, value } = await reader.read();
+          if (done) break;
+          if (value) {
+            chunks.push(value);
+            bytesReceived += value.byteLength;
+            onChunkBytes(value.byteLength);
+          }
+        }
+
+        const partMerged = new Uint8Array(bytesReceived);
+        let offset = 0;
+        for (const c of chunks) {
+          partMerged.set(c, offset);
+          offset += c.byteLength;
+        }
+        partBuffers[index] = partMerged;
+        return;
+      } catch (err: any) {
+        lastError = err;
+        if (attempt < 3 && !signal?.aborted) {
+          await new Promise((r) => setTimeout(r, 400 * attempt));
+        }
       }
     }
-
-    const partLen = chunks.reduce((acc, c) => acc + c.byteLength, 0);
-    const partMerged = new Uint8Array(partLen);
-    let offset = 0;
-    for (const c of chunks) {
-      partMerged.set(c, offset);
-      offset += c.byteLength;
-    }
-    partBuffers[index] = partMerged;
+    throw lastError || new Error(`Worker ${index + 1} failed after 3 attempts`);
   };
 
   // Run all workers concurrently
