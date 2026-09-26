@@ -29,6 +29,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { DesktopSidebar } from "@/components/shell/desktop-sidebar";
 import { DesktopInspector } from "@/components/shell/desktop-inspector";
 import { WorkstationRibbon } from "@/components/shell/workstation-ribbon";
+import { ToolErrorBoundary } from "@/components/shell/tool-error-boundary";
 
 /* Dynamic code-split tool modules to control memory & isolate thread workloads */
 const YouTubeDownloader = lazy(() => import("@/components/tools/youtube-downloader").then((m) => ({ default: m.YouTubeDownloader })));
@@ -297,7 +298,7 @@ export function AppShell() {
   ];
 
   return (
-    <div className="relative flex min-h-screen flex-col lg:h-screen lg:overflow-hidden">
+    <div className="relative flex min-h-[100dvh] flex-col lg:h-screen lg:overflow-hidden">
       <AuroraBackground />
       <TopBar />
       <AskOmni />
@@ -308,7 +309,7 @@ export function AppShell() {
         <div className="flex flex-1 flex-col min-w-0 min-h-0 overflow-y-auto h-full scrollbar-thin scrollbar-thumb-border">
           <WorkstationRibbon />
 
-          <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-3 py-4 sm:px-6 sm:py-8">
+          <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-3 py-4 sm:px-6 sm:py-8 pb-[calc(env(safe-area-inset-bottom,0px)+6rem)] lg:pb-8">
             <AnimatePresence mode="wait">
               <motion.div
                 key={view}
@@ -328,7 +329,13 @@ export function AppShell() {
                   </ToolShell>
                 ) : (
                   <AuthGuard>
-                    {view === "dashboard" ? <DashboardView /> : <ToolView toolId={view} />}
+                    {view === "dashboard" ? (
+                      <DashboardView />
+                    ) : (
+                      <ToolErrorBoundary toolId={view}>
+                        <ToolView toolId={view} />
+                      </ToolErrorBoundary>
+                    )}
                   </AuthGuard>
                 )}
               </motion.div>

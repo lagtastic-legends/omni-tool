@@ -212,7 +212,7 @@ export function SaveResultModal() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="save-dialog-title"
-          className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-6 pointer-events-auto"
+          className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-6 pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)] pointer-events-auto"
         >
           {/* Glassmorphism Backdrop */}
           <motion.div
@@ -230,7 +230,7 @@ export function SaveResultModal() {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 8 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
-            className={`relative w-full max-w-[390px] sm:max-w-md overflow-hidden rounded-2xl border ${
+            className={`relative w-full max-w-[calc(100vw-1.5rem)] sm:max-w-md max-h-[calc(100dvh-2.5rem)] overflow-y-auto rounded-2xl border ${
               isSuccess
                 ? "border-emerald-500/40 dark:border-emerald-500/30 shadow-[0_12px_45px_rgba(0,0,0,0.6),0_0_35px_rgba(16,185,129,0.18)]"
                 : "border-rose-500/40 dark:border-rose-500/30 shadow-[0_12px_45px_rgba(0,0,0,0.6),0_0_35px_rgba(244,63,94,0.18)]"

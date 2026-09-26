@@ -206,6 +206,13 @@
   --shadow-elevation-2: 0 16px 36px -6px rgba(58, 48, 42, 0.18), inset 0 1px 2px 0 rgba(255, 255, 255, 0.8);
 }
 
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
 /* ------------------------------------------------------------------ */
 /* 2. BUTTERY SMOOTH RUNTIME & GPU HARDWARE ACCELERATION              */
 /* ------------------------------------------------------------------ */
@@ -213,16 +220,27 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  touch-action: manipulation;
+  touch-action: pan-x pan-y;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 body {
   -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+  touch-action: pan-x pan-y;
   overscroll-behavior-y: none;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Ensure all media cannot exceed device viewport width */
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
 }
 
 /* Eliminate 300ms tap delay and mobile tap gray flicker */

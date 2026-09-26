@@ -118,7 +118,10 @@ export const viewport: Viewport = {
   themeColor: "#0a0813",
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({
@@ -147,7 +150,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${orbitron.variable} ${spaceGrotesk.variable} ${geistMono.variable} ${ebGaramond.variable} ${manrope.variable} antialiased bg-background text-foreground min-h-screen w-full overflow-x-hidden pl-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)]`}
+        className={`${orbitron.variable} ${spaceGrotesk.variable} ${geistMono.variable} ${ebGaramond.variable} ${manrope.variable} antialiased bg-background text-foreground min-h-[100dvh] w-full max-w-[100vw] overflow-x-hidden pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] pl-[env(safe-area-inset-left,0px)] pr-[env(safe-area-inset-right,0px)]`}
       >
         <AnalyticsProvider />
         {children}

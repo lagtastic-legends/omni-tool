@@ -67,19 +67,19 @@ export function TopBar() {
       transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
       className="sticky top-0 z-40 border-b border-border/60 bg-background/70 backdrop-blur-xl shrink-0 pt-[env(safe-area-inset-top)]"
     >
-      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-2 sm:gap-3 px-3 sm:px-6">
+      <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between gap-1.5 sm:gap-3 px-2 sm:px-6">
         {/* Brand */}
-        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0 min-w-0">
             <motion.div
               initial={{ rotate: -90, opacity: 0 }}
               animate={{ rotate: 0, opacity: 1 }}
               transition={{ type: "spring", stiffness: 260, damping: 18 }}
-              className="relative grid size-9 sm:size-10 place-items-center rounded-xl border border-primary/40 overflow-hidden glow-box-violet"
+              className="relative grid size-8 sm:size-10 place-items-center rounded-xl border border-primary/40 overflow-hidden glow-box-violet shrink-0"
             >
               <img src="/logo.jpg" alt="ZenoDeck" className="w-full h-full object-cover" />
             </motion.div>
-          <div className="flex flex-col leading-none">
-            <span className="font-display text-xs sm:text-sm font-bold tracking-[0.24em] sm:tracking-[0.32em] text-foreground">
+          <div className="flex flex-col leading-none truncate">
+            <span className="font-display text-xs sm:text-sm font-bold tracking-[0.2em] sm:tracking-[0.32em] text-foreground">
               ZENODECK
             </span>
             <span className="mt-0.5 hidden font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground sm:block">
@@ -89,7 +89,7 @@ export function TopBar() {
         </div>
 
         {/* Status cluster */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
+        <div className="flex items-center gap-1 sm:gap-2 shrink-0">
           {/* auth state chip */}
           {mode === "unconfigured" ? (
             <div
@@ -104,7 +104,7 @@ export function TopBar() {
           ) : null}
 
           <div
-            className="flex items-center gap-1.5 sm:gap-2 rounded-full border border-border/70 bg-card/60 px-2.5 sm:px-3 py-1.5"
+            className="flex items-center gap-1.5 rounded-full border border-border/70 bg-card/60 p-1.5 sm:px-3 sm:py-1.5"
             role="status"
             aria-live="polite"
             title={`Engine Status: ${meta.label}`}
@@ -132,7 +132,9 @@ export function TopBar() {
           </div>
 
           <ThemeToggle />
-          <AudioToggle />
+          <div className="hidden min-[420px]:block">
+            <AudioToggle />
+          </div>
           <SearchPalette />
 
           {/* Update Button */}

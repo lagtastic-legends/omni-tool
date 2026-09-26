@@ -10,16 +10,16 @@
 
 <p align="center">
   <a href="https://github.com/lagtastic-legends/zenodeck/releases">
-    <img src="https://img.shields.io/badge/Release-v3.4.7-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.4.7" />
+    <img src="https://img.shields.io/badge/Release-v3.4.8-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.4.8" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.7/zenodeck.apk">
+  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.8/zenodeck.apk">
     <img src="https://img.shields.io/badge/Android%20APK-zenodeck.apk-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
   </a>
-  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.7/zenodeck-v3.4.7.apk">
-    <img src="https://img.shields.io/badge/Versioned%20APK-v3.4.7-00BCD4?style=for-the-badge&logo=android&logoColor=white" alt="Versioned APK Download" />
+  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.8/zenodeck-v3.4.8.apk">
+    <img src="https://img.shields.io/badge/Versioned%20APK-v3.4.8-00BCD4?style=for-the-badge&logo=android&logoColor=white" alt="Versioned APK Download" />
   </a>
   <a href="https://omni-tool-two.vercel.app/api/ios-profile">
     <img src="https://img.shields.io/badge/iOS%20Profile-Install%20on%20iPhone-000000?style=for-the-badge&logo=apple&logoColor=white" alt="iOS Profile Download" />
@@ -45,11 +45,39 @@ Unlike traditional cloud converters and SaaS editing tools that upload your sens
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web Application** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero installation required. Instant launch in any modern browser. |
-| **📱 Android Universal APK** | [**Download zenodeck.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.7/zenodeck.apk) | Production signed APK with bundled offline WASM core, native Android media permissions, and Python 4K 60FPS engine. |
-| **🏷️ Android Versioned APK** | [**Download zenodeck-v3.4.7.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.7/zenodeck-v3.4.7.apk) | Dedicated v3.4.7 release package with full version archive support. |
+| **📱 Android Universal APK** | [**Download zenodeck.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.8/zenodeck.apk) | Production signed APK with bundled offline WASM core, native Android media permissions, and Python 4K 60FPS engine. |
+| **🏷️ Android Versioned APK** | [**Download zenodeck-v3.4.8.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.8/zenodeck-v3.4.8.apk) | Dedicated v3.4.8 release package with full version archive support. |
 | **⚡ Direct Web APK** | [**Download zenodeck.apk (Direct Mirror)**](https://omni-tool-two.vercel.app/zenodeck.apk) | Direct fast download mirrored straight from the web host. |
 | **🍏 Apple iOS Profile (iPhone & iPad)** | [**Download zenodeck.mobileconfig**](https://omni-tool-two.vercel.app/api/ios-profile) | Apple Web Clip Configuration Profile. Installs ZenoDeck to Home Screen in full-screen standalone mode. |
-| **📦 GitHub Releases & Source** | [**GitHub Releases Hub (v3.4.7)**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.4.7) | Complete release packages, checksums, changelogs, and release assets. |
+| **📦 GitHub Releases & Source** | [**GitHub Releases Hub (v3.4.8)**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.4.8) | Complete release packages, checksums, changelogs, and release assets. |
+
+---
+
+## 🌟 What's New in v3.4.8 — Universal Mobile Autofit, Native Crash Prevention, & Stability Hardening
+
+### 📱 1. Universal Screen Autofit & Dynamic Viewport
+- **Dynamic Viewport Height (`100dvh`)**: Seamless adjustment when the Android on-screen keyboard opens, preventing bottom layout clipping.
+- **Full Edge-to-Edge Inset Protection**: Implemented `--sat`, `--sab`, `--sal`, and `--sar` tokens to guarantee that headers and action buttons never clip behind camera notches or the Android navigation gesture pill.
+- **Fixed Viewport Scaling**: Added `maximumScale: 1, userScalable: false, interactiveWidget: "resizes-content"` to prevent accidental double-tap zoom distortion.
+- **Responsive TopBar**: Streamlined status cluster fitting screens under 380px without horizontal blowout.
+- **Modal Viewport Bounds**: Modals capped at `max-w-[calc(100vw-1.5rem)]` and `max-h-[calc(100dvh-2.5rem)]` with smooth internal scrolling.
+
+### 🛡️ 2. Native Android Crash Resilience (`onRenderProcessGone`)
+- **Renderer Crash Recovery**: Capacitor's default behavior terminates the host app when Chromium's isolated rendering process runs low on RAM. `MainActivity.java` now overrides `onRenderProcessGone` to return `true` and cleanly recover the Activity.
+- **Text Zoom Normalization**: Overrides system-level font scaling inside the WebView via `settings.setTextZoom(100)` so layouts remain pixel-perfect.
+- **Standard Viewport Calculation**: Enabled `setUseWideViewPort(true)` and `setLoadWithOverviewMode(true)` for accurate layout geometry on all Android devices.
+- **Disabled Overscroll Stretch**: Set `OVER_SCROLL_NEVER` to eliminate rubber-banding artifacts that displace fixed navigation.
+
+### ⚡ 3. Production React Error Boundaries & Fault Isolation
+- **Per-Tool Isolation (`ToolErrorBoundary`)**: An error in one tool never unmounts the shell, top bar, or file vault.
+- **Route-Level Recovery (`src/app/error.tsx`)**: Futuristic error recovery card with 1-tap "Reboot Workstation" and diagnostic logging.
+- **Root Layout Guard (`src/app/global-error.tsx`)**: Fallback boundary catching root-level document failures.
+
+### 🎨 4. Mobile GPU Performance & Low-RAM Optimization
+- **Lightweight Mobile Blurs**: Reduced `AuroraBackground` Gaussian blur from 140px to 50px on mobile viewports, dramatically reducing GPU fill-rate demands.
+- **Selective Background Rendering**: Hides secondary background ambient orbs on screens `< 640px` to conserve mobile memory.
+
+---
 
 ---
 

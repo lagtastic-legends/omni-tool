@@ -115,7 +115,7 @@ export function UpdateModal({
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)]">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -136,7 +136,7 @@ export function UpdateModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 16 }}
           transition={{ type: "spring", stiffness: 420, damping: 28 }}
-          className="relative w-full max-w-lg rounded-2xl border border-primary/40 bg-card/95 p-5 sm:p-6 shadow-2xl backdrop-blur-2xl max-h-[90vh] overflow-y-auto"
+          className="relative w-full max-w-[calc(100vw-1.5rem)] sm:max-w-lg rounded-2xl border border-primary/40 bg-card/95 p-4 sm:p-6 shadow-2xl backdrop-blur-2xl max-h-[calc(100dvh-2.5rem)] overflow-y-auto"
         >
           {/* Header */}
           <div className="flex items-start justify-between gap-3 border-b border-border/70 pb-4">

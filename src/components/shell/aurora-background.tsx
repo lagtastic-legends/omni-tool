@@ -16,17 +16,17 @@ export function AuroraBackground() {
   const orbs = [
     {
       className:
-        "h-[42rem] w-[42rem] -top-64 -left-40 bg-primary/25 blur-[140px]",
-      drift: reduceMotion ? undefined : { x: [0, 60, -20, 0], y: [0, 30, 60, 0] },
+        "h-[20rem] w-[20rem] sm:h-[42rem] sm:w-[42rem] -top-32 -left-20 sm:-top-64 sm:-left-40 bg-primary/20 blur-[50px] sm:blur-[140px]",
+      drift: reduceMotion ? undefined : { x: [0, 40, -15, 0], y: [0, 20, 40, 0] },
     },
     {
       className:
-        "h-[36rem] w-[36rem] top-1/3 -right-52 bg-neon/15 blur-[130px]",
-      drift: reduceMotion ? undefined : { x: [0, -50, 10, 0], y: [0, 40, -30, 0] },
+        "h-[18rem] w-[18rem] sm:h-[36rem] sm:w-[36rem] top-1/3 -right-24 sm:-right-52 bg-neon/15 blur-[45px] sm:blur-[130px]",
+      drift: reduceMotion ? undefined : { x: [0, -35, 10, 0], y: [0, 30, -20, 0] },
     },
     {
       className:
-        "h-[30rem] w-[30rem] bottom-[-8rem] left-1/4 bg-plasma/15 blur-[120px]",
+        "hidden sm:block sm:h-[30rem] sm:w-[30rem] bottom-[-8rem] left-1/4 bg-plasma/15 sm:blur-[120px]",
       drift: reduceMotion ? undefined : { x: [0, 30, -40, 0], y: [0, -40, 20, 0] },
     },
   ];
