@@ -380,4 +380,42 @@ public class OmniRecorderPlugin extends Plugin {
             call.reject("Could not open settings: " + e.getMessage());
         }
     }
+
+    @PluginMethod
+    public void readClipboard(PluginCall call) {
+        getActivity().runOnUiThread(() -> {
+            try {
+                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                if (clipboard != null && clipboard.hasPrimaryClip() && clipboard.getPrimaryClip().getItemCount() > 0) {
+                    CharSequence text = clipboard.getPrimaryClip().getItemAt(0).getText();
+                    JSObject ret = new JSObject();
+                    ret.put("value", text != null ? text.toString() : "");
+                    call.resolve(ret);
+                    return;
+                }
+                JSObject ret = new JSObject();
+                ret.put("value", "");
+                call.resolve(ret);
+            } catch (Exception e) {
+                call.reject("Failed to read clipboard: " + e.getMessage());
+            }
+        });
+    }
+
+    @PluginMethod
+    public void writeClipboard(PluginCall call) {
+        String text = call.getString("value", "");
+        getActivity().runOnUiThread(() -> {
+            try {
+                android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+                if (clipboard != null) {
+                    android.content.ClipData clip = android.content.ClipData.newPlainText("text", text);
+                    clipboard.setPrimaryClip(clip);
+                }
+                call.resolve();
+            } catch (Exception e) {
+                call.reject("Failed to write to clipboard: " + e.getMessage());
+            }
+        });
+    }
 }

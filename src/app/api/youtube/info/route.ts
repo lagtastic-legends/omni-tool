@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import { resolveYouTubeVideo, extractYouTubeId } from "@/lib/youtube/innertube";
+import { execFile } from "child_process";
+import path from "path";
+import fs from "fs";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,6 +11,31 @@ const corsHeaders = {
 };
 
 export const dynamic = "force-static";
+
+async function tryResolveWithPython(urlOrId: string): Promise<any | null> {
+  try {
+    const scriptPath = path.join(process.cwd(), "scripts/youtube_downloader.py");
+    if (!fs.existsSync(scriptPath)) return null;
+
+    return await new Promise((resolve) => {
+      const pyCmd = process.platform === "win32" ? "python" : "python3";
+      execFile(pyCmd, [scriptPath, urlOrId, "--info-json"], { timeout: 15000 }, (error, stdout) => {
+        if (error || !stdout) {
+          return resolve(null);
+        }
+        try {
+          const json = JSON.parse(stdout);
+          if (json && json.videoId && Array.isArray(json.qualities) && json.qualities.length > 0) {
+            return resolve(json);
+          }
+        } catch {}
+        resolve(null);
+      });
+    });
+  } catch {
+    return null;
+  }
+}
 
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: corsHeaders });
@@ -27,7 +55,10 @@ export async function GET(req: Request) {
       req.headers.get("x-real-ip") ||
       undefined;
 
-    const info = await resolveYouTubeVideo(urlOrId, clientIp);
+    let info = await tryResolveWithPython(urlOrId);
+    if (!info) {
+      info = await resolveYouTubeVideo(urlOrId, clientIp);
+    }
     return NextResponse.json(info, { headers: corsHeaders });
   } catch (error: any) {
     console.error("YouTube Info API error:", error);
@@ -55,7 +86,10 @@ export async function POST(req: Request) {
       req.headers.get("x-real-ip") ||
       undefined;
 
-    const info = await resolveYouTubeVideo(urlOrId, clientIp);
+    let info = await tryResolveWithPython(urlOrId);
+    if (!info) {
+      info = await resolveYouTubeVideo(urlOrId, clientIp);
+    }
     return NextResponse.json(info, { headers: corsHeaders });
   } catch (error: any) {
     console.error("YouTube Info API error:", error);

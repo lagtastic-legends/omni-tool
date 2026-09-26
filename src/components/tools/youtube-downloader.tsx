@@ -18,7 +18,10 @@ import {
   Clipboard,
   ShieldCheck,
   Radio,
+  X,
 } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
+import { getClipboardText } from "@/lib/clipboard";
 import { useFFmpegEngine } from "@/lib/ffmpeg/use-ffmpeg";
 import { useHaptics } from "@/hooks/use-haptics";
 import { useUIAudio } from "@/hooks/useUIAudio";
@@ -131,10 +134,9 @@ export function YouTubeDownloader() {
       let lastErrorMessage = "";
 
       // 1. Native mobile resolution: If running in Capacitor (Android/iOS APK),
-      // resolve DIRECTLY on the user's mobile device via native network stack.
+      // resolve DIRECTLY on the user's mobile device via native network stack (CapacitorHttp).
       // This bypasses browser CORS and cloud datacenter IP blocks completely!
-      const isNative = typeof window !== "undefined" && (window as any).Capacitor?.isNativePlatform?.();
-      if (isNative) {
+      if (typeof window !== "undefined" && Capacitor.isNativePlatform()) {
         try {
           const directInfo = await resolveYouTubeVideo(videoId);
           if (directInfo && directInfo.videoId && Array.isArray(directInfo.qualities) && directInfo.qualities.length > 0) {
@@ -211,16 +213,15 @@ export function YouTubeDownloader() {
 
   // Handle Paste
   const handlePaste = async () => {
+    void haptics.light();
     try {
-      if (navigator.clipboard && navigator.clipboard.readText) {
-        const text = await navigator.clipboard.readText();
-        if (text) {
-          setInputUrl(text);
-          void handleResolve(text);
-        }
+      const text = await getClipboardText();
+      if (text && text.trim()) {
+        setInputUrl(text.trim());
+        void handleResolve(text.trim());
       }
-    } catch {
-      // Ignore clipboard permission errors
+    } catch (err) {
+      console.warn("Clipboard paste error:", err);
     }
   };
 
@@ -356,18 +357,40 @@ export function YouTubeDownloader() {
               }}
               placeholder="https://www.youtube.com/watch?v=... or youtu.be/..."
               disabled={isResolving || isDownloading}
-              className="w-full rounded-xl border border-border/80 bg-background/80 py-2.5 pl-10 pr-24 font-mono text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-red-500 focus:outline-hidden focus:ring-1 focus:ring-red-500/50"
+              className={`w-full rounded-xl border border-border/80 bg-background/80 py-2.5 pl-10 ${
+                inputUrl.length > 0 ? "pr-28" : "pr-20"
+              } font-mono text-sm text-foreground placeholder:text-muted-foreground/60 focus:border-red-500 focus:outline-hidden focus:ring-1 focus:ring-red-500/50`}
             />
-            <button
-              type="button"
-              onClick={handlePaste}
-              disabled={isResolving || isDownloading}
-              className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1 rounded-lg border border-border/60 bg-card/80 px-2 py-1 font-mono text-[10px] text-muted-foreground hover:text-foreground transition-all cursor-pointer"
-              title="Paste from clipboard"
-            >
-              <Clipboard className="size-3" />
-              <span>Paste</span>
-            </button>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+              {inputUrl.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInputUrl("");
+                    setResolveError(null);
+                    clearResult();
+                    setVideoInfo(null);
+                    void haptics.light();
+                  }}
+                  disabled={isResolving || isDownloading}
+                  className="flex items-center justify-center size-6 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                  title="Remove link"
+                  aria-label="Remove link"
+                >
+                  <X className="size-3.5" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handlePaste}
+                disabled={isResolving || isDownloading}
+                className="flex items-center gap-1 rounded-lg border border-border/60 bg-card/80 px-2 py-1 font-mono text-[10px] text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                title="Paste from clipboard"
+              >
+                <Clipboard className="size-3" />
+                <span>Paste</span>
+              </button>
+            </div>
           </div>
 
           <button

@@ -9,6 +9,8 @@ export interface OmniRecorderPlugin {
   checkAllPermissions(): Promise<{ camera: string; microphone: string; notifications: string; storage: string }>;
   openAppSettings(): Promise<void>;
   resolveMediaName(options: { name: string }): Promise<{ realName?: string }>;
+  readClipboard(): Promise<{ value: string }>;
+  writeClipboard(options: { value: string }): Promise<void>;
   addListener(eventName: 'onRecordComplete', listenerFunc: (info: { uri: string }) => void): Promise<PluginListenerHandle> & PluginListenerHandle;
 }
 

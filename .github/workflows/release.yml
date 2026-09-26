@@ -54,13 +54,14 @@ jobs:
       - name: Stage Release Artifact
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/release/app-release.apk dist/releases.apk
+          cp android/app/build/outputs/apk/release/app-release.apk dist/zenodeck.apk
+          cp android/app/build/outputs/apk/release/app-release.apk dist/zenodeck-${{ github.ref_name }}.apk
           if [ -f "RELEASE_NOTES_${{ github.ref_name }}.md" ]; then
             cp "RELEASE_NOTES_${{ github.ref_name }}.md" dist/RELEASE_NOTES.md
+          elif [ -f "RELEASE_NOTES_v3.4.6.md" ]; then
+            cp "RELEASE_NOTES_v3.4.6.md" dist/RELEASE_NOTES.md
           elif [ -f "RELEASE_NOTES_v3.4.5.md" ]; then
             cp "RELEASE_NOTES_v3.4.5.md" dist/RELEASE_NOTES.md
-          elif [ -f "RELEASE_NOTES_v3.4.4.md" ]; then
-            cp "RELEASE_NOTES_v3.4.4.md" dist/RELEASE_NOTES.md
           else
             cp "RELEASE_NOTES_v3.0.0.md" dist/RELEASE_NOTES.md
           fi
@@ -73,6 +74,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            dist/releases.apk
+            dist/zenodeck.apk
+            dist/zenodeck-${{ github.ref_name }}.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

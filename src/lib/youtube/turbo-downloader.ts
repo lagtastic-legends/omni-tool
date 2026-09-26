@@ -20,6 +20,7 @@
  */
 
 import type { FFmpeg } from "@ffmpeg/ffmpeg";
+import { Capacitor } from "@capacitor/core";
 import {
   buildCandidateUrls,
   getYouTubeApiUrl,
@@ -68,7 +69,7 @@ export interface TurboDownloadResult {
  * Builds the stream proxy URL for web CORS compatibility or returns direct URL for native mobile
  */
 function getProxiedStreamUrl(directUrl: string): string {
-  if (typeof window !== "undefined" && (window as any).Capacitor?.isNativePlatform?.()) {
+  if (typeof window !== "undefined" && Capacitor.isNativePlatform()) {
     return directUrl;
   }
   return getYouTubeApiUrl(`/api/youtube/stream?url=${encodeURIComponent(directUrl)}`);

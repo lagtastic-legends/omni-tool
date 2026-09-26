@@ -7,6 +7,64 @@
  * with direct unthrottled streaming URLs.
  */
 
+import { Capacitor, CapacitorHttp } from "@capacitor/core";
+
+export async function universalFetch(
+  url: string,
+  options?: {
+    method?: string;
+    headers?: Record<string, string>;
+    body?: string;
+    signal?: AbortSignal;
+  }
+): Promise<{
+  ok: boolean;
+  status: number;
+  statusText: string;
+  json: () => Promise<any>;
+  text: () => Promise<string>;
+}> {
+  if (typeof window !== "undefined" && Capacitor.isNativePlatform()) {
+    try {
+      let dataPayload: any = undefined;
+      if (options?.body) {
+        try {
+          dataPayload = JSON.parse(options.body);
+        } catch {
+          dataPayload = options.body;
+        }
+      }
+      const res = await CapacitorHttp.request({
+        url,
+        method: options?.method || "GET",
+        headers: options?.headers,
+        data: dataPayload,
+        responseType: "text",
+      });
+      const ok = res.status >= 200 && res.status < 300;
+      const textData = typeof res.data === "string" ? res.data : JSON.stringify(res.data);
+      return {
+        ok,
+        status: res.status,
+        statusText: ok ? "OK" : `HTTP ${res.status}`,
+        json: async () => (typeof res.data === "string" ? JSON.parse(res.data) : res.data),
+        text: async () => textData,
+      };
+    } catch (err: any) {
+      console.warn("CapacitorHttp native request failed, falling back to fetch:", err);
+    }
+  }
+
+  const res = await fetch(url, options as any);
+  return {
+    ok: res.ok,
+    status: res.status,
+    statusText: res.statusText,
+    json: () => res.json(),
+    text: () => res.text(),
+  };
+}
+
 export interface YouTubeFormatMeta {
   itag: number;
   url: string;
@@ -75,7 +133,10 @@ export interface YouTubeVideoInfo {
  */
 export function extractYouTubeId(urlOrId: string): string | null {
   if (!urlOrId) return null;
-  const trimmed = urlOrId.trim();
+  let trimmed = urlOrId.trim();
+
+  // Strip trailing punctuation like : / ? &
+  trimmed = trimmed.replace(/[:\/\?&]+$/, "").trim();
 
   // If already an 11-character video ID
   if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
@@ -199,7 +260,7 @@ export async function getVisitorData(): Promise<string | undefined> {
     return cachedVisitorData.data;
   }
   try {
-    const res = await fetch("https://www.youtube.com/youtubei/v1/visitor_id", {
+    const res = await universalFetch("https://www.youtube.com/youtubei/v1/visitor_id", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -337,7 +398,7 @@ export async function resolveYouTubeVideo(videoIdOrUrl: string, clientIp?: strin
         },
       };
 
-      const res = await fetch("https://www.youtube.com/youtubei/v1/player", {
+      const res = await universalFetch("https://www.youtube.com/youtubei/v1/player", {
         method: "POST",
         headers: reqHeaders,
         body: JSON.stringify({
