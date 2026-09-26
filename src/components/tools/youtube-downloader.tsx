@@ -127,38 +127,62 @@ export function YouTubeDownloader() {
     void haptics.light();
 
     try {
-      const apiUrl = getYouTubeApiUrl("/api/youtube/info");
-      // Primary: GET with videoId query parameter
-      let res = await fetch(`${apiUrl}?v=${encodeURIComponent(videoId)}`);
-      let data = await res.json().catch(() => ({}));
+      let data: any = null;
+      let lastErrorMessage = "";
 
-      // Fallback: If GET returns static status or lacks qualities, try POST
-      if (!data || !data.videoId || !Array.isArray(data.qualities) || data.qualities.length === 0) {
-        const postRes = await fetch(apiUrl, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ videoId }),
-        });
-        if (postRes.ok) {
-          const postData = await postRes.json().catch(() => ({}));
-          if (postData && postData.videoId && Array.isArray(postData.qualities) && postData.qualities.length > 0) {
-            data = postData;
+      // 1. Native mobile resolution: If running in Capacitor (Android/iOS APK),
+      // resolve DIRECTLY on the user's mobile device via native network stack.
+      // This bypasses browser CORS and cloud datacenter IP blocks completely!
+      const isNative = typeof window !== "undefined" && (window as any).Capacitor?.isNativePlatform?.();
+      if (isNative) {
+        try {
+          const directInfo = await resolveYouTubeVideo(videoId);
+          if (directInfo && directInfo.videoId && Array.isArray(directInfo.qualities) && directInfo.qualities.length > 0) {
+            data = directInfo;
+          }
+        } catch (nativeErr: any) {
+          console.warn("Direct device resolution error:", nativeErr);
+          lastErrorMessage = nativeErr?.message || "";
+        }
+      }
+
+      // 2. Web browser: Query Next.js API route
+      if (!data) {
+        const apiUrl = getYouTubeApiUrl("/api/youtube/info");
+        // Primary: GET with videoId query parameter
+        let res = await fetch(`${apiUrl}?v=${encodeURIComponent(videoId)}`);
+        data = await res.json().catch(() => ({}));
+
+        // Fallback: If GET returns static status or lacks qualities, try POST
+        if (!data || !data.videoId || !Array.isArray(data.qualities) || data.qualities.length === 0) {
+          const postRes = await fetch(apiUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ videoId }),
+          });
+          if (postRes.ok) {
+            const postData = await postRes.json().catch(() => ({}));
+            if (postData && postData.videoId && Array.isArray(postData.qualities) && postData.qualities.length > 0) {
+              data = postData;
+            }
           }
         }
       }
 
-      // Fallback 2: Direct Client-Side Resolution (on-device in Capacitor or local client)
+      // 3. Fallback: Direct Client-Side Resolution (on-device or local desktop client)
       if (!data || !data.videoId || !Array.isArray(data.qualities) || data.qualities.length === 0) {
         try {
           const directInfo = await resolveYouTubeVideo(videoId);
           if (directInfo && directInfo.videoId && Array.isArray(directInfo.qualities) && directInfo.qualities.length > 0) {
             data = directInfo;
           }
-        } catch {}
+        } catch (directErr: any) {
+          if (!lastErrorMessage) lastErrorMessage = directErr?.message || "";
+        }
       }
 
       if (!data || !data.videoId || !Array.isArray(data.qualities) || data.qualities.length === 0) {
-        throw new Error(data?.error || `Failed to resolve video details (${res.status})`);
+        throw new Error(data?.error || lastErrorMessage || "Failed to resolve video details");
       }
 
       const info: YouTubeVideoInfo = data;
@@ -362,32 +386,40 @@ export function YouTubeDownloader() {
 
         {/* Error message */}
         {resolveError && (
-          <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-3.5 space-y-2 text-xs font-mono text-red-300">
-            <div className="flex items-start gap-2.5">
-              <AlertCircle className="size-4 shrink-0 text-red-400 mt-0.5" />
-              <div className="space-y-1">
-                <span className="font-semibold block text-red-200">
-                  {resolveError.includes("bot") || resolveError.includes("LOGIN_REQUIRED")
-                    ? "Cloud Datacenter IP Rate-Limited by YouTube"
-                    : "Unable to Resolve YouTube Stream"}
-                </span>
-                <p className="text-[11px] text-red-300/90 leading-relaxed">
-                  {resolveError.includes("bot") || resolveError.includes("LOGIN_REQUIRED")
-                    ? "YouTube detected the cloud server IP as a bot. For 100% unrestricted 4K/Audio downloads on your direct residential/mobile network, install the official ZenoDeck Android APK."
+          <div className="rounded-2xl border border-red-500/40 bg-gradient-to-b from-red-500/15 via-red-950/20 to-card/60 p-4 sm:p-5 space-y-3 text-xs font-mono text-red-300 shadow-elevation2">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="size-5 shrink-0 text-red-400 mt-0.5" />
+              <div className="space-y-1.5 flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-display font-bold text-sm text-red-200">
+                    {resolveError.toLowerCase().includes("bot") || resolveError.includes("LOGIN_REQUIRED")
+                      ? "YouTube Cloud Bot Protection Active"
+                      : "Unable to Resolve YouTube Stream"}
+                  </span>
+                  <span className="rounded-md border border-red-500/40 bg-red-500/20 px-1.5 py-0.2 font-mono text-[9px] uppercase font-bold text-red-300">
+                    Cloud Restricted
+                  </span>
+                </div>
+                <p className="text-xs text-red-200/90 leading-relaxed font-sans">
+                  {resolveError.toLowerCase().includes("bot") || resolveError.includes("LOGIN_REQUIRED")
+                    ? "YouTube has restricted cloud server IPs (Vercel/AWS) from extracting this stream. To download in full 4K 60FPS or studio audio with zero restrictions, use the official ZenoDeck Android App on your direct mobile or Wi-Fi network."
                     : resolveError}
                 </p>
               </div>
             </div>
-            {(resolveError.includes("bot") || resolveError.includes("LOGIN_REQUIRED")) && (
-              <div className="pt-1 pl-6.5">
+            {(resolveError.toLowerCase().includes("bot") || resolveError.includes("LOGIN_REQUIRED")) && (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 pt-1 pl-8">
                 <a
                   href="/zenodeck.apk"
                   download="zenodeck.apk"
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/80 hover:bg-red-500 px-3 py-1.5 text-[11px] font-bold text-white transition-all shadow-xs"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 px-4 py-2 text-xs font-display font-bold text-white shadow-md transition-all cursor-pointer w-fit"
                 >
                   <Download className="size-3.5" />
-                  <span>Download ZenoDeck Android App (APK)</span>
+                  <span>Download ZenoDeck APK (Free & Unrestricted)</span>
                 </a>
+                <span className="text-[11px] text-muted-foreground font-mono">
+                  Runs 100% on-device · Direct residential network
+                </span>
               </div>
             )}
           </div>

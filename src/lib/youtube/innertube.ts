@@ -385,6 +385,16 @@ export async function resolveYouTubeVideo(videoIdOrUrl: string, clientIp?: strin
   }
 
   if (!playerResponse) {
+    const isBotBlocked = diagnosticAttempts.some(
+      (a) => a.reason?.includes("bot") || a.status === "LOGIN_REQUIRED"
+    );
+
+    if (isBotBlocked) {
+      throw new Error(
+        "YouTube Bot Protection: Cloud datacenter server IP is restricted by YouTube. Please use the ZenoDeck Android APK for direct unthrottled streaming on your mobile/residential network."
+      );
+    }
+
     const detailMsg = diagnosticAttempts
       .map((a) => `${a.client}: ${a.status || a.error || a.httpStatus}${a.reason ? ` (${a.reason})` : ""}`)
       .join(" | ");

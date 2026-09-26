@@ -60,6 +60,10 @@ export interface TurboDownloadResult {
  * Builds the stream proxy URL for web CORS compatibility or returns direct URL
  */
 function getProxiedStreamUrl(directUrl: string): string {
+  // If running natively in Capacitor (Android/iOS), fetch directly from CDN without server proxy
+  if (typeof window !== "undefined" && (window as any).Capacitor?.isNativePlatform?.()) {
+    return directUrl;
+  }
   return getYouTubeApiUrl(`/api/youtube/stream?url=${encodeURIComponent(directUrl)}`);
 }
 
