@@ -10,13 +10,16 @@
 
 <p align="center">
   <a href="https://github.com/lagtastic-legends/zenodeck/releases">
-    <img src="https://img.shields.io/badge/Release-v3.4.3-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.4.3" />
+    <img src="https://img.shields.io/badge/Release-v3.4.6-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.4.6" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.3/ZenoDeck-v3.4.3-release.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-v3.4.3%20Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
+  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.6/zenodeck.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-zenodeck.apk-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
+  </a>
+  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.6/zenodeck-v3.4.6.apk">
+    <img src="https://img.shields.io/badge/Versioned%20APK-v3.4.6-00BCD4?style=for-the-badge&logo=android&logoColor=white" alt="Versioned APK Download" />
   </a>
   <a href="https://omni-tool-two.vercel.app/api/ios-profile">
     <img src="https://img.shields.io/badge/iOS%20Profile-Install%20on%20iPhone-000000?style=for-the-badge&logo=apple&logoColor=white" alt="iOS Profile Download" />
@@ -42,10 +45,41 @@ Unlike traditional cloud converters and SaaS editing tools that upload your sens
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web Application** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero installation required. Instant launch in any modern browser. |
-| **📱 Android APK (Signed Production v3.4.3)** | [**Download ZenoDeck-v3.4.3-release.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.3/ZenoDeck-v3.4.3-release.apk) | Production signed APK with bundled offline WASM core and native on-device resolution. |
-| **⚡ Direct Web APK** | [**Download zenodeck.apk (v3.4.3)**](https://omni-tool-two.vercel.app/zenodeck.apk) | Direct fast download mirrored straight from the web host. |
+| **📱 Android Universal APK** | [**Download zenodeck.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.6/zenodeck.apk) | Production signed APK with bundled offline WASM core, native Android media permissions, and Python 4K 60FPS engine. |
+| **🏷️ Android Versioned APK** | [**Download zenodeck-v3.4.6.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.6/zenodeck-v3.4.6.apk) | Dedicated v3.4.6 release package with full version archive support. |
+| **⚡ Direct Web APK** | [**Download zenodeck.apk (Direct Mirror)**](https://omni-tool-two.vercel.app/zenodeck.apk) | Direct fast download mirrored straight from the web host. |
 | **🍏 Apple iOS Profile (iPhone & iPad)** | [**Download zenodeck.mobileconfig**](https://omni-tool-two.vercel.app/api/ios-profile) | Apple Web Clip Configuration Profile. Installs ZenoDeck to Home Screen in full-screen standalone mode. |
-| **📦 GitHub Releases & Source** | [**GitHub Releases Hub**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.4.3) | Complete release packages, checksums, changelogs, and release assets. |
+| **📦 GitHub Releases & Source** | [**GitHub Releases Hub (v3.4.6)**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.4.6) | Complete release packages, checksums, changelogs, and release assets. |
+
+---
+
+## 🌟 What's New in v3.4.6 — Python 4K 60FPS Engine, Granular Media Permissions, & Zero-Stall Downloads
+
+### 🐍 1. Python 4K 60FPS Downloader Engine (`yt-dlp`)
+- **Dedicated Python Engine (`scripts/youtube_downloader.py`)**: High-performance metadata extraction and stream resolution powered by `yt-dlp`.
+- **4K 60FPS & HDR Manifest Extraction**: Automatically parses Ultra HD (2160p60), Quad HD (1440p60), 1080p60, and studio audio formats.
+- **Backend API Integration**: `/api/youtube/info` automatically invokes the Python engine when available, ensuring zero cloud bot restrictions.
+
+### 📱 2. Granular Android Media Permissions (Android 9 – 15+)
+- **Photos & Videos Permission**: Full support for `READ_MEDIA_IMAGES` and `READ_MEDIA_VIDEO` on Android 13+, partial selection with `READ_MEDIA_VISUAL_USER_SELECTED` on Android 14+, and graceful fallback to `READ_EXTERNAL_STORAGE` on Android 12 and below.
+- **Music & Audios Permission**: Dedicated `READ_MEDIA_AUDIO` on Android 13+ and `READ_EXTERNAL_STORAGE` fallback on legacy Android versions.
+- **In-App Device Permissions Gate**: Real-time permission status check and one-tap granting from within the app.
+
+### ⚡ 3. Download Stall Elimination & Candidate Node Promotion
+- **Candidate Node Promotion**: Automatically probes Google CDN candidates and promotes responsive edge nodes to index 0, eliminating the 0% freeze issue on Android APK and Web.
+- **Dynamic Worker Switching**: Multi-worker chunk streams automatically adapt to healthy CDN nodes mid-download with zero throughput drops.
+- **Resilient Stream Fallbacks**: High-res video and audio extractions feature defensive fallbacks to direct containers (`.mp4`, `.m4a`, `.webm`) if WebAssembly is slow or initializing.
+
+### 📋 4. Native Android Clipboard Paste & URL Clear Button
+- **Native `ClipboardManager` Plugin**: Tapping "Paste" in the APK now reliably retrieves clipboard content, overcoming WebView `NotAllowedError` sandbox restrictions.
+- **Inline URL Clear (`X`)**: One-tap URL removal and input reset directly in the input bar.
+
+### 📦 5. Standardized Release Distribution
+- Published releases now consistently use standardized filenames:
+  - **`zenodeck.apk`**
+  - **`zenodeck-v3.4.6.apk`**
+
+---
 
 ---
 
