@@ -102,7 +102,7 @@ export function extractYouTubeId(urlOrId: string): string | null {
  * Format duration in seconds to "MM:SS" or "HH:MM:SS"
  */
 export function formatDuration(sec: number): string {
-  if (isNaN(sec) || sec < 0) return "00:00";
+  if (isNaN(sec) || sec <= 0) return "0:00";
   const h = Math.floor(sec / 3600);
   const m = Math.floor((sec % 3600) / 60);
   const s = Math.floor(sec % 60);
@@ -147,6 +147,40 @@ export function getYouTubeApiUrl(path: string): string {
   }
   const fallback = process.env.NEXT_PUBLIC_APP_URL || "https://omni-tool-two.vercel.app";
   return `${fallback.replace(/\/$/, "")}${normalizedPath}`;
+}
+
+/**
+ * Generates fallback CDN candidate URLs from embedded YouTube parameters (mn, fallback_host)
+ * Ensures high reliability even if primary edge node times out or is geo-throttled.
+ */
+export function buildCandidateUrls(targetUrl: string): string[] {
+  const candidateUrls: string[] = [targetUrl];
+  try {
+    const parsedUrl = new URL(targetUrl);
+    const mnParam = parsedUrl.searchParams.get("mn");
+    if (mnParam) {
+      const nodes = mnParam.split(",").map((s) => s.trim()).filter(Boolean);
+      if (nodes.length > 1) {
+        const primaryNode = nodes[0];
+        for (let i = 1; i < nodes.length; i++) {
+          const altNode = nodes[i];
+          if (parsedUrl.host.includes(primaryNode)) {
+            const altUrl = new URL(targetUrl);
+            altUrl.host = parsedUrl.host.replace(primaryNode, altNode);
+            candidateUrls.push(altUrl.toString());
+          }
+        }
+      }
+    }
+
+    const fallbackHost = parsedUrl.searchParams.get("fallback_host");
+    if (fallbackHost && !candidateUrls.some((u) => u.includes(fallbackHost))) {
+      const fallbackUrl = new URL(targetUrl);
+      fallbackUrl.host = fallbackHost;
+      candidateUrls.push(fallbackUrl.toString());
+    }
+  } catch {}
+  return candidateUrls;
 }
 
 const IOS_CLIENT_VERSION = "20.10.4";

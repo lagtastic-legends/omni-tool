@@ -362,9 +362,34 @@ export function YouTubeDownloader() {
 
         {/* Error message */}
         {resolveError && (
-          <div className="flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 p-2.5 text-xs font-mono text-red-300">
-            <AlertCircle className="size-4 shrink-0 text-red-400" />
-            <span>{resolveError}</span>
+          <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-3.5 space-y-2 text-xs font-mono text-red-300">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="size-4 shrink-0 text-red-400 mt-0.5" />
+              <div className="space-y-1">
+                <span className="font-semibold block text-red-200">
+                  {resolveError.includes("bot") || resolveError.includes("LOGIN_REQUIRED")
+                    ? "Cloud Datacenter IP Rate-Limited by YouTube"
+                    : "Unable to Resolve YouTube Stream"}
+                </span>
+                <p className="text-[11px] text-red-300/90 leading-relaxed">
+                  {resolveError.includes("bot") || resolveError.includes("LOGIN_REQUIRED")
+                    ? "YouTube detected the cloud server IP as a bot. For 100% unrestricted 4K/Audio downloads on your direct residential/mobile network, install the official ZenoDeck Android APK."
+                    : resolveError}
+                </p>
+              </div>
+            </div>
+            {(resolveError.includes("bot") || resolveError.includes("LOGIN_REQUIRED")) && (
+              <div className="pt-1 pl-6.5">
+                <a
+                  href="/zenodeck.apk"
+                  download="zenodeck.apk"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-red-600/80 hover:bg-red-500 px-3 py-1.5 text-[11px] font-bold text-white transition-all shadow-xs"
+                >
+                  <Download className="size-3.5" />
+                  <span>Download ZenoDeck Android App (APK)</span>
+                </a>
+              </div>
+            )}
           </div>
         )}
       </div>

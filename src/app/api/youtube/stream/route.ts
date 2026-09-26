@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { buildCandidateUrls } from "@/lib/youtube/innertube";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -25,36 +26,6 @@ function isAllowedHost(urlStr: string): boolean {
   } catch {
     return false;
   }
-}
-
-function buildCandidateUrls(targetUrl: string): string[] {
-  const candidateUrls: string[] = [targetUrl];
-  try {
-    const parsedUrl = new URL(targetUrl);
-    const mnParam = parsedUrl.searchParams.get("mn");
-    if (mnParam) {
-      const nodes = mnParam.split(",").map((s) => s.trim()).filter(Boolean);
-      if (nodes.length > 1) {
-        const primaryNode = nodes[0];
-        for (let i = 1; i < nodes.length; i++) {
-          const altNode = nodes[i];
-          if (parsedUrl.host.includes(primaryNode)) {
-            const altUrl = new URL(targetUrl);
-            altUrl.host = parsedUrl.host.replace(primaryNode, altNode);
-            candidateUrls.push(altUrl.toString());
-          }
-        }
-      }
-    }
-
-    const fallbackHost = parsedUrl.searchParams.get("fallback_host");
-    if (fallbackHost && !candidateUrls.some((u) => u.includes(fallbackHost))) {
-      const fallbackUrl = new URL(targetUrl);
-      fallbackUrl.host = fallbackHost;
-      candidateUrls.push(fallbackUrl.toString());
-    }
-  } catch {}
-  return candidateUrls;
 }
 
 async function handleStream(req: Request, isHead = false, bodyUrl?: string) {
