@@ -28,6 +28,7 @@ import {
   formatBytes,
   formatDuration,
   getYouTubeApiUrl,
+  resolveYouTubeVideo,
   type YouTubeQualityOption,
   type YouTubeVideoInfo,
 } from "@/lib/youtube/innertube";
@@ -144,6 +145,16 @@ export function YouTubeDownloader() {
             data = postData;
           }
         }
+      }
+
+      // Fallback 2: Direct Client-Side Resolution (on-device in Capacitor or local client)
+      if (!data || !data.videoId || !Array.isArray(data.qualities) || data.qualities.length === 0) {
+        try {
+          const directInfo = await resolveYouTubeVideo(videoId);
+          if (directInfo && directInfo.videoId && Array.isArray(directInfo.qualities) && directInfo.qualities.length > 0) {
+            data = directInfo;
+          }
+        } catch {}
       }
 
       if (!data || !data.videoId || !Array.isArray(data.qualities) || data.qualities.length === 0) {

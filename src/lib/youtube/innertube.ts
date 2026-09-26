@@ -158,7 +158,63 @@ export interface InnerTubeClientConfig {
   context: Record<string, any>;
 }
 
+let cachedVisitorData: { data: string; expires: number } | null = null;
+
+export async function getVisitorData(): Promise<string | undefined> {
+  if (cachedVisitorData && cachedVisitorData.expires > Date.now()) {
+    return cachedVisitorData.data;
+  }
+  try {
+    const res = await fetch("https://www.youtube.com/youtubei/v1/visitor_id", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": IOS_USER_AGENT,
+        "X-YouTube-Client-Name": "5",
+        "X-YouTube-Client-Version": IOS_CLIENT_VERSION,
+      },
+      body: JSON.stringify({
+        context: {
+          client: {
+            clientName: "IOS",
+            clientVersion: IOS_CLIENT_VERSION,
+            deviceModel: "iPhone16,2",
+            hl: "en",
+          },
+        },
+      }),
+      signal: AbortSignal.timeout(3500),
+    });
+    if (res.ok) {
+      const json = await res.json();
+      const visitor = json.responseContext?.visitorData;
+      if (visitor) {
+        cachedVisitorData = { data: visitor, expires: Date.now() + 1000 * 60 * 60 };
+        return visitor;
+      }
+    }
+  } catch {}
+  return undefined;
+}
+
 const INNERTUBE_CLIENTS: InnerTubeClientConfig[] = [
+  {
+    name: "IOS_NO_GL",
+    headers: {
+      "Content-Type": "application/json",
+      "User-Agent": IOS_USER_AGENT,
+      "X-YouTube-Client-Name": "5",
+      "X-YouTube-Client-Version": IOS_CLIENT_VERSION,
+    },
+    context: {
+      client: {
+        clientName: "IOS",
+        clientVersion: IOS_CLIENT_VERSION,
+        deviceModel: "iPhone16,2",
+        hl: "en",
+      },
+    },
+  },
   {
     name: "IOS_PRIMARY",
     headers: {
@@ -191,7 +247,6 @@ const INNERTUBE_CLIENTS: InnerTubeClientConfig[] = [
         clientVersion: "20.15.2",
         deviceModel: "iPhone16,2",
         hl: "en",
-        gl: "US",
       },
     },
   },
@@ -206,7 +261,6 @@ const INNERTUBE_CLIENTS: InnerTubeClientConfig[] = [
         clientName: "ANDROID_TESTSUITE",
         clientVersion: "1.9",
         hl: "en",
-        gl: "US",
       },
     },
   },
@@ -215,7 +269,7 @@ const INNERTUBE_CLIENTS: InnerTubeClientConfig[] = [
 /**
  * Resolves video details and extracts complete 4K 60fps streaming manifest
  */
-export async function resolveYouTubeVideo(videoIdOrUrl: string): Promise<YouTubeVideoInfo> {
+export async function resolveYouTubeVideo(videoIdOrUrl: string, clientIp?: string): Promise<YouTubeVideoInfo> {
   const videoId = extractYouTubeId(videoIdOrUrl);
   if (!videoId) {
     throw new Error("Invalid YouTube URL or Video ID. Please check the link and try again.");
@@ -223,15 +277,38 @@ export async function resolveYouTubeVideo(videoIdOrUrl: string): Promise<YouTube
 
   const diagnosticAttempts: any[] = [];
   let playerResponse: any = null;
+  const visitorData = await getVisitorData();
 
   for (const clientConfig of INNERTUBE_CLIENTS) {
     try {
+      const reqHeaders: Record<string, string> = {
+        ...clientConfig.headers,
+      };
+
+      if (visitorData) {
+        reqHeaders["X-Goog-Visitor-Id"] = visitorData;
+      }
+
+      if (clientIp) {
+        reqHeaders["X-Forwarded-For"] = clientIp;
+        reqHeaders["X-Real-IP"] = clientIp;
+        reqHeaders["CF-Connecting-IP"] = clientIp;
+      }
+
+      const clientContext = {
+        ...clientConfig.context,
+        client: {
+          ...clientConfig.context.client,
+          ...(visitorData ? { visitorData } : {}),
+        },
+      };
+
       const res = await fetch("https://www.youtube.com/youtubei/v1/player", {
         method: "POST",
-        headers: clientConfig.headers,
+        headers: reqHeaders,
         body: JSON.stringify({
           videoId,
-          context: clientConfig.context,
+          context: clientContext,
           playbackContext: {
             contentPlaybackContext: {
               html5Preference: "HTML5_PREF_WANTS",

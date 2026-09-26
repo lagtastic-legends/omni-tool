@@ -22,7 +22,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ status: "YouTube Info Service Online" }, { headers: corsHeaders });
     }
 
-    const info = await resolveYouTubeVideo(urlOrId);
+    const clientIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      undefined;
+
+    const info = await resolveYouTubeVideo(urlOrId, clientIp);
     return NextResponse.json(info, { headers: corsHeaders });
   } catch (error: any) {
     console.error("YouTube Info API error:", error);
@@ -45,7 +50,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const info = await resolveYouTubeVideo(urlOrId);
+    const clientIp =
+      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      req.headers.get("x-real-ip") ||
+      undefined;
+
+    const info = await resolveYouTubeVideo(urlOrId, clientIp);
     return NextResponse.json(info, { headers: corsHeaders });
   } catch (error: any) {
     console.error("YouTube Info API error:", error);
