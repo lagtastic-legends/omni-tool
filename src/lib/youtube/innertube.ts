@@ -221,7 +221,7 @@ export async function resolveYouTubeVideo(videoIdOrUrl: string): Promise<YouTube
     throw new Error("Invalid YouTube URL or Video ID. Please check the link and try again.");
   }
 
-  let lastError: Error | null = null;
+  const diagnosticAttempts: any[] = [];
   let playerResponse: any = null;
 
   for (const clientConfig of INNERTUBE_CLIENTS) {
@@ -241,24 +241,44 @@ export async function resolveYouTubeVideo(videoIdOrUrl: string): Promise<YouTube
         }),
       });
 
-      if (!res.ok) continue;
+      if (!res.ok) {
+        diagnosticAttempts.push({
+          client: clientConfig.name,
+          httpStatus: res.status,
+          statusText: res.statusText,
+        });
+        continue;
+      }
 
       const data = await res.json();
       const status = data.playabilityStatus?.status;
+      const reason = data.playabilityStatus?.reason;
+
+      diagnosticAttempts.push({
+        client: clientConfig.name,
+        httpStatus: res.status,
+        status,
+        reason,
+      });
 
       if (status === "OK" && (data.streamingData?.formats || data.streamingData?.adaptiveFormats)) {
         playerResponse = data;
         break;
       }
     } catch (err: any) {
-      lastError = err;
+      diagnosticAttempts.push({
+        client: clientConfig.name,
+        error: err?.message || String(err),
+      });
     }
   }
 
   if (!playerResponse) {
+    const detailMsg = diagnosticAttempts
+      .map((a) => `${a.client}: ${a.status || a.error || a.httpStatus}${a.reason ? ` (${a.reason})` : ""}`)
+      .join(" | ");
     throw new Error(
-      lastError?.message ||
-        "Could not retrieve video streaming data. The video may be private, age-restricted, or region-locked."
+      `Could not retrieve video streaming data. Details: [${detailMsg}]`
     );
   }
 
