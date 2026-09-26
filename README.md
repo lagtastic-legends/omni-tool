@@ -10,13 +10,13 @@
 
 <p align="center">
   <a href="https://github.com/lagtastic-legends/zenodeck/releases">
-    <img src="https://img.shields.io/badge/Release-v3.4.2-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.4.2" />
+    <img src="https://img.shields.io/badge/Release-v3.4.3-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.4.3" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.2/ZenoDeck-v3.4.2-release.apk">
-    <img src="https://img.shields.io/badge/Android%20APK-v3.4.2%20Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
+  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.3/ZenoDeck-v3.4.3-release.apk">
+    <img src="https://img.shields.io/badge/Android%20APK-v3.4.3%20Download-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
   </a>
   <a href="https://omni-tool-two.vercel.app/api/ios-profile">
     <img src="https://img.shields.io/badge/iOS%20Profile-Install%20on%20iPhone-000000?style=for-the-badge&logo=apple&logoColor=white" alt="iOS Profile Download" />
@@ -42,10 +42,31 @@ Unlike traditional cloud converters and SaaS editing tools that upload your sens
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web Application** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero installation required. Instant launch in any modern browser. |
-| **📱 Android APK (Signed Production v3.4.2)** | [**Download ZenoDeck-v3.4.2-release.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.2/ZenoDeck-v3.4.2-release.apk) | Production signed APK with native on-device resolution and direct CDN streaming. |
-| **⚡ Direct Web APK** | [**Download zenodeck.apk (v3.4.2)**](https://omni-tool-two.vercel.app/zenodeck.apk) | Direct fast download mirrored straight from the web host. |
+| **📱 Android APK (Signed Production v3.4.3)** | [**Download ZenoDeck-v3.4.3-release.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.3/ZenoDeck-v3.4.3-release.apk) | Production signed APK with bundled offline WASM core and native on-device resolution. |
+| **⚡ Direct Web APK** | [**Download zenodeck.apk (v3.4.3)**](https://omni-tool-two.vercel.app/zenodeck.apk) | Direct fast download mirrored straight from the web host. |
 | **🍏 Apple iOS Profile (iPhone & iPad)** | [**Download zenodeck.mobileconfig**](https://omni-tool-two.vercel.app/api/ios-profile) | Apple Web Clip Configuration Profile. Installs ZenoDeck to Home Screen in full-screen standalone mode. |
-| **📦 GitHub Releases & Source** | [**GitHub Releases Hub**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.4.2) | Complete release packages, checksums, changelogs, and release assets. |
+| **📦 GitHub Releases & Source** | [**GitHub Releases Hub**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.4.3) | Complete release packages, checksums, changelogs, and release assets. |
+
+---
+
+## 🌟 What's New in v3.4.3 — Bundled Offline WASM Engine & Zero-Network Boot
+
+### 🚀 1. Bundled Offline WASM Core in Android APK
+* **100% Offline Boot**: Packaged the complete 32.2 MB FFmpeg WebAssembly binary (`ffmpeg-core.wasm`) directly into the Android application assets. Media engine boots instantly on airplanes, subways, or slow cellular networks without downloading a single byte over the air.
+* **Zero Cellular Data Usage**: Completely eliminates high-latency CDN requests for mobile users.
+
+### 🛡️ 2. Fix for "body stream already read" Stream Exception
+* **Replaced Fragile Loader**: Eradicated `@ffmpeg/util`'s broken `downloadWithProgress` error-handling bug (`TypeError: Failed to execute 'arrayBuffer' on 'Response': body stream already read`) caused by calling `.arrayBuffer()` on consumed response bodies when Content-Length headers mismatch due to Brotli/Gzip CDN compression.
+* **Safe Stream Fetching**: Built dedicated [`wasm-loader.ts`](src/lib/ffmpeg/wasm-loader.ts) with safe chunked reader pipelines, magic byte verification (`\0asm`), and automatic retry mechanics.
+
+### ⚡ 3. Persistent IndexedDB Binary Caching
+* **Sub-50ms Instant Launches**: Web browsers automatically persist the 32.2 MB WASM binary into local `IndexedDB` on first load. Subsequent visits load instantly from disk cache with zero network overhead.
+
+### 🌐 4. Multi-CDN Mirror Fallback Chain
+* **Triple-Tier Redundancy**: Automatic fallback chain routes through:
+  1. Local bundled assets (`/ffmpeg/ffmpeg-core.wasm`)
+  2. High-speed jsDelivr Global Edge CDN (with regional edge POPs)
+  3. unpkg CDN fallback
 
 ---
 

@@ -28,7 +28,10 @@ import {
   type ReactNode,
 } from "react";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
-import { toBlobURL } from "@ffmpeg/util";
+import {
+  loadWasmCoreBlobUrl,
+  resolveCoreModuleUrl,
+} from "./wasm-loader";
 import type {
   BootStage,
   DownloadProgress,
@@ -48,8 +51,8 @@ const CORE_VER = "0.12.10";
 
 const ENGINE_ASSETS = {
   worker: "/ffmpeg/worker.js",
-  core: `https://unpkg.com/@ffmpeg/core@${CORE_VER}/dist/esm/ffmpeg-core.js`,
-  wasm: `https://unpkg.com/@ffmpeg/core@${CORE_VER}/dist/umd/ffmpeg-core.wasm`,
+  core: "/ffmpeg/ffmpeg-core.js",
+  wasm: "/ffmpeg/ffmpeg-core.wasm",
 } as const;
 
 export interface FFmpegEngineContextValue {
@@ -177,31 +180,29 @@ export function FFmpegEngineProvider({ children }: { children: ReactNode }) {
         `Spawning module worker → ${ENGINE_ASSETS.worker}`,
       );
 
-      /* Core glue script is tiny — no progress needed. Fetching directly via CDN. */
-      const coreURL = ENGINE_ASSETS.core;
+      /* Resolve core JS module (local bundle first, then jsDelivr/unpkg mirrors) */
+      const coreURL = await resolveCoreModuleUrl((lvl, msg) =>
+        appendLog("system", lvl, msg),
+      );
 
       setStage("fetch");
-      const totalBytesGuess = WASM_BYTES_FALLBACK;
       appendLog(
         "system",
         "info",
-        `Fetching WASM core → ${ENGINE_ASSETS.wasm}`,
+        "Loading WASM core (checking local cache & fast edge mirrors)...",
       );
 
-      /* The big one: ~31 MB with real byte-level progress. */
-      const wasmURL = await toBlobURL(
-        ENGINE_ASSETS.wasm,
-        "application/wasm",
-        true,
-        ({ received, total, done }) => {
-          const denom = total > 0 ? total : totalBytesGuess;
+      /* Stream or load from IndexedDB cache with byte-accurate progress */
+      const { blobUrl: wasmURL } = await loadWasmCoreBlobUrl(
+        ({ received, total, percent, done }) => {
           setDownload({
             received,
-            total: denom,
-            percent: Math.min(received / denom, 1),
+            total,
+            percent,
             done,
           });
         },
+        (lvl, msg) => appendLog("system", lvl, msg),
       );
 
       setStage("compile");
