@@ -34,7 +34,12 @@
 ### ❌ 4. Inline Clear / Remove Link Button
 - Added an intuitive Clear (`X`) button inside the URL input that appears whenever text is present, allowing one-tap removal and state reset.
 
-### 📱 5. Renamed Release Assets
+### 🚀 5. Zero-Stall Turbo Downloads & Resilient Stream Fallbacks
+- **Candidate Node Promotion**: Automatically detects when GoogleVideo CDN edge nodes throttle or time out, testing alternate candidate nodes and promoting responsive nodes to the front. Eliminates the 0% freeze issue on Android APK and Web.
+- **Failover Streaming**: Dynamically switches candidate nodes mid-stream if connection latency spikes, ensuring smooth continuous progress.
+- **Resilient Audio & Video Exports**: Both audio extractions (MP3, AAC, WAV) and high-resolution video streams feature defensive fallbacks to native direct containers (`.m4a`, `.webm`, `.mp4`) if FFmpeg WebAssembly is slow or initializing. Downloads never fail or abort.
+
+### 📱 6. Renamed Release Assets
 - Release assets are now cleanly published as:
   - **`zenodeck.apk`**
   - **`zenodeck-v3.4.6.apk`**
