@@ -10,16 +10,16 @@
 
 <p align="center">
   <a href="https://github.com/lagtastic-legends/zenodeck/releases">
-    <img src="https://img.shields.io/badge/Release-v3.4.6-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.4.6" />
+    <img src="https://img.shields.io/badge/Release-v3.4.7-8B5CF6?style=for-the-badge&logo=github&logoColor=white" alt="Release v3.4.7" />
   </a>
   <a href="https://omni-tool-two.vercel.app">
     <img src="https://img.shields.io/badge/Live%20Web%20App-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo" />
   </a>
-  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.6/zenodeck.apk">
+  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.7/zenodeck.apk">
     <img src="https://img.shields.io/badge/Android%20APK-zenodeck.apk-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android APK Download" />
   </a>
-  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.6/zenodeck-v3.4.6.apk">
-    <img src="https://img.shields.io/badge/Versioned%20APK-v3.4.6-00BCD4?style=for-the-badge&logo=android&logoColor=white" alt="Versioned APK Download" />
+  <a href="https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.7/zenodeck-v3.4.7.apk">
+    <img src="https://img.shields.io/badge/Versioned%20APK-v3.4.7-00BCD4?style=for-the-badge&logo=android&logoColor=white" alt="Versioned APK Download" />
   </a>
   <a href="https://omni-tool-two.vercel.app/api/ios-profile">
     <img src="https://img.shields.io/badge/iOS%20Profile-Install%20on%20iPhone-000000?style=for-the-badge&logo=apple&logoColor=white" alt="iOS Profile Download" />
@@ -45,11 +45,39 @@ Unlike traditional cloud converters and SaaS editing tools that upload your sens
 | Platform | Access Link | Description |
 | :--- | :--- | :--- |
 | **🌐 Web Application** | [**omni-tool-two.vercel.app**](https://omni-tool-two.vercel.app) | Live PWA with zero installation required. Instant launch in any modern browser. |
-| **📱 Android Universal APK** | [**Download zenodeck.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.6/zenodeck.apk) | Production signed APK with bundled offline WASM core, native Android media permissions, and Python 4K 60FPS engine. |
-| **🏷️ Android Versioned APK** | [**Download zenodeck-v3.4.6.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.6/zenodeck-v3.4.6.apk) | Dedicated v3.4.6 release package with full version archive support. |
+| **📱 Android Universal APK** | [**Download zenodeck.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.7/zenodeck.apk) | Production signed APK with bundled offline WASM core, native Android media permissions, and Python 4K 60FPS engine. |
+| **🏷️ Android Versioned APK** | [**Download zenodeck-v3.4.7.apk**](https://github.com/lagtastic-legends/zenodeck/releases/download/v3.4.7/zenodeck-v3.4.7.apk) | Dedicated v3.4.7 release package with full version archive support. |
 | **⚡ Direct Web APK** | [**Download zenodeck.apk (Direct Mirror)**](https://omni-tool-two.vercel.app/zenodeck.apk) | Direct fast download mirrored straight from the web host. |
 | **🍏 Apple iOS Profile (iPhone & iPad)** | [**Download zenodeck.mobileconfig**](https://omni-tool-two.vercel.app/api/ios-profile) | Apple Web Clip Configuration Profile. Installs ZenoDeck to Home Screen in full-screen standalone mode. |
-| **📦 GitHub Releases & Source** | [**GitHub Releases Hub (v3.4.6)**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.4.6) | Complete release packages, checksums, changelogs, and release assets. |
+| **📦 GitHub Releases & Source** | [**GitHub Releases Hub (v3.4.7)**](https://github.com/lagtastic-legends/zenodeck/releases/tag/v3.4.7) | Complete release packages, checksums, changelogs, and release assets. |
+
+---
+
+## 🌟 What's New in v3.4.7 — In-App Auto-Updater, Playlist Downloader, ID3v2 Album Art Tagger, & Background Notifications
+
+### 🔄 1. In-App Auto-Update Checker & One-Tap Installer
+- **Automatic GitHub Release Polling**: ZenoDeck checks for newer releases upon launch and via the settings menu without needing Google Play Services.
+- **Update Modal & Release Notes**: View release highlights, version tags, and package details directly inside the application.
+- **One-Tap Background Download & Install**: Downloads the updated APK in the background and launches Android's native package installer via `FileProvider` (`REQUEST_INSTALL_PACKAGES`).
+
+### 📑 2. YouTube Playlist & Batch Downloader
+- **Intelligent Playlist Parser**: Paste any YouTube playlist URL (`list=...`) or mix URL to fetch the full track list.
+- **Interactive Batch Deck**: Select/unselect items, choose audio or video formats (1080p, 720p, 320kbps MP3, AAC), and initiate batch downloads.
+- **Queue Engine**: Sequential worker processing with pause, resume, cancel, and individual progress bars.
+
+### 🎵 3. Zero-Dependency ID3v2.3 MP3 & Album Art Tagger
+- **Binary ID3v2.3 Encoder**: Zero-overhead frame encoder writing standard ID3 frames (`TIT2`, `TPE1`, `TALB`, `TYER`, `APIC`).
+- **High-Res Cover Art**: Fetches high-quality YouTube thumbnail artwork and embeds it directly into the MP3 ID3 header.
+- **Library Compatible**: Instant recognition of title, artist, and album art in Android music players, iOS Files, Windows Media Player, and car audio systems.
+
+### 🔔 4. Android Status Bar Background Notifications
+- **Status Bar Progress Bar**: Shows active download percentage and real-time transfer speed (MB/s) in the notification drawer.
+- **Completion Chime**: Notification alert when batch or single file downloads complete.
+
+### 📱 5. Granular Android Media Permissions
+- **Photos & Videos & Music & Audios**: Robust permission management for Android 13+ (APIs 33-36) and Android 9-12 legacy storage fallback.
+
+---
 
 ---
 

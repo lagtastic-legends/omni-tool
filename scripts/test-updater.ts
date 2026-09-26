@@ -18,16 +18,16 @@ function runTests() {
   console.log("✓ parseSemver passed");
 
   // 2. Test isNewerVersion
-  assert(isNewerVersion("v3.4.7", "v3.4.6") === true, "3.4.7 > 3.4.6");
-  assert(isNewerVersion("3.5.0", "3.4.6") === true, "3.5.0 > 3.4.6");
-  assert(isNewerVersion("4.0.0", "3.4.6") === true, "4.0.0 > 3.4.6");
-  assert(isNewerVersion("3.4.6", "3.4.6") === false, "3.4.6 not > 3.4.6");
-  assert(isNewerVersion("3.4.5", "3.4.6") === false, "3.4.5 not > 3.4.6");
-  assert(isNewerVersion("2.9.9", "3.4.6") === false, "2.9.9 not > 3.4.6");
+  assert(isNewerVersion("v3.4.8", "v3.4.7") === true, "3.4.8 > 3.4.7");
+  assert(isNewerVersion("3.5.0", "3.4.7") === true, "3.5.0 > 3.4.7");
+  assert(isNewerVersion("4.0.0", "3.4.7") === true, "4.0.0 > 3.4.7");
+  assert(isNewerVersion("3.4.7", "3.4.7") === false, "3.4.7 not > 3.4.7");
+  assert(isNewerVersion("3.4.6", "3.4.7") === false, "3.4.6 not > 3.4.7");
+  assert(isNewerVersion("2.9.9", "3.4.7") === false, "2.9.9 not > 3.4.7");
   console.log("✓ isNewerVersion comparisons passed");
 
   // 3. Test current version
-  assert(APP_VERSION === "3.4.6", "APP_VERSION must be 3.4.6");
+  assert(APP_VERSION === "3.4.7", "APP_VERSION must be 3.4.7");
   console.log("✓ APP_VERSION config constant verified: " + APP_VERSION);
 
   console.log("ALL UPDATER TESTS PASSED! (8/8)");

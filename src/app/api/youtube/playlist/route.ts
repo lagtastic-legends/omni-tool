@@ -10,7 +10,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 async function tryResolvePlaylistWithPython(urlOrId: string): Promise<any | null> {
   try {
