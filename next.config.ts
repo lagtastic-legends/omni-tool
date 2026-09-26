@@ -1,4 +1,6 @@
 import type { NextConfig } from "next";
+import fs from "fs";
+import path from "path";
 
 /**
  * OMNI TOOL — Next.js configuration
@@ -21,6 +23,29 @@ const COOP_COEP_HEADERS = [
 ];
 
 const isMobileExport = process.env.MOBILE_EXPORT === "1";
+
+// Ensure YouTube API routes have the correct literal dynamic export for the target environment
+const targetDynamic = isMobileExport ? '"force-static"' : '"force-dynamic"';
+const apiRoutesToSync = [
+  path.join(process.cwd(), "src/app/api/youtube/info/route.ts"),
+  path.join(process.cwd(), "src/app/api/youtube/stream/route.ts"),
+];
+
+for (const filePath of apiRoutesToSync) {
+  try {
+    if (fs.existsSync(filePath)) {
+      const code = fs.readFileSync(filePath, "utf8");
+      const updatedCode = code.replace(
+        /export const dynamic = ("force-static"|"force-dynamic");/,
+        `export const dynamic = ${targetDynamic};`
+      );
+      if (updatedCode !== code) {
+        fs.writeFileSync(filePath, updatedCode, "utf8");
+      }
+    }
+  } catch {}
+}
+
 const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_MOBILE_EXPORT: process.env.MOBILE_EXPORT || "",

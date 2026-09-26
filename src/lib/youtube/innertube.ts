@@ -130,17 +130,23 @@ export function formatBytes(bytes: number): string {
  * In Capacitor Android APK, falls back to the production API origin.
  */
 export function getYouTubeApiUrl(path: string): string {
+  let normalizedPath = path;
+  const [pathname, search] = path.split("?");
+  if (!pathname.endsWith("/")) {
+    normalizedPath = `${pathname}/${search ? `?${search}` : ""}`;
+  }
+
   if (typeof window !== "undefined") {
     const origin = window.location.origin;
     if (origin && !origin.includes("capacitor") && !origin.startsWith("file:")) {
       // In dev (port 3000) or public web domain, use origin directly
       if (window.location.port === "3000" || (!origin.includes("localhost") && !origin.includes("127.0.0.1"))) {
-        return `${origin}${path}`;
+        return `${origin}${normalizedPath}`;
       }
     }
   }
   const fallback = process.env.NEXT_PUBLIC_APP_URL || "https://omni-tool-two.vercel.app";
-  return `${fallback.replace(/\/$/, "")}${path}`;
+  return `${fallback.replace(/\/$/, "")}${normalizedPath}`;
 }
 
 const IOS_CLIENT_VERSION = "20.10.4";

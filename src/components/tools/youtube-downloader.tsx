@@ -91,12 +91,12 @@ export function YouTubeDownloader() {
     if (!videoInfo) return;
     if (tab === "video") {
       if (!selectedQuality || selectedQuality.isAudioOnly) {
-        const v = videoInfo.qualities.find((q) => !q.isAudioOnly);
+        const v = videoInfo.qualities?.find((q) => !q.isAudioOnly);
         if (v) setSelectedQuality(v);
       }
     } else {
       if (!selectedQuality || !selectedQuality.isAudioOnly) {
-        const a = videoInfo.qualities.find((q) => q.isAudioOnly);
+        const a = videoInfo.qualities?.find((q) => q.isAudioOnly);
         if (a) setSelectedQuality(a);
       }
     }
@@ -126,14 +126,31 @@ export function YouTubeDownloader() {
     void haptics.light();
 
     try {
-      const apiUrl = getYouTubeApiUrl(`/api/youtube/info?v=${encodeURIComponent(videoId)}`);
-      const res = await fetch(apiUrl);
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || `Failed to resolve video details (${res.status})`);
+      const apiUrl = getYouTubeApiUrl("/api/youtube/info");
+      // Primary: GET with videoId query parameter
+      let res = await fetch(`${apiUrl}?v=${encodeURIComponent(videoId)}`);
+      let data = await res.json().catch(() => ({}));
+
+      // Fallback: If GET returns static status or lacks qualities, try POST
+      if (!data || !data.videoId || !Array.isArray(data.qualities) || data.qualities.length === 0) {
+        const postRes = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ videoId }),
+        });
+        if (postRes.ok) {
+          const postData = await postRes.json().catch(() => ({}));
+          if (postData && postData.videoId && Array.isArray(postData.qualities) && postData.qualities.length > 0) {
+            data = postData;
+          }
+        }
       }
 
-      const info: YouTubeVideoInfo = await res.json();
+      if (!data || !data.videoId || !Array.isArray(data.qualities) || data.qualities.length === 0) {
+        throw new Error(data?.error || `Failed to resolve video details (${res.status})`);
+      }
+
+      const info: YouTubeVideoInfo = data;
       setVideoInfo(info);
 
       // Default select the appropriate option based on active tab
@@ -361,7 +378,7 @@ export function YouTubeDownloader() {
                 <div className="absolute bottom-2 right-2 rounded-md bg-black/85 px-1.5 py-0.5 font-mono text-[10px] font-bold text-white backdrop-blur-xs">
                   {videoInfo.durationFormatted}
                 </div>
-                {videoInfo.qualities.some((q) => q.is4K) && (
+                {videoInfo.qualities?.some((q) => q.is4K) && (
                   <div className="absolute top-2 left-2 flex items-center gap-1 rounded-md border border-amber-500/40 bg-black/85 px-2 py-0.5 font-mono text-[9px] font-bold text-amber-300 shadow-sm backdrop-blur-xs">
                     <Sparkles className="size-2.5 text-amber-400" />
                     <span>4K 60FPS</span>
