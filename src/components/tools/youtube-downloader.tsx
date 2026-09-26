@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Youtube,
@@ -57,6 +57,30 @@ export function YouTubeDownloader() {
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const videoPreviewRef = useRef<HTMLVideoElement | null>(null);
+  const currentResultUrlRef = useRef<string | null>(null);
+
+  const clearResult = useCallback(() => {
+    if (currentResultUrlRef.current) {
+      try {
+        URL.revokeObjectURL(currentResultUrlRef.current);
+      } catch {}
+      currentResultUrlRef.current = null;
+    }
+    setDownloadResult(null);
+    setProgress(null);
+  }, []);
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (currentResultUrlRef.current) {
+        try {
+          URL.revokeObjectURL(currentResultUrlRef.current);
+        } catch {}
+        currentResultUrlRef.current = null;
+      }
+    };
+  }, []);
 
   const videoQualities = videoInfo?.qualities.filter((q) => !q.isAudioOnly) || [];
   const audioQualities = videoInfo?.qualities.filter((q) => q.isAudioOnly) || [];
@@ -98,8 +122,7 @@ export function YouTubeDownloader() {
     setResolveError(null);
     setIsResolving(true);
     setVideoInfo(null);
-    setDownloadResult(null);
-    setProgress(null);
+    clearResult();
     void haptics.light();
 
     try {
@@ -163,7 +186,7 @@ export function YouTubeDownloader() {
     }
 
     setIsDownloading(true);
-    setDownloadResult(null);
+    clearResult();
     void haptics.medium();
 
     abortControllerRef.current = new AbortController();
@@ -178,6 +201,7 @@ export function YouTubeDownloader() {
         signal: abortControllerRef.current.signal,
       });
 
+      currentResultUrlRef.current = result.url;
       setDownloadResult(result);
       void haptics.success();
       playSuccess();
@@ -731,10 +755,7 @@ export function YouTubeDownloader() {
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setDownloadResult(null);
-                      setProgress(null);
-                    }}
+                    onClick={clearResult}
                     className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl border border-border/70 bg-card/80 py-3 px-4 font-mono text-xs text-muted-foreground hover:text-foreground transition-all cursor-pointer"
                   >
                     <RotateCcw className="size-3.5" />
@@ -788,10 +809,7 @@ export function YouTubeDownloader() {
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setDownloadResult(null);
-                      setProgress(null);
-                    }}
+                    onClick={clearResult}
                     className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl border border-border/70 bg-card/80 py-3 px-4 font-mono text-xs text-muted-foreground hover:text-foreground transition-all cursor-pointer"
                   >
                     <RotateCcw className="size-3.5" />

@@ -45,6 +45,10 @@ export function ScanToPdf() {
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const pagesRef = useRef(pages);
+  pagesRef.current = pages;
+  const outputRef = useRef(output);
+  outputRef.current = output;
 
   const busy = status === "working";
 
@@ -148,7 +152,12 @@ export function ScanToPdf() {
   /* Queue management ------------------------------------------------------- */
   useEffect(() => {
     return () => {
-      pages.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+      pagesRef.current.forEach((p) => {
+        try { URL.revokeObjectURL(p.previewUrl); } catch {}
+      });
+      if (outputRef.current) {
+        try { URL.revokeObjectURL(outputRef.current.url); } catch {}
+      }
     };
   }, []);  
 

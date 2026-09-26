@@ -326,23 +326,24 @@ export function useAudioProcessor() {
         }
 
         // 10. Guaranteed Virtual FS memory cleanup
-        if (engine) {
+        const engToClean = activeEngine || activeEngineRef.current || engine;
+        if (engToClean) {
           if (mounted) {
             try {
-              await engine.unmount(mountDir as any);
+              await engToClean.unmount(mountDir as any);
             } catch {}
             try {
-              await engine.deleteDir(mountDir);
+              await engToClean.deleteDir(mountDir);
             } catch {}
           }
           try {
-            await engine.deleteFile(inputPath);
+            await engToClean.deleteFile(inputPath);
             allocatedFilesRef.current.delete(inputPath);
           } catch {
             /* virtual file unlinked */
           }
           try {
-            await engine.deleteFile(outputPath);
+            await engToClean.deleteFile(outputPath);
             allocatedFilesRef.current.delete(outputPath);
           } catch {
             /* virtual file unlinked */

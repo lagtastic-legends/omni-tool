@@ -398,14 +398,18 @@ function QrGenerator() {
   const [output, setOutput] = useState<JobOutput | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const outputRef = useRef<JobOutput | null>(null);
+  outputRef.current = output;
 
   useEffect(() => {
     return () => {
-      if (output) URL.revokeObjectURL(output.url);
+      if (outputRef.current) {
+        try { URL.revokeObjectURL(outputRef.current.url); } catch {}
+      }
     };
-  }, [output]);  
+  }, []);
 
-  const generate = async () => {
+  const generate = useCallback(async () => {
     const value = text.trim();
     if (!value || !canvasRef.current) return;
     try {
@@ -419,18 +423,39 @@ function QrGenerator() {
         canvasRef.current?.toBlob((b) => res(b), "image/png"),
       );
       if (!blob) return;
-      if (output) URL.revokeObjectURL(output.url);
-      setOutput({
+      if (outputRef.current) {
+        try { URL.revokeObjectURL(outputRef.current.url); } catch {}
+      }
+      const newOutput: JobOutput = {
         name: `omni-qr-${Date.now().toString(36)}.png`,
         blob,
         url: URL.createObjectURL(blob),
         size: blob.size,
         mime: "image/png",
-      });
+      };
+      outputRef.current = newOutput;
+      setOutput(newOutput);
     } catch {
       /* value too long for the chosen ECC/size — canvas stays as-is */
     }
-  };
+  }, [text, size, ecc, dark, light]);
+
+  useEffect(() => {
+    if (!text.trim()) {
+      if (outputRef.current) {
+        try { URL.revokeObjectURL(outputRef.current.url); } catch {}
+        outputRef.current = null;
+      }
+      setOutput(null);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      void generate();
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [text, size, ecc, dark, light, generate]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8">
@@ -546,7 +571,10 @@ function QrGenerator() {
           <OutputCard
             output={output}
             onClear={() => {
-              if (output) URL.revokeObjectURL(output.url);
+              if (outputRef.current) {
+                try { URL.revokeObjectURL(outputRef.current.url); } catch {}
+                outputRef.current = null;
+              }
               setOutput(null);
             }}
             badge={`${size}px · ECC ${ecc}`}

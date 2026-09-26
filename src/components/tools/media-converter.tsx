@@ -68,7 +68,7 @@ function buildVideoArgs(
   const trimArgs: string[] = [];
   if (trim && trim.end > trim.start && (trim.start > 0 || trim.end > 0)) {
     if (trim.start > 0) trimArgs.push("-ss", trim.start.toFixed(2));
-    if (trim.end > 0) trimArgs.push("-to", trim.end.toFixed(2));
+    trimArgs.push("-t", (trim.end - trim.start).toFixed(2));
   }
 
   switch (format) {
@@ -121,7 +121,7 @@ function buildAudioArgs(
   const trimArgs: string[] = [];
   if (trim && trim.end > trim.start && (trim.start > 0 || trim.end > 0)) {
     if (trim.start > 0) trimArgs.push("-ss", trim.start.toFixed(2));
-    if (trim.end > 0) trimArgs.push("-to", trim.end.toFixed(2));
+    trimArgs.push("-t", (trim.end - trim.start).toFixed(2));
   }
 
   // Audio filter for pristine voice clarity and zero glitching:

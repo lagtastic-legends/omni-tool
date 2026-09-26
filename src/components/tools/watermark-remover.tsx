@@ -71,19 +71,38 @@ export function WatermarkRemover() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const imageElementRef = useRef<HTMLImageElement>(null);
+  const originalSrcRef = useRef<string | null>(null);
+  const cleanedSrcRef = useRef<string | null>(null);
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (originalSrcRef.current) {
+        try { URL.revokeObjectURL(originalSrcRef.current); } catch {}
+        originalSrcRef.current = null;
+      }
+      if (cleanedSrcRef.current) {
+        try { URL.revokeObjectURL(cleanedSrcRef.current); } catch {}
+        cleanedSrcRef.current = null;
+      }
+    };
+  }, []);
 
   /* Step back: Return from cleaned comparison view back to editor */
   useEffect(() => {
     if (cleanedBlob && !isProcessing) {
       return useNavStore.getState().registerStepHandler(() => {
-        if (cleanedSrc) URL.revokeObjectURL(cleanedSrc);
+        if (cleanedSrcRef.current) {
+          try { URL.revokeObjectURL(cleanedSrcRef.current); } catch {}
+          cleanedSrcRef.current = null;
+        }
         setCleanedBlob(null);
         setCleanedSrc(null);
         setViewMode("cleaned");
         return true;
       });
     }
-  }, [cleanedBlob, cleanedSrc, isProcessing]);
+  }, [cleanedBlob, isProcessing]);
 
   /* Guard active watermark removal session from accidental discard */
   useEffect(() => {
@@ -117,8 +136,12 @@ export function WatermarkRemover() {
       const startTime = performance.now();
 
       try {
-        const url = URL.createObjectURL(file);
-        setOriginalSrc(url);
+        let url = originalSrcRef.current;
+        if (!url) {
+          url = URL.createObjectURL(file);
+          originalSrcRef.current = url;
+          setOriginalSrc(url);
+        }
 
         const img = new Image();
         img.crossOrigin = "anonymous";
@@ -179,7 +202,12 @@ export function WatermarkRemover() {
 
         if (!blob) throw new Error("Failed to generate image blob");
 
+        if (cleanedSrcRef.current) {
+          try { URL.revokeObjectURL(cleanedSrcRef.current); } catch {}
+          cleanedSrcRef.current = null;
+        }
         const resultUrl = URL.createObjectURL(blob);
+        cleanedSrcRef.current = resultUrl;
         setCleanedSrc(resultUrl);
         setCleanedBlob(blob);
 
@@ -213,6 +241,14 @@ export function WatermarkRemover() {
         variant: "destructive",
       });
       return;
+    }
+    if (originalSrcRef.current) {
+      try { URL.revokeObjectURL(originalSrcRef.current); } catch {}
+      originalSrcRef.current = null;
+    }
+    if (cleanedSrcRef.current) {
+      try { URL.revokeObjectURL(cleanedSrcRef.current); } catch {}
+      cleanedSrcRef.current = null;
     }
     setImageFile(file);
     processImageCore(file, selectedZone);
@@ -297,6 +333,14 @@ export function WatermarkRemover() {
   };
 
   const resetAll = () => {
+    if (originalSrcRef.current) {
+      try { URL.revokeObjectURL(originalSrcRef.current); } catch {}
+      originalSrcRef.current = null;
+    }
+    if (cleanedSrcRef.current) {
+      try { URL.revokeObjectURL(cleanedSrcRef.current); } catch {}
+      cleanedSrcRef.current = null;
+    }
     setImageFile(null);
     setOriginalSrc(null);
     setCleanedSrc(null);

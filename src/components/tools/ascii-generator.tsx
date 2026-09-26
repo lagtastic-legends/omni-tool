@@ -23,7 +23,22 @@ export function AsciiGenerator() {
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const activeWorkerRef = useRef<Worker | null>(null);
+  const bgRemovedUrlRef = useRef<string | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    return () => {
+      if (activeWorkerRef.current) {
+        activeWorkerRef.current.terminate();
+        activeWorkerRef.current = null;
+      }
+      if (bgRemovedUrlRef.current) {
+        try { URL.revokeObjectURL(bgRemovedUrlRef.current); } catch {}
+        bgRemovedUrlRef.current = null;
+      }
+    };
+  }, []);
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -50,7 +65,11 @@ export function AsciiGenerator() {
       setIsRemovingBg(true);
       import("@imgly/background-removal").then(({ removeBackground }) => {
         removeBackground(originalImageSrc).then((blob) => {
+          if (bgRemovedUrlRef.current) {
+            try { URL.revokeObjectURL(bgRemovedUrlRef.current); } catch {}
+          }
           const url = URL.createObjectURL(blob);
+          bgRemovedUrlRef.current = url;
           setImageSrc(url);
           setIsRemovingBg(false);
         }).catch((err) => {
@@ -61,9 +80,13 @@ export function AsciiGenerator() {
         });
       });
     } else {
+      if (bgRemovedUrlRef.current) {
+        try { URL.revokeObjectURL(bgRemovedUrlRef.current); } catch {}
+        bgRemovedUrlRef.current = null;
+      }
       setImageSrc(originalImageSrc);
     }
-  }, [originalImageSrc, removeBgEnabled]);
+  }, [originalImageSrc, removeBgEnabled, toast]);
 
   const generateAscii = (img: HTMLImageElement, res: number) => {
     const canvas = canvasRef.current;
@@ -109,13 +132,32 @@ export function AsciiGenerator() {
       }
     `;
 
+    if (activeWorkerRef.current) {
+      activeWorkerRef.current.terminate();
+      activeWorkerRef.current = null;
+    }
+
     const blob = new Blob([workerCode], { type: 'application/javascript' });
-    const worker = new Worker(URL.createObjectURL(blob));
+    const workerUrl = URL.createObjectURL(blob);
+    const worker = new Worker(workerUrl);
+    URL.revokeObjectURL(workerUrl);
+    activeWorkerRef.current = worker;
 
     worker.onmessage = (e) => {
       setAsciiArt(e.data);
       setIsProcessing(false);
       worker.terminate();
+      if (activeWorkerRef.current === worker) {
+        activeWorkerRef.current = null;
+      }
+    };
+
+    worker.onerror = () => {
+      setIsProcessing(false);
+      worker.terminate();
+      if (activeWorkerRef.current === worker) {
+        activeWorkerRef.current = null;
+      }
     };
 
     worker.postMessage({

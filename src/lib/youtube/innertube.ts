@@ -84,7 +84,7 @@ export function extractYouTubeId(urlOrId: string): string | null {
 
   // Handle standard YouTube URLs
   const patterns = [
-    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|live\/))([a-zA-Z0-9_-]{11})/,
+    /(?:youtu\.be\/|(?:www\.|m\.|music\.)?youtube(?:-nocookie)?\.com\/(?:embed\/|v\/|watch\?v=|shorts\/|live\/))([a-zA-Z0-9_-]{11})/,
     /[?&]v=([a-zA-Z0-9_-]{11})/,
   ];
 
@@ -146,7 +146,13 @@ export function getYouTubeApiUrl(path: string): string {
 const IOS_CLIENT_VERSION = "20.10.4";
 const IOS_USER_AGENT = `com.google.ios.youtube/${IOS_CLIENT_VERSION} (iPhone16,2; U; CPU iOS 18_1 like Mac OS X; en_US)`;
 
-const INNERTUBE_CLIENTS = [
+export interface InnerTubeClientConfig {
+  name: string;
+  headers: Record<string, string>;
+  context: Record<string, any>;
+}
+
+const INNERTUBE_CLIENTS: InnerTubeClientConfig[] = [
   {
     name: "IOS_PRIMARY",
     headers: {

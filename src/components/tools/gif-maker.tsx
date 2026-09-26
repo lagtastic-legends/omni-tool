@@ -88,8 +88,8 @@ export function GifMaker() {
         {
           exec: [
             "-ss", start.toFixed(2),
-            "-i", virtualInputPath,
             "-t", clipLen,
+            "-i", virtualInputPath,
             "-vf", `${scale},palettegen=stats_mode=diff`,
             "palette.png",
           ],
@@ -98,8 +98,8 @@ export function GifMaker() {
         {
           exec: [
             "-ss", start.toFixed(2),
-            "-i", virtualInputPath,
             "-t", clipLen,
+            "-i", virtualInputPath,
             "-i", "palette.png",
             "-lavfi", `${scale}[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=4`,
             "-loop", loop === "infinite" ? "0" : "-1",

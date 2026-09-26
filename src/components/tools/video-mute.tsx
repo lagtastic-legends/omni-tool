@@ -33,11 +33,18 @@ export function VideoMute() {
 
     const canCopy = SAFE_COPY_EXTS.has(srcExt);
     const copyExt = canCopy ? srcExt : "mp4";
+    const isIsoContainer = copyExt === "mp4" || copyExt === "mov" || copyExt === "m4v";
     const copySpec: JobSpec = {
       inputFiles: [{ file, name: `input.${srcExt}`, mountPoint: "/mnt_0" }],
       passes: [
         {
-          exec: ["-i", virtualInputPath, "-c", "copy", "-an", `output.${copyExt}`],
+          exec: [
+            "-i", virtualInputPath,
+            "-c", "copy",
+            "-an",
+            ...(isIsoContainer ? ["-movflags", "+faststart"] : []),
+            `output.${copyExt}`,
+          ],
           label: "Stripping audio (stream copy)",
         },
       ],
@@ -61,6 +68,7 @@ export function VideoMute() {
             "-preset", "ultrafast",
             "-pix_fmt", "yuv420p",
             "-an",
+            "-movflags", "+faststart",
             "output.mp4",
           ],
           label: "Container refused copy — re-encoding silently",

@@ -7,7 +7,7 @@
 
 import { motion } from "framer-motion";
 import { FileImage } from "lucide-react";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { ImageQueue, type QueuedImage } from "@/components/documents/image-queue";
 import { PdfVisualDeck } from "@/components/tools/pdf-visual-deck";
 import { PageOptions } from "@/components/documents/page-options";
@@ -46,10 +46,20 @@ export function ImageToPdf() {
     [images]
   );
 
-  /* Revoke dangling preview URLs. */
+  /* Revoke dangling preview URLs & output URL */
+  const imagesRef = useRef(images);
+  imagesRef.current = images;
+  const outputRef = useRef(output);
+  outputRef.current = output;
+
   useEffect(() => {
     return () => {
-      images.forEach((i) => URL.revokeObjectURL(i.previewUrl));
+      imagesRef.current.forEach((i) => {
+        try { URL.revokeObjectURL(i.previewUrl); } catch {}
+      });
+      if (outputRef.current) {
+        try { URL.revokeObjectURL(outputRef.current.url); } catch {}
+      }
     };
   }, []);  
 
