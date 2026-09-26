@@ -286,25 +286,74 @@ export async function downloadYouTubeStream({
     .substring(0, 60);
 
   // -------------------------------------------------------------
-  // Case A: Audio Only (MP3 320kbps Extraction)
+  // Case A: Audio Only (Extraction & Transcoding in Multiple Qualities)
   // -------------------------------------------------------------
   if (isAudioOnly && option.audioFormat) {
     const audioData = await fetchStreamParallel({
       streamUrl: option.audioFormat.url,
       knownSize: option.audioFormat.contentLength,
-      maxWorkers: maxParallelWorkers,
+      maxWorkers: Math.min(maxParallelWorkers, 4),
       label: "audio",
       onChunkBytes: handleChunk,
       signal,
     });
 
-    updateProgress("muxing", "Mastering 320 kbps MP3 in WebAssembly…", 1);
-
     const inputName = `input_audio.${option.audioFormat.container}`;
-    const outputName = "output.mp3";
-
     await engine.writeFile(inputName, audioData);
-    await engine.exec(["-i", inputName, "-vn", "-c:a", "libmp3lame", "-b:a", "320k", "-ar", "44100", outputName]);
+
+    let outputName = "output.mp3";
+    let mimeType = "audio/mp3";
+    let qualitySuffix = "[320kbps]";
+    let ffmpegArgs: string[] = [];
+
+    if (option.id === "audio-m4a") {
+      outputName = "output.m4a";
+      mimeType = "audio/mp4";
+      qualitySuffix = "[Native AAC]";
+      updateProgress("muxing", "Packaging native AAC audio stream…", 1);
+
+      if (option.audioFormat.container === "m4a") {
+        ffmpegArgs = ["-i", inputName, "-vn", "-c:a", "copy", outputName];
+      } else {
+        ffmpegArgs = ["-i", inputName, "-vn", "-c:a", "aac", "-b:a", "256k", "-ar", "44100", outputName];
+      }
+    } else if (option.id === "audio-wav") {
+      outputName = "output.wav";
+      mimeType = "audio/wav";
+      qualitySuffix = "[Lossless PCM]";
+      updateProgress("muxing", "Exporting uncompressed 16-bit WAV PCM…", 1);
+      ffmpegArgs = ["-i", inputName, "-vn", "-c:a", "pcm_s16le", "-ar", "44100", outputName];
+    } else {
+      // MP3 at requested bitrate (320k, 256k, 192k, 128k, etc.)
+      const bitrate = option.audioBitrate || (option.id === "audio-mp3" ? 320 : 256);
+      outputName = "output.mp3";
+      mimeType = "audio/mp3";
+      qualitySuffix = `[${bitrate}kbps]`;
+      updateProgress("muxing", `Mastering ${bitrate} kbps MP3 in WebAssembly…`, 1);
+      ffmpegArgs = [
+        "-i", inputName,
+        "-vn",
+        "-c:a", "libmp3lame",
+        "-b:a", `${bitrate}k`,
+        "-ar", "44100",
+        "-af", "aresample=async=1000",
+        outputName,
+      ];
+    }
+
+    try {
+      await engine.exec(ffmpegArgs);
+    } catch (execErr: any) {
+      console.warn("FFmpeg specialized audio command failed, trying fallback:", execErr);
+      if (outputName.endsWith(".mp3")) {
+        const fallbackBitrate = option.audioBitrate || 256;
+        await engine.exec(["-i", inputName, "-vn", "-b:a", `${fallbackBitrate}k`, outputName]);
+      } else if (outputName.endsWith(".m4a")) {
+        await engine.exec(["-i", inputName, "-vn", "-c:a", "aac", outputName]);
+      } else {
+        throw execErr;
+      }
+    }
 
     const outData = (await engine.readFile(outputName)) as Uint8Array;
     try {
@@ -312,9 +361,10 @@ export async function downloadYouTubeStream({
       await engine.deleteFile(outputName);
     } catch {}
 
-    const blob = new Blob([outData.buffer as ArrayBuffer], { type: "audio/mp3" });
+    const blob = new Blob([outData.buffer as ArrayBuffer], { type: mimeType });
     const url = URL.createObjectURL(blob);
-    const filename = `${sanitizedTitle} [320k].mp3`;
+    const ext = outputName.split(".").pop();
+    const filename = `${sanitizedTitle} ${qualitySuffix}.${ext}`;
 
     onProgress({
       phase: "complete",
@@ -324,7 +374,7 @@ export async function downloadYouTubeStream({
       totalBytes: blob.size,
       activeThreads: 0,
       etaSeconds: 0,
-      statusMessage: "Audio extraction complete!",
+      statusMessage: `Audio conversion complete (${qualitySuffix.replace(/[\[\]]/g, "")})!`,
     });
 
     return {
@@ -332,7 +382,7 @@ export async function downloadYouTubeStream({
       url,
       filename,
       fileSizeBytes: blob.size,
-      mimeType: "audio/mp3",
+      mimeType,
       is4K: false,
       is60fps: false,
     };

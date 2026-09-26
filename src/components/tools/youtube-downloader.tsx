@@ -48,6 +48,7 @@ export function YouTubeDownloader() {
   const [videoInfo, setVideoInfo] = useState<YouTubeVideoInfo | null>(null);
 
   const [selectedQuality, setSelectedQuality] = useState<YouTubeQualityOption | null>(null);
+  const [mediaTypeTab, setMediaTypeTab] = useState<"video" | "audio">("video");
   const [workersCount, setWorkersCount] = useState<number>(6);
 
   const [isDownloading, setIsDownloading] = useState(false);
@@ -56,6 +57,27 @@ export function YouTubeDownloader() {
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const videoPreviewRef = useRef<HTMLVideoElement | null>(null);
+
+  const videoQualities = videoInfo?.qualities.filter((q) => !q.isAudioOnly) || [];
+  const audioQualities = videoInfo?.qualities.filter((q) => q.isAudioOnly) || [];
+  const displayedQualities = mediaTypeTab === "video" ? videoQualities : audioQualities;
+
+  const handleTabChange = (tab: "video" | "audio") => {
+    setMediaTypeTab(tab);
+    if (!videoInfo) return;
+    if (tab === "video") {
+      if (!selectedQuality || selectedQuality.isAudioOnly) {
+        const v = videoInfo.qualities.find((q) => !q.isAudioOnly);
+        if (v) setSelectedQuality(v);
+      }
+    } else {
+      if (!selectedQuality || !selectedQuality.isAudioOnly) {
+        const a = videoInfo.qualities.find((q) => q.isAudioOnly);
+        if (a) setSelectedQuality(a);
+      }
+    }
+    void haptics.light();
+  };
 
   // Auto-boot FFmpeg engine when mounting this tool
   useEffect(() => {
@@ -91,8 +113,15 @@ export function YouTubeDownloader() {
       const info: YouTubeVideoInfo = await res.json();
       setVideoInfo(info);
 
-      // Default select the highest 4K 60fps / 1080p option available
-      if (info.qualities && info.qualities.length > 0) {
+      // Default select the appropriate option based on active tab
+      const firstVideo = info.qualities?.find((q) => !q.isAudioOnly);
+      const firstAudio = info.qualities?.find((q) => q.isAudioOnly);
+
+      if (mediaTypeTab === "audio" && firstAudio) {
+        setSelectedQuality(firstAudio);
+      } else if (firstVideo) {
+        setSelectedQuality(firstVideo);
+      } else if (info.qualities && info.qualities.length > 0) {
         setSelectedQuality(info.qualities[0]);
       }
       void haptics.success();
@@ -334,18 +363,75 @@ export function YouTubeDownloader() {
               </div>
             </div>
 
-            {/* Quality Selector Grid */}
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between font-mono text-xs text-muted-foreground uppercase tracking-wider">
-                <span>Select Quality Tier</span>
-                <span className="text-[10px] text-primary">
+            {/* Quality Selector & Media Type Selection */}
+            <div className="space-y-3">
+              {/* Segmented Media Tabs */}
+              <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange("video")}
+                    disabled={isDownloading}
+                    className={`flex items-center gap-2 rounded-xl px-3.5 py-1.5 font-display text-xs font-bold transition-all cursor-pointer ${
+                      mediaTypeTab === "video"
+                        ? "bg-red-500/20 text-red-300 border border-red-500/40 shadow-xs"
+                        : "text-muted-foreground hover:text-foreground hover:bg-card/50 border border-transparent"
+                    }`}
+                  >
+                    <Film className="size-3.5" />
+                    <span>Video Streams ({videoQualities.length})</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleTabChange("audio")}
+                    disabled={isDownloading}
+                    className={`flex items-center gap-2 rounded-xl px-3.5 py-1.5 font-display text-xs font-bold transition-all cursor-pointer ${
+                      mediaTypeTab === "audio"
+                        ? "bg-violet-500/20 text-violet-300 border border-violet-500/40 shadow-xs"
+                        : "text-muted-foreground hover:text-foreground hover:bg-card/50 border border-transparent"
+                    }`}
+                  >
+                    <Music className="size-3.5" />
+                    <span>Direct Audio ({audioQualities.length})</span>
+                    <span className="rounded-full bg-violet-500/30 px-1.5 py-0.2 font-mono text-[9px] text-violet-200 uppercase">
+                      Fast
+                    </span>
+                  </button>
+                </div>
+
+                <span className="hidden sm:inline-block font-mono text-[11px] text-muted-foreground">
                   {selectedQuality ? `${selectedQuality.label} · ${formatBytes(selectedQuality.approxSizeBytes)}` : ""}
                 </span>
               </div>
 
+              {/* Direct Audio Banner */}
+              {mediaTypeTab === "audio" && (
+                <div className="flex items-center gap-2.5 rounded-xl border border-violet-500/30 bg-violet-500/10 px-3.5 py-2 text-xs font-mono text-violet-300">
+                  <Sparkles className="size-3.5 shrink-0 text-violet-400" />
+                  <span>
+                    Direct Audio Mode: Downloads only the audio stream (~3–15 MB) for instant extraction at maximum speed.
+                  </span>
+                </div>
+              )}
+
+              {/* Quality Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                {videoInfo.qualities.map((q) => {
+                {displayedQualities.map((q) => {
                   const isSelected = selectedQuality?.id === q.id;
+                  const isAudio = q.isAudioOnly;
+
+                  let badgeColor = "bg-primary/15 text-primary border border-primary/30";
+                  if (q.is4K) badgeColor = "bg-amber-500/20 text-amber-300 border border-amber-500/40";
+                  else if (q.badge.includes("60")) badgeColor = "bg-red-500/20 text-red-300 border border-red-500/40";
+                  else if (q.badge === "320 KBPS") badgeColor = "bg-violet-500/20 text-violet-300 border border-violet-500/40";
+                  else if (q.badge === "256 KBPS") badgeColor = "bg-indigo-500/20 text-indigo-300 border border-indigo-500/40";
+                  else if (q.badge === "192 KBPS") badgeColor = "bg-blue-500/20 text-blue-300 border border-blue-500/40";
+                  else if (q.badge === "128 KBPS") badgeColor = "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40";
+                  else if (q.badge === "NATIVE AAC") badgeColor = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+                  else if (q.badge === "WAV PCM") badgeColor = "bg-amber-500/20 text-amber-300 border border-amber-500/40";
+                  else if (isAudio) badgeColor = "bg-violet-500/20 text-violet-300 border border-violet-500/40";
+
                   return (
                     <button
                       key={q.id}
@@ -357,22 +443,14 @@ export function YouTubeDownloader() {
                       disabled={isDownloading}
                       className={`relative flex flex-col justify-between rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
                         isSelected
-                          ? "border-red-500/80 bg-red-500/15 shadow-[0_0_16px_rgba(239,68,68,0.2)] ring-1 ring-red-500/50"
-                          : "border-border/70 bg-card/40 hover:border-red-500/40 hover:bg-card/70"
+                          ? isAudio
+                            ? "border-violet-500/80 bg-violet-500/15 shadow-[0_0_16px_rgba(139,92,246,0.25)] ring-1 ring-violet-500/50"
+                            : "border-red-500/80 bg-red-500/15 shadow-[0_0_16px_rgba(239,68,68,0.2)] ring-1 ring-red-500/50"
+                          : "border-border/70 bg-card/40 hover:border-primary/40 hover:bg-card/70"
                       }`}
                     >
                       <div className="flex items-center justify-between w-full mb-1.5">
-                        <span
-                          className={`rounded-md px-2 py-0.5 font-mono text-[10px] font-bold ${
-                            q.is4K
-                              ? "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                              : q.badge.includes("60")
-                              ? "bg-red-500/20 text-red-300 border border-red-500/40"
-                              : q.isAudioOnly
-                              ? "bg-violet-500/20 text-violet-300 border border-violet-500/40"
-                              : "bg-primary/15 text-primary border border-primary/30"
-                          }`}
-                        >
+                        <span className={`rounded-md px-2 py-0.5 font-mono text-[10px] font-bold ${badgeColor}`}>
                           {q.badge}
                         </span>
                         <span className="font-mono text-xs font-semibold text-foreground/90">
@@ -382,7 +460,7 @@ export function YouTubeDownloader() {
 
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-1.5">
-                          {q.isAudioOnly ? (
+                          {isAudio ? (
                             <Music className="size-3.5 text-violet-400" />
                           ) : (
                             <Film className="size-3.5 text-red-400" />
@@ -400,7 +478,11 @@ export function YouTubeDownloader() {
                       <div className="absolute top-3 right-3">
                         <div
                           className={`size-3 rounded-full border flex items-center justify-center ${
-                            isSelected ? "border-red-500 bg-red-500" : "border-border"
+                            isSelected
+                              ? isAudio
+                                ? "border-violet-500 bg-violet-500"
+                                : "border-red-500 bg-red-500"
+                              : "border-border"
                           }`}
                         >
                           {isSelected && <div className="size-1 rounded-full bg-white" />}
@@ -447,23 +529,58 @@ export function YouTubeDownloader() {
                 type="button"
                 onClick={handleStartDownload}
                 disabled={!selectedQuality}
-                className="w-full flex items-center justify-center gap-2.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 py-3.5 px-6 font-display text-sm font-bold text-white shadow-lg shadow-red-500/20 hover:opacity-95 transition-all cursor-pointer"
+                className={`w-full flex items-center justify-center gap-2.5 rounded-xl py-3.5 px-6 font-display text-sm font-bold text-white transition-all cursor-pointer ${
+                  selectedQuality?.isAudioOnly
+                    ? "bg-gradient-to-r from-violet-600 via-fuchsia-600 to-indigo-600 shadow-lg shadow-violet-500/25 hover:opacity-95"
+                    : "bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 shadow-lg shadow-red-500/20 hover:opacity-95"
+                }`}
               >
-                <Download className="size-4" />
-                <span>
-                  START TURBO DOWNLOAD ({selectedQuality?.badge || "4K"}) · {formatBytes(selectedQuality?.approxSizeBytes || 0)}
-                </span>
+                {selectedQuality?.isAudioOnly ? (
+                  <>
+                    <Music className="size-4" />
+                    <span>
+                      EXTRACT AUDIO ({selectedQuality?.badge}) · {formatBytes(selectedQuality?.approxSizeBytes || 0)}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="size-4" />
+                    <span>
+                      START TURBO DOWNLOAD ({selectedQuality?.badge || "4K"}) · {formatBytes(selectedQuality?.approxSizeBytes || 0)}
+                    </span>
+                  </>
+                )}
               </button>
             ) : (
-              <div className="panel-hud rounded-2xl border border-red-500/40 bg-card/80 p-5 space-y-4 shadow-elevation2">
+              <div
+                className={`panel-hud rounded-2xl border p-5 space-y-4 shadow-elevation2 ${
+                  selectedQuality?.isAudioOnly
+                    ? "border-violet-500/40 bg-card/80"
+                    : "border-red-500/40 bg-card/80"
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="relative flex size-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full size-3 bg-red-500" />
+                      <span
+                        className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                          selectedQuality?.isAudioOnly ? "bg-violet-400" : "bg-red-400"
+                        }`}
+                      />
+                      <span
+                        className={`relative inline-flex rounded-full size-3 ${
+                          selectedQuality?.isAudioOnly ? "bg-violet-500" : "bg-red-500"
+                        }`}
+                      />
                     </span>
                     <span className="font-display text-sm font-bold text-foreground">
-                      {progress?.phase === "muxing" ? "PACKAGING STREAM IN WEBASSEMBLY…" : "TURBO DOWNLOADING…"}
+                      {progress?.phase === "muxing"
+                        ? selectedQuality?.isAudioOnly
+                          ? "MASTERING AUDIO IN WEBASSEMBLY…"
+                          : "PACKAGING STREAM IN WEBASSEMBLY…"
+                        : selectedQuality?.isAudioOnly
+                        ? "TURBO DOWNLOADING AUDIO TRACK…"
+                        : "TURBO DOWNLOADING 4K STREAMS…"}
                     </span>
                   </div>
 
@@ -492,7 +609,11 @@ export function YouTubeDownloader() {
                   </div>
                   <div className="h-2 w-full overflow-hidden rounded-full bg-border/60">
                     <motion.div
-                      className="h-full bg-gradient-to-r from-red-500 via-rose-500 to-amber-400"
+                      className={`h-full ${
+                        selectedQuality?.isAudioOnly
+                          ? "bg-gradient-to-r from-violet-500 via-fuchsia-500 to-indigo-400"
+                          : "bg-gradient-to-r from-red-500 via-rose-500 to-amber-400"
+                      }`}
                       initial={{ width: 0 }}
                       animate={{ width: `${progress?.progress || 0}%` }}
                       transition={{ ease: "easeOut", duration: 0.2 }}
@@ -531,61 +652,154 @@ export function YouTubeDownloader() {
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="panel-hud rounded-2xl border border-emerald-500/40 bg-card/60 p-5 sm:p-6 space-y-4 shadow-elevation2"
+            className="space-y-4"
           >
-            <div className="flex items-center justify-between border-b border-border/50 pb-3">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="size-5 text-emerald-400" />
-                <span className="font-display text-sm sm:text-base font-bold text-foreground">
-                  DOWNLOAD READY ({downloadResult.is4K ? "4K 60FPS" : downloadResult.mimeType.split("/")[0].toUpperCase()})
-                </span>
+            {downloadResult.mimeType.startsWith("audio/") ? (
+              /* Dedicated Audio Player View */
+              <div className="panel-hud rounded-2xl border border-violet-500/40 bg-card/60 p-5 sm:p-6 space-y-4 shadow-elevation2">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="size-5 text-violet-400" />
+                    <span className="font-display text-sm sm:text-base font-bold text-foreground">
+                      AUDIO READY ({downloadResult.filename.split(".").pop()?.toUpperCase() || "MP3"})
+                    </span>
+                  </div>
+                  <span className="font-mono text-xs text-violet-400 font-bold">
+                    {formatBytes(downloadResult.fileSizeBytes)}
+                  </span>
+                </div>
+
+                {/* Player Card */}
+                <div className="rounded-xl border border-violet-500/30 bg-gradient-to-br from-violet-950/40 via-card/70 to-card/40 p-4 sm:p-5 space-y-3">
+                  <div className="flex items-center gap-3.5">
+                    {videoInfo?.thumbnailUrl ? (
+                      <img
+                        src={videoInfo.thumbnailUrl}
+                        alt={videoInfo.title}
+                        className="size-16 rounded-xl object-cover border border-violet-500/40 shrink-0 shadow-sm"
+                      />
+                    ) : (
+                      <div className="size-16 rounded-xl bg-violet-500/20 border border-violet-500/40 flex items-center justify-center shrink-0">
+                        <Music className="size-8 text-violet-400" />
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="font-display text-sm font-bold text-foreground truncate">
+                        {videoInfo?.title}
+                      </p>
+                      <p className="font-mono text-xs text-muted-foreground truncate">
+                        {videoInfo?.author}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-md bg-violet-500/25 px-2 py-0.5 font-mono text-[10px] font-bold text-violet-300 border border-violet-500/40">
+                          {downloadResult.filename.includes("[")
+                            ? downloadResult.filename.split("[").pop()?.split("]")[0]
+                            : "AUDIO"}
+                        </span>
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          {formatBytes(downloadResult.fileSizeBytes)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <audio
+                    controls
+                    src={downloadResult.url}
+                    className="w-full mt-2 accent-violet-500 rounded-lg"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <p className="font-mono text-xs font-semibold text-foreground truncate">
+                    {downloadResult.filename}
+                  </p>
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    Mastered with high-fidelity WebAssembly audio engine · Studio response
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleSaveToDevice}
+                    className="w-full sm:flex-1 flex items-center justify-center gap-2 rounded-xl bg-violet-600 py-3 px-5 font-display text-xs font-bold text-white shadow-xs hover:bg-violet-500 transition-all cursor-pointer"
+                  >
+                    <Download className="size-4" />
+                    <span>SAVE AUDIO TO DEVICE</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDownloadResult(null);
+                      setProgress(null);
+                    }}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl border border-border/70 bg-card/80 py-3 px-4 font-mono text-xs text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                  >
+                    <RotateCcw className="size-3.5" />
+                    <span>Convert Another</span>
+                  </button>
+                </div>
               </div>
-              <span className="font-mono text-xs text-emerald-400 font-bold">
-                {formatBytes(downloadResult.fileSizeBytes)}
-              </span>
-            </div>
+            ) : (
+              /* Dedicated Video Player View */
+              <div className="panel-hud rounded-2xl border border-emerald-500/40 bg-card/60 p-5 sm:p-6 space-y-4 shadow-elevation2">
+                <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="size-5 text-emerald-400" />
+                    <span className="font-display text-sm sm:text-base font-bold text-foreground">
+                      DOWNLOAD READY ({downloadResult.is4K ? "4K 60FPS" : downloadResult.mimeType.split("/")[0].toUpperCase()})
+                    </span>
+                  </div>
+                  <span className="font-mono text-xs text-emerald-400 font-bold">
+                    {formatBytes(downloadResult.fileSizeBytes)}
+                  </span>
+                </div>
 
-            {/* Video Player Preview */}
-            <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border/80 bg-black">
-              <video
-                ref={videoPreviewRef}
-                src={downloadResult.url}
-                controls
-                className="h-full w-full object-contain"
-              />
-            </div>
+                {/* Video Player Preview */}
+                <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border/80 bg-black">
+                  <video
+                    ref={videoPreviewRef}
+                    src={downloadResult.url}
+                    controls
+                    className="h-full w-full object-contain"
+                  />
+                </div>
 
-            <div className="space-y-1">
-              <p className="font-mono text-xs font-semibold text-foreground truncate">
-                {downloadResult.filename}
-              </p>
-              <p className="font-mono text-[10px] text-muted-foreground">
-                Lossless stream-copy muxed in WebAssembly · Zero compression artifacts
-              </p>
-            </div>
+                <div className="space-y-1">
+                  <p className="font-mono text-xs font-semibold text-foreground truncate">
+                    {downloadResult.filename}
+                  </p>
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    Lossless stream-copy muxed in WebAssembly · Zero compression artifacts
+                  </p>
+                </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
-              <button
-                type="button"
-                onClick={handleSaveToDevice}
-                className="w-full sm:flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 px-5 font-display text-xs font-bold text-white shadow-xs hover:bg-emerald-500 transition-all cursor-pointer"
-              >
-                <Download className="size-4" />
-                <span>SAVE TO DEVICE</span>
-              </button>
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 pt-2">
+                  <button
+                    type="button"
+                    onClick={handleSaveToDevice}
+                    className="w-full sm:flex-1 flex items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 px-5 font-display text-xs font-bold text-white shadow-xs hover:bg-emerald-500 transition-all cursor-pointer"
+                  >
+                    <Download className="size-4" />
+                    <span>SAVE TO DEVICE</span>
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setDownloadResult(null);
-                  setProgress(null);
-                }}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl border border-border/70 bg-card/80 py-3 px-4 font-mono text-xs text-muted-foreground hover:text-foreground transition-all cursor-pointer"
-              >
-                <RotateCcw className="size-3.5" />
-                <span>Download Another</span>
-              </button>
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDownloadResult(null);
+                      setProgress(null);
+                    }}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-xl border border-border/70 bg-card/80 py-3 px-4 font-mono text-xs text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                  >
+                    <RotateCcw className="size-3.5" />
+                    <span>Download Another</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

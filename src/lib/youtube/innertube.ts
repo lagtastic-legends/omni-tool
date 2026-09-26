@@ -26,15 +26,32 @@ export interface YouTubeFormatMeta {
 }
 
 export interface YouTubeQualityOption {
-  id: string; // e.g. "4k-60", "2k-60", "1080p-60", "720p", "audio-mp3"
+  id: string; // e.g. "2160p60", "1080p60", "audio-320", "audio-256", "audio-192", "audio-128", "audio-m4a", "audio-wav"
   label: string;
   resolutionLabel: string;
   fps: number;
-  badge: "4K 60FPS" | "4K" | "2K 60FPS" | "2K" | "1080P 60" | "1080P" | "720P" | "SD" | "AUDIO";
+  badge:
+    | "4K 60FPS"
+    | "4K"
+    | "2K 60FPS"
+    | "2K"
+    | "1080P 60"
+    | "1080P"
+    | "720P"
+    | "SD"
+    | "320 KBPS"
+    | "256 KBPS"
+    | "192 KBPS"
+    | "128 KBPS"
+    | "NATIVE AAC"
+    | "WAV PCM"
+    | "AUDIO"
+    | string;
   is4K: boolean;
   is60fps: boolean;
   isAudioOnly: boolean;
-  container: "mp4" | "webm" | "mp3" | "m4a";
+  audioBitrate?: number; // in kbps (e.g. 320, 256, 192, 128)
+  container: "mp4" | "webm" | "mp3" | "m4a" | "wav";
   approxSizeBytes: number;
   videoFormat?: YouTubeFormatMeta;
   audioFormat?: YouTubeFormatMeta;
@@ -450,19 +467,116 @@ export async function resolveYouTubeVideo(videoIdOrUrl: string): Promise<YouTube
     });
   }
 
-  // 6. Audio Only (MP3 Studio Quality)
+  // 6. Direct Audio Extraction Qualities (Multi-tier bitrates & native/lossless formats)
   if (bestAudio) {
+    const bestM4a = audioFormats.find((f) => f.container === "m4a") || bestAudio;
+
+    // 6a. 320 kbps Studio Master MP3
     qualities.push({
-      id: "audio-mp3",
-      label: "Studio Audio (MP3)",
-      resolutionLabel: "Audio Track (320kbps MP3)",
+      id: "audio-320",
+      label: "Studio Master (320 kbps MP3)",
+      resolutionLabel: "Ultra HQ 320 kbps · 44.1 kHz Stereo",
       fps: 0,
-      badge: "AUDIO",
+      badge: "320 KBPS",
       is4K: false,
       is60fps: false,
       isAudioOnly: true,
+      audioBitrate: 320,
       container: "mp3",
-      approxSizeBytes: bestAudio.contentLength || 0,
+      approxSizeBytes:
+        durationSeconds > 0
+          ? Math.round((320 * 1000 * durationSeconds) / 8)
+          : (bestAudio.contentLength || 0),
+      audioFormat: bestAudio,
+    });
+
+    // 6b. 256 kbps High Fidelity MP3
+    qualities.push({
+      id: "audio-256",
+      label: "High Fidelity (256 kbps MP3)",
+      resolutionLabel: "Pro Audio 256 kbps · 44.1 kHz Stereo",
+      fps: 0,
+      badge: "256 KBPS",
+      is4K: false,
+      is60fps: false,
+      isAudioOnly: true,
+      audioBitrate: 256,
+      container: "mp3",
+      approxSizeBytes:
+        durationSeconds > 0
+          ? Math.round((256 * 1000 * durationSeconds) / 8)
+          : Math.round((bestAudio.contentLength || 0) * 0.8),
+      audioFormat: bestAudio,
+    });
+
+    // 6c. 192 kbps Standard HQ MP3
+    qualities.push({
+      id: "audio-192",
+      label: "Standard HQ (192 kbps MP3)",
+      resolutionLabel: "Balanced 192 kbps · Great for Music",
+      fps: 0,
+      badge: "192 KBPS",
+      is4K: false,
+      is60fps: false,
+      isAudioOnly: true,
+      audioBitrate: 192,
+      container: "mp3",
+      approxSizeBytes:
+        durationSeconds > 0
+          ? Math.round((192 * 1000 * durationSeconds) / 8)
+          : Math.round((bestAudio.contentLength || 0) * 0.6),
+      audioFormat: bestAudio,
+    });
+
+    // 6d. 128 kbps Compact MP3
+    qualities.push({
+      id: "audio-128",
+      label: "Compact Audio (128 kbps MP3)",
+      resolutionLabel: "Lightweight · Podcasts & Voice",
+      fps: 0,
+      badge: "128 KBPS",
+      is4K: false,
+      is60fps: false,
+      isAudioOnly: true,
+      audioBitrate: 128,
+      container: "mp3",
+      approxSizeBytes:
+        durationSeconds > 0
+          ? Math.round((128 * 1000 * durationSeconds) / 8)
+          : Math.round((bestAudio.contentLength || 0) * 0.4),
+      audioFormat: bestAudio,
+    });
+
+    // 6e. Native AAC / M4A (Original Stream Copy)
+    qualities.push({
+      id: "audio-m4a",
+      label: "Original Stream (M4A / AAC)",
+      resolutionLabel: "Direct Native Audio · Zero Quality Loss",
+      fps: 0,
+      badge: "NATIVE AAC",
+      is4K: false,
+      is60fps: false,
+      isAudioOnly: true,
+      container: "m4a",
+      approxSizeBytes: bestM4a.contentLength || bestAudio.contentLength || 0,
+      audioFormat: bestM4a,
+    });
+
+    // 6f. Uncompressed WAV PCM
+    qualities.push({
+      id: "audio-wav",
+      label: "Studio Master PCM (WAV)",
+      resolutionLabel: "Uncompressed 16-bit 44.1 kHz WAV",
+      fps: 0,
+      badge: "WAV PCM",
+      is4K: false,
+      is60fps: false,
+      isAudioOnly: true,
+      container: "wav",
+      approxSizeBytes:
+        durationSeconds > 0
+          ? Math.round(44100 * 2 * 2 * durationSeconds)
+          : (bestAudio.contentLength ? bestAudio.contentLength * 4 : 0),
       audioFormat: bestAudio,
     });
   }
