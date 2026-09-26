@@ -14,7 +14,7 @@ import { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Capacitor } from "@capacitor/core";
-import { Camera, Mic, Bell, HardDrive, Shield, X, Settings2 } from "lucide-react";
+import { Camera, Mic, Bell, HardDrive, Shield, X, Settings2, Image, Music } from "lucide-react";
 import { useNavStore } from "@/lib/navigation/nav-store";
 import { useHaptics } from "@/hooks/use-haptics";
 import {
@@ -24,12 +24,14 @@ import {
   ensureMicrophonePermission,
   ensureNotificationPermission,
   ensureStoragePermission,
+  ensurePhotosPermission,
+  ensureAudioPermission,
   openAppSettings,
   type PermissionStatusState,
 } from "@/lib/permissions";
 
 interface PermissionCategory {
-  id: "camera" | "microphone" | "notifications" | "storage";
+  id: "camera" | "microphone" | "notifications" | "storage" | "photos" | "audio";
   icon: React.ReactNode;
   title: string;
   description: string;
@@ -43,6 +45,20 @@ export function PermissionGate() {
   const haptics = useHaptics();
 
   const [categories, setCategories] = useState<PermissionCategory[]>([
+    {
+      id: "photos",
+      icon: <Image className="size-4.5 text-pink-400" />,
+      title: "Photos & Videos",
+      description: "Pick and import photos and videos for editing, conversion, and compression",
+      status: "prompt",
+    },
+    {
+      id: "audio",
+      icon: <Music className="size-4.5 text-indigo-400" />,
+      title: "Music & Audios",
+      description: "Pick and import songs and audio tracks for audio extraction and trimming",
+      status: "prompt",
+    },
     {
       id: "camera",
       icon: <Camera className="size-4.5 text-violet-400" />,
@@ -126,6 +142,8 @@ export function PermissionGate() {
       else if (id === "microphone") await ensureMicrophonePermission();
       else if (id === "notifications") await ensureNotificationPermission();
       else if (id === "storage") await ensureStoragePermission();
+      else if (id === "photos") await ensurePhotosPermission();
+      else if (id === "audio") await ensureAudioPermission();
     } catch (err) {
       console.warn(`Failed requesting ${id} permission:`, err);
     } finally {

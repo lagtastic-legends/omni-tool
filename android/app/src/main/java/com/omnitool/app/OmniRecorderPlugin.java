@@ -62,6 +62,19 @@ import java.util.Locale;
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE
             }
+        ),
+        @Permission(
+            alias = "photos",
+            strings = {
+                Manifest.permission.READ_MEDIA_IMAGES,
+                Manifest.permission.READ_MEDIA_VIDEO
+            }
+        ),
+        @Permission(
+            alias = "audio",
+            strings = {
+                Manifest.permission.READ_MEDIA_AUDIO
+            }
         )
     }
 )
@@ -341,6 +354,8 @@ public class OmniRecorderPlugin extends Plugin {
         aliases.add("microphone");
         if (android.os.Build.VERSION.SDK_INT >= 33) {
             aliases.add("notifications");
+            aliases.add("photos");
+            aliases.add("audio");
         } else {
             aliases.add("storage");
         }
@@ -353,6 +368,34 @@ public class OmniRecorderPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void requestPhotosPermission(PluginCall call) {
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            requestPermissionForAlias("photos", call, "photosPermissionCallback");
+        } else {
+            requestPermissionForAlias("storage", call, "photosPermissionCallback");
+        }
+    }
+
+    @PermissionCallback
+    private void photosPermissionCallback(PluginCall call) {
+        checkAllPermissions(call);
+    }
+
+    @PluginMethod
+    public void requestAudioPermission(PluginCall call) {
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            requestPermissionForAlias("audio", call, "audioPermissionCallback");
+        } else {
+            requestPermissionForAlias("storage", call, "audioPermissionCallback");
+        }
+    }
+
+    @PermissionCallback
+    private void audioPermissionCallback(PluginCall call) {
+        checkAllPermissions(call);
+    }
+
+    @PluginMethod
     public void checkAllPermissions(PluginCall call) {
         JSObject ret = new JSObject();
         ret.put("camera", getPermissionState("camera").toString().toLowerCase());
@@ -360,10 +403,15 @@ public class OmniRecorderPlugin extends Plugin {
 
         if (android.os.Build.VERSION.SDK_INT >= 33) {
             ret.put("notifications", getPermissionState("notifications").toString().toLowerCase());
+            ret.put("photos", getPermissionState("photos").toString().toLowerCase());
+            ret.put("audio", getPermissionState("audio").toString().toLowerCase());
             ret.put("storage", "granted"); // Android 13+ Scoped Storage for app & Documents is always accessible
         } else {
             ret.put("notifications", "granted"); // Not restricted by runtime permission below API 33
-            ret.put("storage", getPermissionState("storage").toString().toLowerCase());
+            String storageState = getPermissionState("storage").toString().toLowerCase();
+            ret.put("storage", storageState);
+            ret.put("photos", storageState);
+            ret.put("audio", storageState);
         }
         call.resolve(ret);
     }

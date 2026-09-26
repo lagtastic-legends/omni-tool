@@ -10,6 +10,8 @@ export interface SystemPermissionStatus {
   microphone: PermissionStatusState;
   notifications: PermissionStatusState;
   storage: PermissionStatusState;
+  photos: PermissionStatusState;
+  audio: PermissionStatusState;
 }
 
 /**
@@ -42,6 +44,8 @@ export async function checkAppPermissions(): Promise<SystemPermissionStatus> {
       microphone: "granted",
       notifications: notifState,
       storage: "granted",
+      photos: "granted",
+      audio: "granted",
     };
   }
 
@@ -54,6 +58,8 @@ export async function checkAppPermissions(): Promise<SystemPermissionStatus> {
         microphone: normalizeState(all.microphone),
         notifications: normalizeState(all.notifications),
         storage: normalizeState(all.storage),
+        photos: normalizeState(all.photos),
+        audio: normalizeState(all.audio),
       };
     }
   } catch {
@@ -64,11 +70,15 @@ export async function checkAppPermissions(): Promise<SystemPermissionStatus> {
   let microphone: PermissionStatusState = "prompt";
   let notifications: PermissionStatusState = "prompt";
   let storage: PermissionStatusState = "prompt";
+  let photos: PermissionStatusState = "prompt";
+  let audio: PermissionStatusState = "prompt";
 
   try {
     const omniPerms = await OmniRecorder.checkPermissions();
     camera = normalizeState(omniPerms.camera);
     microphone = normalizeState(omniPerms.microphone);
+    photos = normalizeState(omniPerms.photos);
+    audio = normalizeState(omniPerms.audio);
   } catch {}
 
   try {
@@ -88,6 +98,8 @@ export async function checkAppPermissions(): Promise<SystemPermissionStatus> {
     microphone,
     notifications,
     storage,
+    photos,
+    audio,
   };
 }
 
@@ -104,7 +116,7 @@ export async function requestAllAppPermissions(): Promise<SystemPermissionStatus
     await OmniRecorder.requestAllPermissions();
   } catch {
     try {
-      await OmniRecorder.requestPermissions({ permissions: ["camera", "microphone", "storage"] });
+      await OmniRecorder.requestPermissions({ permissions: ["camera", "microphone", "storage", "photos", "audio"] });
     } catch {}
     try {
       await ensureNotificationPermission();
@@ -197,6 +209,42 @@ export async function ensureStoragePermission(): Promise<boolean> {
 }
 
 /**
+ * Ensures photos & videos permission is granted for media operations.
+ */
+export async function ensurePhotosPermission(): Promise<boolean> {
+  if (!Capacitor.isNativePlatform()) return true;
+
+  try {
+    const current = await OmniRecorder.checkPermissions();
+    if (current.photos === "granted" || current.storage === "granted") return true;
+
+    const requested = await OmniRecorder.requestPhotosPermission();
+    return requested.photos === "granted" || requested.storage === "granted";
+  } catch (err) {
+    console.warn("Failed to request photos & videos permission:", err);
+    return false;
+  }
+}
+
+/**
+ * Ensures music & audios permission is granted for audio operations.
+ */
+export async function ensureAudioPermission(): Promise<boolean> {
+  if (!Capacitor.isNativePlatform()) return true;
+
+  try {
+    const current = await OmniRecorder.checkPermissions();
+    if (current.audio === "granted" || current.storage === "granted") return true;
+
+    const requested = await OmniRecorder.requestAudioPermission();
+    return requested.audio === "granted" || requested.storage === "granted";
+  } catch (err) {
+    console.warn("Failed to request music & audios permission:", err);
+    return false;
+  }
+}
+
+/**
  * Opens system app settings screen on Android so the user can easily toggle blocked permissions.
  */
 export async function openAppSettings(): Promise<void> {
@@ -208,3 +256,4 @@ export async function openAppSettings(): Promise<void> {
     }
   }
 }
+
